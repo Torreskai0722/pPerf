@@ -1,0 +1,21 @@
+sensor_publisher:
+  ros__parameters:
+    publish_freq_lidar: 20
+    publish_freq_image: 12
+    run_time: 30
+    expected_models: 2
+
+lidar_inference_node:
+  ros__parameters:
+    sample_freq: 10
+    mode: lidar
+    model_name: pv_rcnn_8xb2-80e_kitti-3d-3class
+    depth: 0
+
+image_inference_node:
+  ros__parameters:
+    sample_freq: 12
+    mode: image
+    model_name: yolov3_d53_320_273e_coco
+    depth: 0
+
