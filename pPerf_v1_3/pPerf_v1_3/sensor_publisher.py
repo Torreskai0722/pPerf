@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSHistoryPolicy
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -55,9 +56,24 @@ class SensorPublisherNode(Node):
         self.lidar_queue = self.get_parameter('lidar_queue').value
         self.image_queue = self.get_parameter('image_queue').value
 
+        # Define a custom QoS profile
+        lidar_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=self.lidar_queue
+        )
+
+        image_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=self.image_queue
+        )
+
         # PUBLISHER && SUBSCRIBER
-        self.lidar_publisher = self.create_publisher(PointCloud2, 'lidar_data', self.lidar_queue)
-        self.image_publisher = self.create_publisher(Image, 'image_data', self.image_queue)
+        self.lidar_publisher = self.create_publisher(PointCloud2, 'lidar_data', lidar_qos)
+        self.image_publisher = self.create_publisher(Image, 'image_data', image_qos)
         self.terminate_publisher = self.create_publisher(String, 'terminate_inferencers', 10)
         self.create_subscription(String, 'inferencer_ready', self.inferencer_ready_callback, 10)
 
@@ -86,9 +102,31 @@ class SensorPublisherNode(Node):
         for i in range(self.max_lidar_msgs):
             try:
                 path = self.lidar_files[i]
-                points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
+                points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)[:, :4]
                 input_name = os.path.basename(path).split('.')[0]
-                self.lidar_data.append((points, input_name))
+
+                dtype = np.float32
+                itemsize = np.dtype(dtype).itemsize
+
+                msg = PointCloud2()
+                msg.header.frame_id = f"lidar_frame|{input_name}|unknown"
+                msg.header.stamp = self.get_clock().now().to_msg()
+                msg.height = 1
+                msg.width = points.shape[0]
+                msg.is_dense = True
+                msg.is_bigendian = False
+                msg.point_step = itemsize * 4
+                msg.row_step = msg.point_step * points.shape[0]
+                msg.fields = [
+                    PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
+                    PointField(name='y', offset=1*itemsize, datatype=PointField.FLOAT32, count=1),
+                    PointField(name='z', offset=2*itemsize, datatype=PointField.FLOAT32, count=1),
+                    PointField(name='intensity', offset=3*itemsize, datatype=PointField.FLOAT32, count=1)
+                ]
+                msg.data = points.tobytes()
+
+                self.lidar_data.append((msg, input_name))
+
             except Exception as e:
                 self.get_logger().error(f"Failed to load LIDAR {path}: {e}")
 
@@ -98,10 +136,17 @@ class SensorPublisherNode(Node):
                 img = cv2.imread(path)
                 if img is None:
                     raise ValueError("cv2.imread returned None")
+
                 input_name = os.path.basename(path).split('.')[0]
-                self.image_data.append((img, input_name))
+                msg = self.bridge.cv2_to_imgmsg(img, encoding='bgr8')
+                msg.header.frame_id = f"camera_frame|{input_name}|unknown"
+                msg.header.stamp = self.get_clock().now().to_msg()
+
+                self.image_data.append((msg, input_name))
+
             except Exception as e:
                 self.get_logger().error(f"Failed to load IMAGE {path}: {e}")
+
 
     def inferencer_ready_callback(self, msg):
         try:
@@ -131,25 +176,10 @@ class SensorPublisherNode(Node):
             self.shutdown()
             return
 
-        points, input_name = self.lidar_data[self.lidar_index]
+        msg, input_name = self.lidar_data[self.lidar_index]
         is_critical = input_name in self.critical_frames
-        msg = PointCloud2()
         msg.header.frame_id = f"lidar_frame|{input_name}|{'critical' if is_critical else 'normal'}"
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.height = 1
-        msg.width = points.shape[0]
-        msg.is_dense = True
-        msg.is_bigendian = False
-        msg.point_step = 20
-        msg.row_step = msg.point_step * points.shape[0]
-        msg.fields = [
-            PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
-            PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
-            PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
-            PointField(name='intensity', offset=12, datatype=PointField.FLOAT32, count=1),
-            PointField(name='ringfield', offset=16, datatype=PointField.FLOAT32, count=1)
-        ]
-        msg.data = points.tobytes()
         self.lidar_publisher.publish(msg)
         self.lidar_index += 1
 
@@ -158,13 +188,13 @@ class SensorPublisherNode(Node):
             self.shutdown()
             return
 
-        img, input_name = self.image_data[self.image_index]
+        msg, input_name = self.image_data[self.image_index]
         is_critical = input_name in self.critical_frames
-        msg = self.bridge.cv2_to_imgmsg(img, encoding='bgr8')
         msg.header.frame_id = f"camera_frame|{input_name}|{'critical' if is_critical else 'normal'}"
         msg.header.stamp = self.get_clock().now().to_msg()
         self.image_publisher.publish(msg)
         self.image_index += 1
+
 
     def select_random_intervals(self, interval_duration=0.5, count=3):
         max_time_lidar = self.max_lidar_msgs / self.publish_freq_lidar
