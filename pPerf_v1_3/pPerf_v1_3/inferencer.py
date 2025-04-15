@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSHistoryPolicy
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -49,6 +50,21 @@ class InferenceNode(Node):
         self.lidar_queue = self.get_parameter('lidar_queue').value
         self.image_queue = self.get_parameter('image_queue').value
 
+        # Define a custom QoS profile
+        lidar_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=self.lidar_queue
+        )
+
+        image_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=self.image_queue
+        )
+
         # INTIALIZATION OF LOCAL DATA
         self.latest_data = None
         self.latest_name = ''
@@ -63,11 +79,11 @@ class InferenceNode(Node):
 
         # INIT OF MODELS BASED ON MODE
         if self.mode == 'lidar':
-            self.subscriber = self.create_subscription(PointCloud2, 'lidar_data', self.data_callback, self.lidar_queue)
+            self.subscriber = self.create_subscription(PointCloud2, 'lidar_data', self.data_callback, lidar_qos)
             self.inferencer = LidarDet3DInferencer(self.model_name)
             self.inferencer.show_progress = False
         else:
-            self.subscriber = self.create_subscription(Image, 'image_data', self.data_callback, self.image_queue)
+            self.subscriber = self.create_subscription(Image, 'image_data', self.data_callback, image_qos)
             self.inferencer = DetInferencer(self.model_name)
             self.inferencer.show_progress = False
 
@@ -101,15 +117,14 @@ class InferenceNode(Node):
         self.latest_name = input_name
 
         if self.mode == 'lidar':
-            # Ensure 5 values per point: x, y, z, intensity, ringfield
+            # Ensure 4 values per point: x, y, z, intensity
             points = []
             for p in pc2.read_points(msg, field_names=None, skip_nans=True):
                 x = p[0]
                 y = p[1]
                 z = p[2]
                 intensity = p[3] if len(p) > 3 else 0.0
-                ringfield = p[4] if len(p) > 4 else 0.0
-                points.append([x, y, z, intensity, ringfield])
+                points.append([x, y, z, intensity])
 
             points = np.array(points, dtype=np.float32)
             self.latest_data = dict(points=points)
@@ -126,9 +141,6 @@ class InferenceNode(Node):
         # Communication delay calculation
         recv_time = self.get_clock().now().nanoseconds / 1e9  # Current node time in seconds
         sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9  # Time from header
-        
-        print(recv_time, flush=True)
-        print(sent_time, flush=True)
 
         delay = recv_time - sent_time
         self.delay_log.append({
