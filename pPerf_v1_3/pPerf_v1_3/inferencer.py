@@ -55,20 +55,24 @@ class InferenceNode(Node):
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             durability=QoSDurabilityPolicy.VOLATILE,
             history=QoSHistoryPolicy.KEEP_LAST,
-            depth=self.lidar_queue
+            depth=self.lidar_queue,
+            lifespan=rclpy.duration.Duration(seconds=0.1)
         )
 
         image_qos = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             durability=QoSDurabilityPolicy.VOLATILE,
             history=QoSHistoryPolicy.KEEP_LAST,
-            depth=self.image_queue
+            depth=self.image_queue,
+            lifespan=rclpy.duration.Duration(seconds=0.1)
         )
 
         # INTIALIZATION OF LOCAL DATA
         self.latest_data = None
         self.latest_name = ''
         self.latest_critical = False
+        self.sub_lidar_count = 0
+        self.sub_image_count = 0
 
         self.hit_csv = f"{self.data_dir}/run_{self.index}.csv"
         self.hit_df = pd.read_csv(self.hit_csv)
@@ -106,6 +110,8 @@ class InferenceNode(Node):
 
     def data_callback(self, msg):
         """Decode and store the latest sensor data."""
+        recv_time = self.get_clock().now().nanoseconds / 1e9  # Current node time in seconds
+        sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9  # Time from header
         frame_id = msg.header.frame_id
         parts = frame_id.split('|')
         input_name = parts[1]
@@ -117,30 +123,35 @@ class InferenceNode(Node):
         self.latest_name = input_name
 
         if self.mode == 'lidar':
-            # Ensure 4 values per point: x, y, z, intensity
+            # Ensure 4 values per point: x, y, z, intensity, must have a ring field to fit mmdet3d
             points = []
             for p in pc2.read_points(msg, field_names=None, skip_nans=True):
                 x = p[0]
                 y = p[1]
                 z = p[2]
                 intensity = p[3] if len(p) > 3 else 0.0
-                points.append([x, y, z, intensity])
+                ringfield = p[4] if len(p) > 4 else 0.0
+                points.append([x, y, z, intensity, ringfield])
 
             points = np.array(points, dtype=np.float32)
             self.latest_data = dict(points=points)
+
+            self.sub_lidar_count += 1
 
         else:
             bridge = CvBridge()
             try:
                 img = bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
                 self.latest_data = img
+
+                self.sub_image_count += 1
             except Exception as e:
                 self.get_logger().error(f"Error converting image: {e}")
                 self.latest_data = None
         
         # Communication delay calculation
-        recv_time = self.get_clock().now().nanoseconds / 1e9  # Current node time in seconds
-        sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9  # Time from header
+        # recv_time = self.get_clock().now().nanoseconds / 1e9  # Current node time in seconds
+        # sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9  # Time from header
 
         delay = recv_time - sent_time
         self.delay_log.append({
@@ -171,6 +182,9 @@ class InferenceNode(Node):
     def terminate_callback(self, msg):
         if msg.data.strip() == "TERMINATE":
             self.get_logger().info(f"{self.mode} Inferencer shutting down.................")
+
+            print(f'sub lidar count: {self.sub_lidar_count}')
+            print(f'sub image count: {self.sub_image_count}')
 
             # Shared delay file path
             lock_path = self.delay_csv + ".lock"
