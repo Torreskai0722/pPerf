@@ -61,14 +61,14 @@ class SensorPublisherNode(Node):
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             durability=QoSDurabilityPolicy.VOLATILE,
             history=QoSHistoryPolicy.KEEP_LAST,
-            depth=self.lidar_queue
+            depth=1
         )
 
         image_qos = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             durability=QoSDurabilityPolicy.VOLATILE,
             history=QoSHistoryPolicy.KEEP_LAST,
-            depth=self.image_queue
+            depth=1
         )
 
         # PUBLISHER && SUBSCRIBER
@@ -96,7 +96,13 @@ class SensorPublisherNode(Node):
 
         self.lidar_data = []
         self.image_data = []
+
+        self.pub_lidar_count = 0
+        self.pub_image_count = 0
+        self.preloading_done = False
         self.preload_all_data()
+
+
 
     def preload_all_data(self):
         for i in range(self.max_lidar_msgs):
@@ -146,6 +152,8 @@ class SensorPublisherNode(Node):
 
             except Exception as e:
                 self.get_logger().error(f"Failed to load IMAGE {path}: {e}")
+        
+        self.preloading_done = True
 
 
     def inferencer_ready_callback(self, msg):
@@ -153,7 +161,9 @@ class SensorPublisherNode(Node):
             self.models_ready_count += int(msg.data)
             self.get_logger().info(f"Received inferencer readiness. Count: {self.models_ready_count}/{self.expected_models}")
 
-            if self.models_ready_count >= self.expected_models:
+            if self.models_ready_count == self.expected_models:
+                while not self.preloading_done:
+                    print("waiting for preloading")
                 self.profiler.start_gpu_monitoring()
                 self.start_publishing()
 
@@ -176,6 +186,8 @@ class SensorPublisherNode(Node):
             self.shutdown()
             return
 
+        self.pub_lidar_count += 1
+
         msg, input_name = self.lidar_data[self.lidar_index]
         is_critical = input_name in self.critical_frames
         msg.header.frame_id = f"lidar_frame|{input_name}|{'critical' if is_critical else 'normal'}"
@@ -187,6 +199,8 @@ class SensorPublisherNode(Node):
         if self.image_index >= self.max_image_msgs or time.time() - self.start_time > self.run_time:
             self.shutdown()
             return
+        
+        self.pub_image_count += 1
 
         msg, input_name = self.image_data[self.image_index]
         is_critical = input_name in self.critical_frames
@@ -250,6 +264,8 @@ class SensorPublisherNode(Node):
     def shutdown(self):
         self.get_logger().info("Sensor Publisher shutting down............")
 
+        print(f'pub lidar count: {self.pub_lidar_count}')
+        print(f'pub image count: {self.pub_image_count}')
         terminate_msg = String()
         terminate_msg.data = "TERMINATE"
         self.terminate_publisher.publish(terminate_msg)
