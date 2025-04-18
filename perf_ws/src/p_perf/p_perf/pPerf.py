@@ -136,7 +136,7 @@ class pPerf:
             self.wrap_roi_head_predict(inferencer.model.roi_head, input_name)
 
         torch.cuda.nvtx.range_push(f'{input_name}.{self.model_name}.e2e')
-        inferencer(data)
+        result = inferencer(data)
         torch.cuda.nvtx.range_pop()
 
     def start_gpu_monitoring(self):

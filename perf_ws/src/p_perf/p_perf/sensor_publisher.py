@@ -4,19 +4,17 @@ from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy, QoS
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from sensor_msgs.msg import PointCloud2, PointField, Image
+from sensor_msgs.msg import PointCloud2, PointField, CompressedImage
 import numpy as np
-from cv_bridge import CvBridge
 import cv2
 import os
 import time
-from pPerf_v1_3.pPerf import pPerf
-from pPerf_v1_3.utils import list_filenames
+from p_perf.pPerf import pPerf
+from p_perf.utils import list_filenames
 import pandas as pd
-import random
 
-LIDAR_DIR = '/mmdetection3d_ros2/dataset/nuscenes/v1.0-mini/sweeps/LIDAR_TOP'
-IMAGE_DIR = '/mmdetection3d_ros2/dataset/nuscenes/v1.0-mini/sweeps/CAM_FRONT'
+LIDAR_DIR = '/mmdetection3d_ros2/data/v1.0-mini/sweeps/LIDAR_TOP'
+IMAGE_DIR = '/mmdetection3d_ros2/data/v1.0-mini/sweeps/CAM_FRONT'
 
 class SensorPublisherNode(Node):
     def __init__(self):
@@ -42,13 +40,6 @@ class SensorPublisherNode(Node):
         self.run_time = self.get_parameter('run_time').value
         self.gpu_duration = self.get_parameter('gpu_duration').value
 
-        # HITRATE EXPERIMENT PARAMETER
-        self.declare_parameter('critical_duration', 0.5)
-        self.declare_parameter('critical_count', 3)
-
-        self.critical_duration = self.get_parameter('critical_duration').value
-        self.critical_count = self.get_parameter('critical_count').value
-
         # COMMUNICATION EXPERIMENT PARAMETERS
         self.declare_parameter('lidar_queue', 1)
         self.declare_parameter('image_queue', 1)
@@ -73,7 +64,7 @@ class SensorPublisherNode(Node):
 
         # PUBLISHER && SUBSCRIBER
         self.lidar_publisher = self.create_publisher(PointCloud2, 'lidar_data', lidar_qos)
-        self.image_publisher = self.create_publisher(Image, 'image_data', image_qos)
+        self.image_publisher = self.create_publisher(CompressedImage, 'image_data', image_qos)
         self.terminate_publisher = self.create_publisher(String, 'terminate_inferencers', 10)
         self.create_subscription(String, 'inferencer_ready', self.inferencer_ready_callback, 10)
 
@@ -84,14 +75,11 @@ class SensorPublisherNode(Node):
         self.max_lidar_msgs = min(len(self.lidar_files), int(self.run_time * self.publish_freq_lidar))
         self.max_image_msgs = min(len(self.image_files), int(self.run_time * self.publish_freq_image))
 
-        self.select_random_intervals(interval_duration=self.critical_duration, count=self.critical_count)
-
         self.lidar_index = 0
         self.image_index = 0
         self.start_time = None
         self.models_ready_count = 0
 
-        self.bridge = CvBridge()
         self.profiler = pPerf('', 0, self.gpu_duration)
 
         self.lidar_data = []
@@ -108,27 +96,28 @@ class SensorPublisherNode(Node):
         for i in range(self.max_lidar_msgs):
             try:
                 path = self.lidar_files[i]
-                points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)[:, :4]
+                points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
                 input_name = os.path.basename(path).split('.')[0]
 
                 dtype = np.float32
                 itemsize = np.dtype(dtype).itemsize
 
                 msg = PointCloud2()
-                msg.header.frame_id = f"lidar_frame|{input_name}|unknown"
+                msg.header.frame_id = input_name
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.height = 1
                 msg.width = points.shape[0]
                 msg.is_dense = True
                 msg.is_bigendian = False
-                msg.point_step = itemsize * 4
-                msg.row_step = msg.point_step * points.shape[0]
                 msg.fields = [
                     PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
                     PointField(name='y', offset=1*itemsize, datatype=PointField.FLOAT32, count=1),
                     PointField(name='z', offset=2*itemsize, datatype=PointField.FLOAT32, count=1),
-                    PointField(name='intensity', offset=3*itemsize, datatype=PointField.FLOAT32, count=1)
+                    PointField(name='intensity', offset=3*itemsize, datatype=PointField.FLOAT32, count=1),
+                    PointField(name='ring', offset=4*itemsize, datatype=PointField.FLOAT32, count=1)
                 ]
+                msg.point_step = itemsize * len(msg.fields)
+                msg.row_step = msg.point_step * points.shape[0]
                 msg.data = points.tobytes()
 
                 self.lidar_data.append((msg, input_name))
@@ -144,10 +133,11 @@ class SensorPublisherNode(Node):
                     raise ValueError("cv2.imread returned None")
 
                 input_name = os.path.basename(path).split('.')[0]
-                msg = self.bridge.cv2_to_imgmsg(img, encoding='bgr8')
-                msg.header.frame_id = f"camera_frame|{input_name}|unknown"
+                msg = CompressedImage()
+                msg.header.frame_id = input_name
                 msg.header.stamp = self.get_clock().now().to_msg()
-
+                msg.format = "jpeg"  # or "png" depending on your preference
+                msg.data = np.array(cv2.imencode('.jpg', img)[1]).tobytes()
                 self.image_data.append((msg, input_name))
 
             except Exception as e:
@@ -172,9 +162,6 @@ class SensorPublisherNode(Node):
 
     def start_publishing(self):
         if self.start_time is None:
-            df = pd.read_csv(f"{self.data_dir}/run_{self.index}.csv")
-            self.critical_frames = set(df['frame'].astype(str).tolist())
-
             self.start_time = time.time()
             self.get_logger().info("All expected models are ready. Starting data publishing.")
 
@@ -189,8 +176,7 @@ class SensorPublisherNode(Node):
         self.pub_lidar_count += 1
 
         msg, input_name = self.lidar_data[self.lidar_index]
-        is_critical = input_name in self.critical_frames
-        msg.header.frame_id = f"lidar_frame|{input_name}|{'critical' if is_critical else 'normal'}"
+        msg.header.frame_id = input_name
         msg.header.stamp = self.get_clock().now().to_msg()
         self.lidar_publisher.publish(msg)
         self.lidar_index += 1
@@ -203,63 +189,11 @@ class SensorPublisherNode(Node):
         self.pub_image_count += 1
 
         msg, input_name = self.image_data[self.image_index]
-        is_critical = input_name in self.critical_frames
-        msg.header.frame_id = f"camera_frame|{input_name}|{'critical' if is_critical else 'normal'}"
+        msg.header.frame_id = input_name
         msg.header.stamp = self.get_clock().now().to_msg()
         self.image_publisher.publish(msg)
         self.image_index += 1
 
-
-    def select_random_intervals(self, interval_duration=0.5, count=3):
-        max_time_lidar = self.max_lidar_msgs / self.publish_freq_lidar
-        max_time_image = self.max_image_msgs / self.publish_freq_image
-        max_time = min(max_time_lidar, max_time_image)
-
-        lidar_frames_per_interval = int(interval_duration * self.publish_freq_lidar)
-        image_frames_per_interval = int(interval_duration * self.publish_freq_image)
-
-        max_start_time = max_time - interval_duration
-        intervals = [random.uniform(0, max_start_time) for _ in range(count)]
-        intervals.sort()
-
-        records = []
-
-        for t_start in intervals:
-            t_end = t_start + interval_duration
-
-            lidar_start_idx = int(t_start * self.publish_freq_lidar)
-            image_start_idx = int(t_start * self.publish_freq_image)
-
-            lidar_end_idx = min(lidar_start_idx + lidar_frames_per_interval, self.max_lidar_msgs)
-            image_end_idx = min(image_start_idx + image_frames_per_interval, self.max_image_msgs)
-
-            lidar_names = [os.path.basename(f).split('.')[0] for f in self.lidar_files[lidar_start_idx:lidar_end_idx]]
-            image_names = [os.path.basename(f).split('.')[0] for f in self.image_files[image_start_idx:image_end_idx]]
-
-            for lidar_name in lidar_names:
-                records.append({
-                    "start_time": round(t_start, 4),
-                    "end_time": round(t_end, 4),
-                    "sensor_type": "lidar",
-                    "frame": lidar_name,
-                    "paired_frames": image_names,
-                    "hit status": False
-                })
-
-            for image_name in image_names:
-                records.append({
-                    "start_time": round(t_start, 4),
-                    "end_time": round(t_end, 4),
-                    "sensor_type": "image",
-                    "frame": image_name,
-                    "paired_frames": lidar_names,
-                    "hit status": False
-                })
-
-        output_path = os.path.join(self.data_dir, f"run_{self.index}.csv")
-        df = pd.DataFrame(records)
-        df.to_csv(output_path, index=False)
-        self.get_logger().info(f"Saved {len(records)} entries to {output_path} using index-based interval selection.")
 
     def shutdown(self):
         self.get_logger().info("Sensor Publisher shutting down............")
