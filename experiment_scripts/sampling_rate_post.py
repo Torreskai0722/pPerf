@@ -4,15 +4,15 @@ import os
 from sampling_rate_graphing import filter_indices, read_csv
 # Path to the CSV file
 INPUT_DIR = "sampling_log_1"
-csv_path = f"/mmdetection3d_ros2/pPerf_ws/{INPUT_DIR}/param_mapping.csv"
+csv_path = f"/mmdetection3d_ros2/perf_ws/{INPUT_DIR}/param_mapping.csv"
 
 rows = read_csv(csv_path)
 selected_indices = filter_indices(rows)
 
 # Run the command for each selected index
 for i in range(123, 144):
-    run_path = f"/mmdetection3d_ros2/pPerf_ws/{INPUT_DIR}/v1_3_run_{i}"
-    command = ["python3", "src/pPerf_v1_3/pPerf_v1_3/pPerf_post.py", run_path]
+    run_path = f"/mmdetection3d_ros2/perf_ws/{INPUT_DIR}/v1_3_run_{i}"
+    command = ["python3", "src/p_perf/p_perf/pPerf_post.py", run_path]
 
     print(f"\nRunning: {' '.join(command)}")
     result = subprocess.run(command, capture_output=True, text=True)

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 TOP_KERNEL = 5
 INPUT_DIR = 'faster_rcnn_log'
 OUTPUT_DIR = 'sampling_faster_rcnn'
-BASE_DIR = '/mmdetection3d_ros2/pPerf_ws'
+BASE_DIR = '/mmdetection3d_ros2/perf_ws'
 os.makedirs(f"{BASE_DIR}/{OUTPUT_DIR}", exist_ok=True)
 plot_dir = f"{BASE_DIR}/{OUTPUT_DIR}/layer_cv_plots"
 os.makedirs(plot_dir, exist_ok=True)

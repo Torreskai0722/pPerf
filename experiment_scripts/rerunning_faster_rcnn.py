@@ -15,7 +15,7 @@ nsys_base = [
 ]
 
 # Output folder
-output_base = "/mmdetection3d_ros2/pPerf_ws/faster_rcnn_log"
+output_base = "/mmdetection3d_ros2/perf_ws/faster_rcnn_log"
 os.makedirs(output_base, exist_ok=True)
 run_time = 30
 
@@ -65,7 +65,7 @@ for i, row in df.iterrows():
 
     # ROS 2 launch command
     ros2_cmd = [
-        "ros2", "launch", "pPerf_v1_3", "pPerf_test.launch.py",
+        "ros2", "launch", "p_perf", "pPerf_test.launch.py",
         f"idx:={i}",
         f"data_dir:={output_base}",
         f"sensor_run_time:={run_time}",
@@ -108,7 +108,7 @@ for i, row in df.iterrows():
             
 
     try:
-        command = ["python3", "src/pPerf_v1_3/pPerf_v1_3/pPerf_post.py", output_file]
+        command = ["python3", "src/p_perf/p_perf/pPerf_post.py", output_file]
         print(f"\nRunning: {' '.join(command)}")
         result = subprocess.run(command, capture_output=True, text=True)
 
