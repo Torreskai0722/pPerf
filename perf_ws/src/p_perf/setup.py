@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 import os
 from glob import glob
 
-package_name = 'pPerf_v1_3'
+package_name = 'p_perf'
 
 setup(
     name=package_name,
@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             f'sensor_publish_node = {package_name}.sensor_publisher:main',
             f'inference_node = {package_name}.inferencer:main',
+            f"sensor_replay_node = {package_name}.sensor_replayer:main"
         ],
     },
 )

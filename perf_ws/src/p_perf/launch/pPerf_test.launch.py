@@ -22,7 +22,7 @@ def generate_launch_description():
         DeclareLaunchArgument("data_dir", default_value="0"),
 
         Node(
-            package="pPerf_v1_3",
+            package="p_perf",
             executable="sensor_publish_node",
             name="sensor_publisher",
             output="screen",
@@ -37,7 +37,7 @@ def generate_launch_description():
         ),
 
         Node(
-            package="pPerf_v1_3",
+            package="p_perf",
             executable="inference_node",
             name="image_inference_node",
             output="screen",
@@ -47,12 +47,13 @@ def generate_launch_description():
                 "model_name": LaunchConfiguration("image_model_name"),
                 "mode": "image",
                 "data_dir": LaunchConfiguration("data_dir"),
-                "index": LaunchConfiguration("idx")
+                "index": LaunchConfiguration("idx"),
+                "input_type": "publisher"
             }]
         ),
 
         Node(
-            package="pPerf_v1_3",
+            package="p_perf",
             executable="inference_node",
             name="lidar_inference_node",
             output="screen",
@@ -62,7 +63,8 @@ def generate_launch_description():
                 "model_name": LaunchConfiguration("lidar_model_name"),
                 "mode": "lidar",
                 "data_dir": LaunchConfiguration("data_dir"),
-                "index": LaunchConfiguration("idx")
+                "index": LaunchConfiguration("idx"),
+                "input_type": "publisher"
             }]
         ),
     ])
