@@ -15,10 +15,10 @@ nsys_base = [
 ]
 
 # Output folder
-output_base = "/mmdetection3d_ros2/outputs/test"
+output_base = "/mmdetection3d_ros2/outputs/bag"
 os.makedirs(output_base, exist_ok=True)
 
-run_time = 5
+run_time = 30
 
 # Failure log file
 failure_log = os.path.join(output_base, "failures.log")
@@ -69,7 +69,7 @@ for i, row in df.iterrows():
 
     # Base ROS 2 launch command
     ros2_cmd = [
-        "ros2", "launch", "p_perf", "pPerf_test.launch.py",
+        "ros2", "launch", "p_perf", "pPerf_bag.launch.py",
         f"idx:={i}",
         f"data_dir:={output_base}",
         f"sensor_run_time:={run_time}",
