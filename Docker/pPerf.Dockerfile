@@ -79,8 +79,11 @@ RUN apt-get update && apt-get install -y \
     ros-humble-rqt* \
     python3-rosdep \
     python3-colcon-common-extensions \
+    ros-humble-rosbag2-storage-mcap \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip install pynvml
 
 # Initialize rosdep
 RUN rosdep init && rosdep update
