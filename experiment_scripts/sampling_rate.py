@@ -29,7 +29,7 @@ with open(failure_log, "w") as flog:
 # Parameter sweep setup
 image_sample_freqs = [10]
 lidar_sample_freqs = [14]
-depths = [1]
+depths = [0]
 image_models = [
     'faster-rcnn_r50_fpn_1x_coco',
     'detr_r50_8xb2-150e_coco',
@@ -65,7 +65,7 @@ for i, row in df.iterrows():
     img_model = row["image_model"]
     lidar_model = row["lidar_model"]
 
-    output_file = f"{output_base}/v1_3_run_{i}"
+    output_file = f"{output_base}/test_run_{i}"
 
     # Base ROS 2 launch command
     ros2_cmd = [

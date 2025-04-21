@@ -65,7 +65,7 @@ for i, row in df.iterrows():
     img_model = row["image_model"]
     lidar_model = row["lidar_model"]
 
-    output_file = f"{output_base}/v1_3_run_{i}"
+    output_file = f"{output_base}/pPerf_run_{i}"
 
     # Base ROS 2 launch command
     ros2_cmd = [

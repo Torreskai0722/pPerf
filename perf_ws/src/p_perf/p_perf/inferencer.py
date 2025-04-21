@@ -49,8 +49,8 @@ class InferenceNode(Node):
         self.data_dir = self.get_parameter('data_dir').value
 
         # COMMUNICATION EXPERIMENT PARAMETERS
-        self.declare_parameter('lidar_queue', 1)
-        self.declare_parameter('image_queue', 1)
+        self.declare_parameter('lidar_queue', 5)
+        self.declare_parameter('image_queue', 5)
 
         self.lidar_queue = self.get_parameter('lidar_queue').value
         self.image_queue = self.get_parameter('image_queue').value
@@ -100,6 +100,7 @@ class InferenceNode(Node):
         self.profiler = pPerf(self.model_name, self.depth)
         self.profiler.warm_up(self.inferencer, WARM_PCD if self.mode == 'lidar' else WARM_IMAGE, mode=self.mode)
         self.profiler.register_hooks(self.inferencer.model)
+        self.profiler.auto_patch_missed_methods(self.inferencer.model)
 
         # INFERENCER READY MSG FOR SENSOR PUBLISHER
         self.get_logger().info(f"{self.mode.capitalize()} model '{self.model_name}' is ready.")

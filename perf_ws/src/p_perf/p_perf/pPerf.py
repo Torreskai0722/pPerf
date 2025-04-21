@@ -1,4 +1,3 @@
-
 import threading
 import time
 from pynvml import (
@@ -11,86 +10,53 @@ from pynvml import (
 )
 import torch
 import functools
+import inspect
 from collections import deque
-import os
+import types
+from addict import Dict as AddictDict
+from mmengine.config import ConfigDict
+
 
 class pPerf:
     def __init__(self, model_name, target_depth, monitor_interval=0):
-        """
-        Performance Profiler for Deep Learning Models.
-
-        :param model_name: Name of the model being profiled.
-        :param target_depth: The depth at which hooks should be registered.
-        """
         self.hook_handles = []
-        self.timing = {}  # Dictionary to store inference times
         self.model_name = model_name
         self.target_depth = target_depth
         self.gpu_stats = []
         self.gpu_monitor_thread = None
         self.monitoring = False
         self.monitor_interval = monitor_interval  # seconds
-
+        self.warming = False
 
     def _time_start_hook(self, module, input):
-        """Hook to start the timer at the beginning of the forward pass."""
         torch.cuda.synchronize()
         torch.cuda.nvtx.range_push(f'{module.hook_name}')
-        # print(f'{module.hook_name} start')
 
     def _time_end_hook(self, module, input, output):
-        """Hook to end the timer at the end of the forward pass."""
         torch.cuda.synchronize()
         torch.cuda.nvtx.range_pop()
-        # print(f'{module.hook_name} end')
 
-    def wrap_roi_head_predict(self, roi_head, input_name):
-        """Wraps roi_head.predict() with NVTX push/pop for profiling and restores after inference."""
-        if hasattr(roi_head, "predict"):
-
-            # If already wrapped, retrieve the original function
-            if hasattr(roi_head, "_original_predict"):
-                original_predict = roi_head._original_predict
-            else:
-                original_predict = roi_head.predict  # enter here if no been wrapped yet
-                roi_head._original_predict = original_predict
-
-            @functools.wraps(original_predict)
-            def nvtx_wrapped_predict(*args, **kwargs):
-                torch.cuda.synchronize()
-                torch.cuda.nvtx.range_push(f'{input_name}.{self.model_name}.roi_head')
-                output = original_predict(*args, **kwargs)  # Call original predict
-                torch.cuda.synchronize()
-                torch.cuda.nvtx.range_pop()
-                return output
-
-            # Store the original function inside roi_head
-            roi_head.predict = nvtx_wrapped_predict
-
+    def is_forward_overridden(self, module):
+        return 'forward' in module.__class__.__dict__
 
     def register_hooks(self, model):
-        """
-        Registers hooks at the specified depth using breadth-first traversal.
-
-        :param model: The root model.
-        :param input: The understand different
-        """
         if self.target_depth < 0:
             return
 
-        queue = deque([(model, f"{self.model_name}", 0)])  # (submodule, prefix, current_depth)
+        queue = deque([(model, f"{self.model_name}", 0)])
 
         while queue:
             submodule, prefix, depth = queue.popleft()
 
             if depth == self.target_depth:
                 for child_name, child in submodule.named_children():
-                    full_name = f"{prefix}.{child_name}"
-                    child.hook_name = full_name  # Assign a unique identifier
+                    if not self.is_forward_overridden(child):
+                        continue
 
+                    full_name = f"{prefix}.{child_name}"
+                    child.hook_name = full_name
                     pre_handle = child.register_forward_pre_hook(self._time_start_hook)
                     post_handle = child.register_forward_hook(self._time_end_hook)
-
                     self.hook_handles.extend([pre_handle, post_handle])
 
             elif depth < self.target_depth:
@@ -99,19 +65,11 @@ class pPerf:
                     queue.append((child, full_name, depth + 1))
 
     def unregister_hooks(self):
-        """Unregister all hooks by removing each handle."""
         for handle in self.hook_handles:
             handle.remove()
-        self.hook_handles.clear()  # Clear the handles after unregistering
+        self.hook_handles.clear()
 
-
-    def warm_up(self, inferencer, warm_data, mode, num_warmups=10,):
-        """
-        Perform a model warm-up phase to stabilize inference timing.
-        :param inferencer: The inference engine.
-        :param warm_data: The warm-up data file.
-        :param num_warmups: Number of warm-up iterations.
-        """
+    def warm_up(self, inferencer, warm_data, mode, num_warmups=10):
         self.warming = True
         for _ in range(num_warmups):
             if mode == 'lidar':
@@ -121,33 +79,24 @@ class pPerf:
             else:
                 print("Mode is invalid")
                 return
-            
         self.warming = False
 
     def run_inference(self, inferencer, data, input_name):
-        """
-        Runs inference while tracking execution time using NVTX profiling.
-
-        :param inferencer: The inference engine.
-        :param lidar_files: List of Lidar point cloud files.
-        """
-
-        if "pv_rcnn" in self.model_name and self.target_depth == 0:
-            self.wrap_roi_head_predict(inferencer.model.roi_head, input_name)
-
+        
         torch.cuda.nvtx.range_push(f'{input_name}.{self.model_name}.e2e')
         result = inferencer(data)
         torch.cuda.nvtx.range_pop()
+        return result
 
     def start_gpu_monitoring(self):
         nvmlInit()
-        handle = nvmlDeviceGetHandleByIndex(0)  # Assuming GPU 0
+        handle = nvmlDeviceGetHandleByIndex(0)
 
         def monitor():
             while self.monitoring:
                 util = nvmlDeviceGetUtilizationRates(handle)
                 mem = nvmlDeviceGetMemoryInfo(handle)
-                power = nvmlDeviceGetPowerUsage(handle) / 1000.0  # mW to W
+                power = nvmlDeviceGetPowerUsage(handle) / 1000.0
 
                 self.gpu_stats.append({
                     'time': time.time(),
@@ -167,3 +116,48 @@ class pPerf:
         if self.gpu_monitor_thread is not None:
             self.gpu_monitor_thread.join()
         nvmlShutdown()
+
+    # -------------- Auto Wrapping Missed Methods ----------------
+
+    def find_non_forward_methods(self, module):
+        """
+        Identify non-forward, public methods defined in the module's class
+        that may be missed by PyTorch forward hooks.
+        """
+        interesting = []
+        module_cls = module.__class__
+
+        for name, fn in inspect.getmembers(module, predicate=inspect.ismethod):
+            if name.startswith('_') or name in ['forward', '__call__']:
+                continue
+            if name in module_cls.__dict__:
+                interesting.append(name)
+
+        return interesting
+
+
+    def wrap_module_method_with_nvtx(self, module, method_name, nvtx_name):
+        original_method = getattr(module, method_name)
+        marker = f'_original_{method_name}'
+        if hasattr(module, marker):
+            return  # already wrapped
+
+        setattr(module, marker, original_method)
+
+        @functools.wraps(original_method)
+        def wrapped_method(*args, **kwargs):
+            torch.cuda.synchronize()
+            torch.cuda.nvtx.range_push(nvtx_name)
+            result = original_method(*args, **kwargs)
+            torch.cuda.synchronize()
+            torch.cuda.nvtx.range_pop()
+            return result
+
+        setattr(module, method_name, wrapped_method)
+
+    def auto_patch_missed_methods(self, model):
+        for module_name, submodule in model.named_modules():
+            method_names = self.find_non_forward_methods(submodule)
+            for method in method_names:
+                nvtx_tag = f"{self.model_name}.{module_name}.{method}"
+                self.wrap_module_method_with_nvtx(submodule, method, nvtx_tag)
