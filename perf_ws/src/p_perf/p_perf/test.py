@@ -30,19 +30,25 @@ class AutoProfiler:
         code = frame.f_code
         func_name = code.co_name
         filename = code.co_filename
-        if "site-packages" in filename or "<frozen" in filename:
+
+        if "site-packages" in filename or "<frozen" in filename or "_call" in filename:
             return
 
+        module = frame.f_globals.get("__name__")
+        func_name = frame.f_code.co_name
+        key = (module, func_name)
+        self.called_cuda_methods.add(key)
+
         # Check for CUDA tensors in local variables
-        for val in frame.f_locals.values():
-            try:
-                if isinstance(val, torch.Tensor) and val.is_cuda:
-                    module = frame.f_globals.get("__name__")
-                    key = (module, func_name)
-                    self.called_cuda_methods.add(key)
-                    break
-            except Exception:
-                continue
+        # for val in frame.f_locals.values():
+        #     try:
+        #         if isinstance(val, torch.Tensor) and val.is_cuda:
+        #             module = frame.f_globals.get("__name__")
+        #             key = (module, func_name)
+        #             self.called_cuda_methods.add(key)
+        #             break
+        #     except Exception:
+        #         continue
 
     def profile_model(self, model, inferencer, input_data):
         """Runs the model once to trace CUDA-using functions."""
@@ -93,10 +99,12 @@ class AutoProfiler:
 
 
 model = inferencer.model
+
+print(model)
 points = np.fromfile(lidar_paths[0], dtype=np.float32).reshape(-1, 5)
 input_tensor = dict(points=np.array(points, dtype=np.float32))  # or your actual test input
 
-profiler = AutoProfiler(model_name="centerpoint")
+profiler = AutoProfiler(model_name="pointpillar")
 
 # Step 1: Trace methods that touch CUDA
 profiler.profile_model(model, inferencer, input_tensor)
@@ -107,7 +115,7 @@ profiler.print_traced_methods()
 # Step 3: Wrap only those methods with NVTX
 profiler.wrap_traced_methods(model)
 
-for path in lidar_paths[1:10]:
+for path in lidar_paths[1:5]:
     input_name = os.path.basename(path).split('.')[0]
     points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
     input_tensor = dict(points=np.array(points, dtype=np.float32)) 
