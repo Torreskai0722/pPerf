@@ -28,19 +28,19 @@ with open(failure_log, "w") as flog:
 
 # Parameter sweep setup
 image_sample_freqs = [10]
-lidar_sample_freqs = [14]
-depths = [0]
+lidar_sample_freqs = [10]
+depths = [0, 1, 2, 3]
 image_models = [
-    'faster-rcnn_r50_fpn_1x_coco',
-    'detr_r50_8xb2-150e_coco',
-    'yolov3_d53_320_273e_coco',
-    'centernet_r18-dcnv2_8xb16-crop512-140e_coco'
+    'faster-rcnn_r50_fpn_1x_coco'
+    # 'detr_r50_8xb2-150e_coco',
+    # 'yolov3_d53_320_273e_coco',
+    # 'centernet_r18-dcnv2_8xb16-crop512-140e_coco'
 ]
 
 lidar_models = [
-    'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d',
-    'hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d',
-    'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d',
+    'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d'
+    # 'hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d',
+    # 'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d',
 ]
 
 # Generate all combinations
