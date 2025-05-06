@@ -36,33 +36,48 @@ class pPerf:
         torch.cuda.synchronize()
         torch.cuda.nvtx.range_pop()
 
-    def is_forward_overridden(self, module):
-        return 'forward' in module.__class__.__dict__
+    def is_hookable(self, module):
+        """Returns True if the module is not a container and performs computation."""
+        container_types = (torch.nn.ModuleList, torch.nn.ModuleDict)
+        return not isinstance(module, container_types)
 
     def register_hooks(self, model):
         if self.target_depth < 0:
             return
 
-        queue = deque([(model, f"{self.model_name}", 0)])
+        visited = set()
+        queue = deque([(model, self.model_name, 0)])
 
         while queue:
-            submodule, prefix, depth = queue.popleft()
+            current_module, current_prefix, depth = queue.popleft()
 
+            # Skip already visited modules
+            if current_prefix in visited:
+                continue
+            visited.add(current_prefix)
+
+            # Only register hooks if we're at the target depth
             if depth == self.target_depth:
-                for child_name, child in submodule.named_children():
-                    if not self.is_forward_overridden(child):
-                        continue
+                current_module.hook_name = current_prefix
+                print(f"Registering hook for: {current_prefix}")
+                pre_handle = current_module.register_forward_pre_hook(self._time_start_hook)
+                post_handle = current_module.register_forward_hook(self._time_end_hook)
+                self.hook_handles.extend([pre_handle, post_handle])
+                continue  # Do not expand further
 
-                    full_name = f"{prefix}.{child_name}"
-                    child.hook_name = full_name
-                    pre_handle = child.register_forward_pre_hook(self._time_start_hook)
-                    post_handle = child.register_forward_hook(self._time_end_hook)
-                    self.hook_handles.extend([pre_handle, post_handle])
+            # Expand children
+            for child_name, child_module in current_module.named_children():
+                child_prefix = f"{current_prefix}.{child_name}"
 
-            elif depth < self.target_depth:
-                for child_name, child in submodule.named_children():
-                    full_name = f"{prefix}.{child_name}" if prefix else child_name
-                    queue.append((child, full_name, depth + 1))
+                if self.is_hookable(child_module):
+                    # Regular module: enqueue for hook or further traversal
+                    queue.append((child_module, child_prefix, depth + 1))
+                else:
+                    # Container module: recurse one level deeper
+                    for grand_name, grand_child in child_module.named_children():
+                        grand_prefix = f"{child_prefix}.{grand_name}"
+                        queue.append((grand_child, grand_prefix, depth + 1))
+
 
     def unregister_hooks(self):
         for handle in self.hook_handles:

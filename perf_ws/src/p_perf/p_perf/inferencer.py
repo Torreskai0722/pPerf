@@ -100,7 +100,6 @@ class InferenceNode(Node):
         self.profiler = pPerf(self.model_name, self.depth)
         self.profiler.warm_up(self.inferencer, WARM_PCD if self.mode == 'lidar' else WARM_IMAGE, mode=self.mode)
         self.profiler.register_hooks(self.inferencer.model)
-        self.profiler.auto_patch_missed_methods(self.inferencer.model)
 
         # INFERENCER READY MSG FOR SENSOR PUBLISHER
         self.get_logger().info(f"{self.mode.capitalize()} model '{self.model_name}' is ready.")
