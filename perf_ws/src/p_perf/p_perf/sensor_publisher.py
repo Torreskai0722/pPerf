@@ -13,8 +13,8 @@ from p_perf.pPerf import pPerf
 from p_perf.utils import list_filenames
 import pandas as pd
 
-LIDAR_DIR = '/mmdetection3d_ros2/data/v1.0-mini/sweeps/LIDAR_TOP'
-IMAGE_DIR = '/mmdetection3d_ros2/data/v1.0-mini/sweeps/CAM_FRONT'
+LIDAR_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP'
+IMAGE_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT'
 
 class SensorPublisherNode(Node):
     def __init__(self):
