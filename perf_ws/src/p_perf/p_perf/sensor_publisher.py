@@ -12,6 +12,7 @@ import time
 from p_perf.pPerf import pPerf
 from p_perf.utils import list_filenames
 import pandas as pd
+import json
 
 LIDAR_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP'
 IMAGE_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT'
@@ -28,6 +29,8 @@ class SensorPublisherNode(Node):
         self.expected_models = self.get_parameter('expected_models').value
         self.index = self.get_parameter('index').value
         self.data_dir = self.get_parameter('data_dir').value
+        json_path = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/sample_data.json'
+        self.filename_to_token = self.load_filename_to_token_map_from_json(json_path)
 
         # BASIC EXPERIMENT PARAMETERS
         self.declare_parameter('publish_freq_lidar', 20)
@@ -91,19 +94,29 @@ class SensorPublisherNode(Node):
         self.preload_all_data()
 
 
+    def load_filename_to_token_map_from_json(self, json_path):
+        with open(json_path, 'r') as f:
+            sample_data = json.load(f)
+        mapping = {}
+        for item in sample_data:
+            filename = os.path.basename(item['filename'])  # Extract only the filename, e.g., 'n015...bin'
+            mapping[filename] = item['token']
+        return mapping
+
 
     def preload_all_data(self):
         for i in range(self.max_lidar_msgs):
             try:
                 path = self.lidar_files[i]
                 points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
-                input_name = os.path.basename(path).split('.')[0]
+                filename = os.path.basename(path)
+                token = self.filename_to_token.get(filename)
 
                 dtype = np.float32
                 itemsize = np.dtype(dtype).itemsize
 
                 msg = PointCloud2()
-                msg.header.frame_id = input_name
+                msg.header.frame_id = token
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.height = 1
                 msg.width = points.shape[0]
@@ -120,7 +133,7 @@ class SensorPublisherNode(Node):
                 msg.row_step = msg.point_step * points.shape[0]
                 msg.data = points.tobytes()
 
-                self.lidar_data.append((msg, input_name))
+                self.lidar_data.append(msg)
 
             except Exception as e:
                 self.get_logger().error(f"Failed to load LIDAR {path}: {e}")
@@ -129,16 +142,17 @@ class SensorPublisherNode(Node):
             try:
                 path = self.image_files[i]
                 img = cv2.imread(path)
+                filename = os.path.basename(path)
+                token = self.filename_to_token.get(filename)
                 if img is None:
                     raise ValueError("cv2.imread returned None")
 
-                input_name = os.path.basename(path).split('.')[0]
                 msg = CompressedImage()
-                msg.header.frame_id = input_name
+                msg.header.frame_id = token
                 msg.header.stamp = self.get_clock().now().to_msg()
                 msg.format = "jpeg"  # or "png" depending on your preference
                 msg.data = np.array(cv2.imencode('.jpg', img)[1]).tobytes()
-                self.image_data.append((msg, input_name))
+                self.image_data.append(msg)
 
             except Exception as e:
                 self.get_logger().error(f"Failed to load IMAGE {path}: {e}")
