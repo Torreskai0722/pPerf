@@ -20,8 +20,8 @@ import torch
 import functools
 import inspect
 import time
+from pyquaternion import Quaternion
 
-from p_perf.pPerf import pPerf
 
 WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151603597909.pcd.bin'
 
@@ -245,53 +245,80 @@ class AutoProfiler:
         nvmlShutdown()
 
 
+def convert_det_to_nusc_format(det):
+    """
+    Convert full detection result to list of NuScenes-format dicts.
+    Expects:
+        det['predictions'][0]['bboxes_3d']: List of 9D boxes [x, y, z, dx, dy, dz, yaw, vx, vy]
+        det['predictions'][0]['scores_3d']: Score list
+        det['predictions'][0]['labels_3d']: Label list
+    Returns:
+        List of dicts in NuScenes format with translation, size, rotation, velocity, detection_name, detection_score.
+    """
+    preds = det['predictions'][0]
+    bboxes = preds['bboxes_3d']
+    scores = preds['scores_3d']
+    labels = preds['labels_3d']
+
+    results = []
+
+    for i in range(len(bboxes)):
+        x, y, z, dx, dy, dz, yaw, vx, vy = bboxes[i]
+
+        quat = Quaternion(axis=[0, 0, 1], radians=yaw)
+
+        result = {
+            "translation": [x, y, z],
+            "size": [dy, dx, dz],  # NuScenes expects [w, l, h]
+            "rotation": [quat.w, quat.x, quat.y, quat.z],
+            "velocity": [vx, vy],
+            "detection_name": labels[i],
+            "detection_score": scores[i],
+        }
+
+        results.append(result)
+
+    return results
+
 lidar_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP', 'bin')
-
 inferencer = LidarDet3DInferencer('pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d')
-
 points = np.fromfile(lidar_paths[0], dtype=np.float32).reshape(-1, 5)
 input_tensor = dict(points=np.array(points, dtype=np.float32))  # or your actual test input
 
 profiler = AutoProfiler("pointpillar", inferencer, 0)
-
 profiler.warm_up(input_tensor)
 profiler.register_hooks(input_tensor)
-
-# p_profiler = pPerf('pointpillar', 1)
-# p_profiler.register_hooks(model)
-
 # # Optional: View summary
-profiler.summary()
+# profiler.summary()
 
-# Step 4: Run actual profiling
+results = []
 for path in lidar_paths[1:5]:
     input_name = os.path.basename(path).split('.')[0]
     points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
     input_tensor = dict(points=np.array(points, dtype=np.float32)) 
+    det = profiler.run_inference(input_tensor, input_name)
+    scores = det['predictions'][0]['scores_3d']
+    labels = det['predictions'][0]['labels_3d']
+    bboxes = det['predictions'][0]['bboxes_3d']
+    results.extend(convert_det_to_nusc_format(det))
+    print(results)
+    break
 
-    profiler.run_inference(input_tensor, input_name)
 
 
-img_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT', 'jpg')
+# img_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT', 'jpg')
+# image_inferencer = DetInferencer('faster-rcnn_r50_fpn_1x_coco')
+# input_tensor = cv2.imread(img_paths[0])
 
-image_inferencer = DetInferencer('faster-rcnn_r50_fpn_1x_coco')
+# profiler = AutoProfiler("faster_rcnn", image_inferencer, 0)
+# profiler.warm_up(input_tensor)
+# profiler.register_hooks(input_tensor)
 
-input_tensor = cv2.imread(img_paths[0])
+# # # Optional: View summary
+# profiler.summary()
 
-profiler = AutoProfiler("faster_rcnn", image_inferencer, 0)
-
-profiler.warm_up(input_tensor)
-profiler.register_hooks(input_tensor)
-
-# p_profiler = pPerf('pointpillar', 1)
-# p_profiler.register_hooks(model)
-
-# # Optional: View summary
-profiler.summary()
-
-# Step 4: Run actual profiling
-for path in img_paths[1:5]:
-    input_name = os.path.basename(path).split('.')[0]
-    image = cv2.imread(path)
-
-    profiler.run_inference(image, input_name)
+# # Step 4: Run actual profiling
+# for path in img_paths[1:5]:
+#     input_name = os.path.basename(path).split('.')[0]
+#     image = cv2.imread(path)
+#     profiler.run_inference(image, input_name)
