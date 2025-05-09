@@ -15,12 +15,7 @@ from pynvml import (
     nvmlDeviceGetPowerUsage
 )
 import threading
-
-lidar_paths = list_filenames('/mmdetection3d_ros2/data/v1.0-mini/sweeps/LIDAR_TOP', 'bin')
-
-inferencer = LidarDet3DInferencer('pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d')
-
-
+import cv2
 import torch
 import functools
 import inspect
@@ -250,11 +245,14 @@ class AutoProfiler:
         nvmlShutdown()
 
 
+lidar_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP', 'bin')
+
+inferencer = LidarDet3DInferencer('pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d')
 
 points = np.fromfile(lidar_paths[0], dtype=np.float32).reshape(-1, 5)
 input_tensor = dict(points=np.array(points, dtype=np.float32))  # or your actual test input
 
-profiler = AutoProfiler("pointpillar", inferencer, 2)
+profiler = AutoProfiler("pointpillar", inferencer, 0)
 
 profiler.warm_up(input_tensor)
 profiler.register_hooks(input_tensor)
@@ -272,3 +270,28 @@ for path in lidar_paths[1:5]:
     input_tensor = dict(points=np.array(points, dtype=np.float32)) 
 
     profiler.run_inference(input_tensor, input_name)
+
+
+img_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT', 'jpg')
+
+image_inferencer = DetInferencer('faster-rcnn_r50_fpn_1x_coco')
+
+input_tensor = cv2.imread(img_paths[0])
+
+profiler = AutoProfiler("faster_rcnn", image_inferencer, 0)
+
+profiler.warm_up(input_tensor)
+profiler.register_hooks(input_tensor)
+
+# p_profiler = pPerf('pointpillar', 1)
+# p_profiler.register_hooks(model)
+
+# # Optional: View summary
+profiler.summary()
+
+# Step 4: Run actual profiling
+for path in img_paths[1:5]:
+    input_name = os.path.basename(path).split('.')[0]
+    image = cv2.imread(path)
+
+    profiler.run_inference(image, input_name)
