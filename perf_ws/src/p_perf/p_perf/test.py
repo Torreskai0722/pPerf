@@ -21,7 +21,7 @@ import functools
 import inspect
 import time
 from pyquaternion import Quaternion
-
+import json
 
 WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151603597909.pcd.bin'
 
@@ -245,7 +245,7 @@ class AutoProfiler:
         nvmlShutdown()
 
 
-def convert_det_to_nusc_format(det):
+def convert_det_to_nusc_format(det, token):
     """
     Convert full detection result to list of NuScenes-format dicts.
     Expects:
@@ -261,24 +261,45 @@ def convert_det_to_nusc_format(det):
     labels = preds['labels_3d']
 
     results = []
-
     for i in range(len(bboxes)):
         x, y, z, dx, dy, dz, yaw, vx, vy = bboxes[i]
-
         quat = Quaternion(axis=[0, 0, 1], radians=yaw)
-
         result = {
+            "sample_token": token,
             "translation": [x, y, z],
             "size": [dy, dx, dz],  # NuScenes expects [w, l, h]
             "rotation": [quat.w, quat.x, quat.y, quat.z],
             "velocity": [vx, vy],
             "detection_name": labels[i],
             "detection_score": scores[i],
+            "attribute_name": ""
         }
-
         results.append(result)
 
     return results
+
+def get_token_from_filename(json_path, target_filename):
+    """
+    Given the path to a sample_data JSON and a file name, returns the token corresponding to that file.
+    
+    Args:
+        json_path (str): Path to the sample_data JSON file.
+        target_filename (str): File name to search for, e.g., 'n015-2018-08-01-15-16-36+0800__LIDAR_TOP__1533113235880478.bin'
+    
+    Returns:
+        str: The corresponding token, or None if not found.
+    """
+    with open(json_path, 'r') as f:
+        sample_data = json.load(f)
+    
+    # Match only the base file name
+    target_filename = os.path.basename(target_filename)
+
+    for item in sample_data:
+        if os.path.basename(item['filename']) == target_filename:
+            return item['token']
+    
+    return None  # If not found
 
 lidar_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP', 'bin')
 inferencer = LidarDet3DInferencer('pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d')
@@ -291,18 +312,21 @@ profiler.register_hooks(input_tensor)
 # # Optional: View summary
 # profiler.summary()
 
+dets = []
 results = []
 for path in lidar_paths[1:5]:
     input_name = os.path.basename(path).split('.')[0]
     points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
     input_tensor = dict(points=np.array(points, dtype=np.float32)) 
     det = profiler.run_inference(input_tensor, input_name)
-    scores = det['predictions'][0]['scores_3d']
-    labels = det['predictions'][0]['labels_3d']
-    bboxes = det['predictions'][0]['bboxes_3d']
-    results.extend(convert_det_to_nusc_format(det))
-    print(results)
-    break
+    dets.append((os.path.basename(path), det))
+
+json_path = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/sample_data.json'
+for det in dets:
+    token = get_token_from_filename(json_path, det[0])
+    results.extend(convert_det_to_nusc_format(det[1], token))
+
+print(results)
 
 
 
