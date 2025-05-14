@@ -36,7 +36,7 @@ class SensorPublisherNode(Node):
         self.declare_parameter('publish_freq_lidar', 20)
         self.declare_parameter('publish_freq_image', 12)
         self.declare_parameter('run_time', 30)
-        self.declare_parameter('gpu_duration', 0.05)
+        self.declare_parameter('gpu_duration', 0.025)
 
         self.publish_freq_lidar = self.get_parameter('publish_freq_lidar').value
         self.publish_freq_image = self.get_parameter('publish_freq_image').value
