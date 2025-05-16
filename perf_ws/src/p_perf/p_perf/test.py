@@ -205,7 +205,7 @@ class AutoProfiler:
     
     def run_inference(self, data, input_name):
         torch.cuda.nvtx.range_push(f'{input_name}.{self.model_name}.e2e')
-        result = self.inferencer(data)
+        result = self.inferencer(data, return_datasamples=True)
         torch.cuda.nvtx.range_pop()
         return result
     
@@ -319,14 +319,12 @@ for path in lidar_paths[1:5]:
     points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
     input_tensor = dict(points=np.array(points, dtype=np.float32)) 
     det = profiler.run_inference(input_tensor, input_name)
-    dets.append((os.path.basename(path), det))
+    dets.append((os.path.basename(path), det['predictions'][0].pred_instances_3d))
 
-json_path = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/sample_data.json'
-for det in dets:
-    token = get_token_from_filename(json_path, det[0])
-    results.extend(convert_det_to_nusc_format(det[1], token))
+# for det in dets:
+#     token = get_token_from_filename(json_path, det[0])
+#     results.extend(convert_det_to_nusc_format(det[1], token))
 
-print(results)
 
 
 
@@ -346,3 +344,150 @@ print(results)
 #     input_name = os.path.basename(path).split('.')[0]
 #     image = cv2.imread(path)
 #     profiler.run_inference(image, input_name)
+
+from nuscenes.nuscenes import NuScenes
+from nuscenes.utils.data_classes import Box as NuScenesBox
+from mmdet3d.structures import (CameraInstance3DBoxes, LiDARInstance3DBoxes,
+                                bbox3d2result, xywhr2xyxyr)
+
+def output_to_nusc_box(
+        detection, token):
+    """Convert the output to the box class in the nuScenes.
+
+    Args:
+        detection (Det3DDataSample): Detection results.
+
+            - bboxes_3d (:obj:`BaseInstance3DBoxes`): Detection bbox.
+            - scores_3d (torch.Tensor): Detection scores.
+            - labels_3d (torch.Tensor): Predicted box labels.
+
+    Returns:
+        Tuple[List[:obj:`NuScenesBox`], np.ndarray or None]: List of standard
+        NuScenesBoxes and attribute labels.
+    """
+    bbox3d = detection.bboxes_3d.to('cpu')
+    scores = detection.scores_3d.cpu().numpy()
+    labels = detection.labels_3d.cpu().numpy()
+
+    box_gravity_center = bbox3d.gravity_center.numpy()
+    box_dims = bbox3d.dims.numpy()
+    box_yaw = bbox3d.yaw.numpy()
+
+    box_list = []
+
+    if isinstance(bbox3d, LiDARInstance3DBoxes):
+        # our LiDAR coordinate system -> nuScenes box coordinate system
+        nus_box_dims = box_dims[:, [1, 0, 2]]
+        for i in range(len(bbox3d)):
+            quat = Quaternion(axis=[0, 0, 1], radians=box_yaw[i])
+            velocity = (*bbox3d.tensor[i, 7:9], 0.0)
+            box = NuScenesBox(
+                box_gravity_center[i],
+                nus_box_dims[i],
+                quat,
+                label=labels[i],
+                score=scores[i],
+                velocity=velocity,
+                token=token)
+            box_list.append(box)
+    else:
+        raise NotImplementedError(
+            f'Do not support convert {type(bbox3d)} bboxes '
+            'to standard NuScenesBoxes.')
+
+    return box_list
+
+def lidar_nusc_box_to_global(
+        nusc,
+        sample_data_token: str,
+        boxes):
+    """
+    Convert predicted NuScenesBoxes from LiDAR to global coordinates using sample_data_token.
+
+    Args:
+        nusc: NuScene instance
+        sample_data_token (str): Token for the sample_data (e.g. from file name).
+        boxes (List[NuScenesBox]): Predicted bounding boxes in LiDAR coordinates.
+
+    Returns:
+        List[NuScenesBox]: Boxes transformed into global coordinates and filtered.
+    """
+    # Step 1: Get sensor calibration and ego poses
+    sd_record = nusc.get('sample_data', sample_data_token)
+    cs_record = nusc.get('calibrated_sensor', sd_record['calibrated_sensor_token'])
+    pose_record = nusc.get('ego_pose', sd_record['ego_pose_token'])
+
+    # Construct transformation matrices
+    lidar2ego_rot = Quaternion(cs_record['rotation']).rotation_matrix
+    lidar2ego_trans = np.array(cs_record['translation'])
+
+    ego2global_rot = Quaternion(pose_record['rotation']).rotation_matrix
+    ego2global_trans = np.array(pose_record['translation'])
+
+    # Transform boxes
+    box_list = []
+    for box in boxes:
+        # LiDAR -> Ego
+        box.rotate(Quaternion(matrix=lidar2ego_rot))
+        box.translate(lidar2ego_trans)
+
+        # Ego -> Global
+        box.rotate(Quaternion(matrix=ego2global_rot))
+        box.translate(ego2global_trans)
+
+        box_list.append(box)
+
+    return box_list
+
+nusc = NuScenes(
+    version='v1.0-mini',            # or 'v1.0-mini', 'v1.0-test', etc.
+    dataroot='/mmdetection3d_ros2/data/nuscenes',  # replace with the actual path
+    verbose=True                        # optional, shows loading progress
+)
+
+nusc_annos = {}
+token = ''
+json_path = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/sample_data.json'
+classes = ['car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
+         'motorcycle', 'pedestrian', 'traffic_cone', 'barrier']
+
+for det in dets:
+    token = get_token_from_filename(json_path, det[0])
+    boxes = output_to_nusc_box(det[1], token)
+    boxes = lidar_nusc_box_to_global(nusc, token, boxes)
+
+    annos = []
+    for box in boxes:
+        name = classes[box.label]
+        nusc_anno = dict(
+            sample_token=token,
+            translation=box.center.tolist(),
+            size=box.wlh.tolist(),
+            rotation=box.orientation.elements.tolist(),
+            velocity=box.velocity[:2].tolist(),
+            detection_name=name,
+            detection_score=box.score,
+            attribute_name='')
+        annos.append(nusc_anno)
+    nusc_annos[token] = annos
+
+import mmengine
+import os
+
+output_path = 'results_nusc.json'
+
+# Wrap in NuScenes evaluation format
+nusc_submission = {
+    'meta': {
+        'use_camera': False,
+        'use_lidar': True,
+        'use_radar': False,
+        'use_map': False,
+        'use_external': False
+    },
+    'results': nusc_annos
+}
+
+# Write to file
+mmengine.dump(nusc_submission, output_path)
+print(f"Results written to {output_path}")
