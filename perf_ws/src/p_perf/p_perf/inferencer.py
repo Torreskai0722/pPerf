@@ -97,9 +97,13 @@ class InferenceNode(Node):
         self.create_subscription(String, 'terminate_inferencers', self.terminate_callback, 10)
 
         # WARMUP
-        self.profiler = pPerf(self.model_name, self.depth)
-        self.profiler.warm_up(self.inferencer, WARM_PCD if self.mode == 'lidar' else WARM_IMAGE, mode=self.mode)
-        self.profiler.register_hooks(self.inferencer.model)
+        self.profiler = pPerf(self.model_name, self.inferencer, self.depth)
+        if self.mode == 'lidar':
+            warm_data = dict(points=WARM_PCD)
+        else:
+            warm_data = WARM_IMAGE
+        self.profiler.warm_up(warm_data)
+        self.profiler.register_hooks(warm_data)
 
         # INFERENCER READY MSG FOR SENSOR PUBLISHER
         self.get_logger().info(f"{self.mode.capitalize()} model '{self.model_name}' is ready.")
@@ -172,7 +176,7 @@ class InferenceNode(Node):
         if self.latest_data is None:
             return  # No new data received yet, skip processing
         
-        self.profiler.run_inference(self.inferencer, self.latest_data, self.latest_name)
+        self.profiler.run_inference(self.latest_data, self.latest_name)
         self.latest_data = None
             
 

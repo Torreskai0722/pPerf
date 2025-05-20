@@ -441,8 +441,7 @@ def lidar_nusc_box_to_global(
 
 nusc = NuScenes(
     version='v1.0-mini',            # or 'v1.0-mini', 'v1.0-test', etc.
-    dataroot='/mmdetection3d_ros2/data/nuscenes',  # replace with the actual path
-    verbose=True                        # optional, shows loading progress
+    dataroot='/mmdetection3d_ros2/data/nuscenes'  # replace with the actual path
 )
 
 nusc_annos = {}
@@ -451,7 +450,20 @@ json_path = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/sample_data.json'
 classes = ['car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
          'motorcycle', 'pedestrian', 'traffic_cone', 'barrier']
 
-dist_ths = [0.25, 0.5, 0.75, 1.0]
+class_range = {
+    "car": 50,
+    "truck": 50,
+    "bus": 50,
+    "trailer": 50,
+    "construction_vehicle": 50,
+    "pedestrian": 40,
+    "motorcycle": 40,
+    "bicycle": 40,
+    "traffic_cone": 30,
+    "barrier": 30
+  },
+
+dist_ths = [0.5, 1, 2, 4]
 
 # for det in dets:
 #     token = get_token_from_filename(json_path, det[0])
@@ -508,9 +520,14 @@ from nuscenes.eval.detection.data_classes import (
     DetectionMetrics,
 )
 from nuscenes.eval.detection.utils import category_to_detection_name
-from nuscenes.eval.detection.algo import calc_ap, calc_tp
+from nuscenes.eval.detection.algo import calc_ap
+from nuscenes.eval.common.loaders import (
+    add_center_dist,
+    filter_eval_boxes,
+)
+from collections import defaultdict
 
-def interpolate_gt(nusc, sample_data_token: str, box_cls=DetectionBox) -> List[DetectionBox]:
+def interpolate_gt(nusc, sample_data_token: str, box_cls=DetectionBox):
     """
     Generate interpolated or fallback ground truth boxes for a given sample_data_token.
     Falls back to prev or next keyframe if interpolation is not possible.
@@ -518,19 +535,30 @@ def interpolate_gt(nusc, sample_data_token: str, box_cls=DetectionBox) -> List[D
     sd = nusc.get('sample_data', sample_data_token)
     timestamp = sd['timestamp']
 
+    box_list = []
+    instance_tokens = []
+
     if sd['is_key_frame']:
         sample = nusc.get('sample', sd['sample_token'])
         annos = [nusc.get('sample_annotation', tok) for tok in sample['anns']]
 
-        return [box_cls(
-            sample_token=sample_data_token,
-            translation=a['translation'],
-            size=a['size'],
-            rotation=a['rotation'],
-            velocity=a.get('velocity', [0.0, 0.0]),
-            detection_name=category_to_detection_name(a['category_name']),
-            attribute_name=''  # optional
-        ) for a in annos]
+        for a in annos:
+            detection_name = category_to_detection_name(a['category_name'])
+            if detection_name is None:
+                continue
+
+            box_list.append(box_cls(
+                sample_token=sample_data_token,
+                translation=a['translation'],
+                size=a['size'],
+                rotation=a['rotation'],
+                velocity=a.get('velocity', [0.0, 0.0]),
+                detection_name=detection_name,
+                attribute_name=''  # optional
+            ))
+            instance_tokens.append(a['instance_token'])
+
+        return box_list, instance_tokens
 
     # Walk backward to find previous keyframe
     prev_sd_token = sd['prev']
@@ -567,7 +595,6 @@ def interpolate_gt(nusc, sample_data_token: str, box_cls=DetectionBox) -> List[D
         next_map = {a['instance_token']: a for a in next_annos}
 
         common_instances = set(prev_map.keys()) & set(next_map.keys())
-        interpolated_boxes = []
 
         for inst in common_instances:
             a0, a1 = prev_map[inst], next_map[inst]
@@ -588,40 +615,45 @@ def interpolate_gt(nusc, sample_data_token: str, box_cls=DetectionBox) -> List[D
             v1 = np.array(a1.get('velocity', [0, 0]))
             velocity = (1 - alpha) * v0 + alpha * v1
 
-            if(category_to_detection_name(a0['category_name']) == None):
+            detection_name = category_to_detection_name(a0['category_name'])
+            if detection_name is None:
                 continue
 
-            interpolated_boxes.append(box_cls(
+            box_list.append(box_cls(
                 sample_token=sample_data_token,
                 translation=center.tolist(),
                 size=size.tolist(),
                 rotation=rotation.elements.tolist(),
                 velocity=velocity.tolist(),
-                detection_name=category_to_detection_name(a0['category_name']),
-                attribute_name=''  # optional
+                detection_name=detection_name,
+                attribute_name=''
             ))
+            instance_tokens.append(inst)
 
-        return interpolated_boxes
+        return box_list, instance_tokens
 
-    # Fallback to one keyframe
+    # Fallback case
     fallback_frame = prev_keyframe or next_keyframe
     fallback_sample = nusc.get('sample', fallback_frame['sample_token'])
     annos = [nusc.get('sample_annotation', tok) for tok in fallback_sample['anns']]
-    fallback_boxes = []
 
     for a in annos:
-        fallback_boxes.append(box_cls(
+        detection_name = category_to_detection_name(a['category_name'])
+        if detection_name is None:
+            continue
+
+        box_list.append(box_cls(
             sample_token=sample_data_token,
             translation=a['translation'],
             size=a['size'],
             rotation=a['rotation'],
             velocity=a.get('velocity', [0.0, 0.0]),
-            detection_name=category_to_detection_name(a['category_name']),
-            attribute_name=''  # optional
+            detection_name=detection_name,
+            attribute_name=''
         ))
+        instance_tokens.append(a['instance_token'])
 
-    return fallback_boxes
-
+    return box_list, instance_tokens
 
 
 def accumulate(nusc,
@@ -629,8 +661,8 @@ def accumulate(nusc,
                class_name: str,
                dist_fcn,
                dist_th: float,
-               verbose: bool = False) -> DetectionMetricData:
-
+               verbose: bool = False
+              ):
     pred_boxes_list = [box for box in pred_boxes.all if box.detection_name == class_name]
     pred_confs = [box.detection_score for box in pred_boxes_list]
 
@@ -641,15 +673,17 @@ def accumulate(nusc,
     match_data = {k: [] for k in ['trans_err', 'vel_err', 'scale_err', 'orient_err', 'attr_err', 'conf']}
     taken = set()
     interpolated_cache = {}
+    instance_hits = {}
 
     # Precompute interpolated GTs per sample_data_token
     for token in pred_boxes.sample_tokens:
-        interpolated_cache[token] = interpolate_gt(nusc, token)  # Your interpolate function must be per token
+        boxes, instance_tokens = interpolate_gt(nusc, token)
+        interpolated_cache[token] = (boxes, instance_tokens)
 
     # Compute total GTs for this class (avoid double counting)
     npos = sum(
         sum(1 for box in boxes if box.detection_name == class_name)
-        for boxes in interpolated_cache.values()
+        for boxes, _ in interpolated_cache.values()
     )
 
     if verbose:
@@ -659,7 +693,7 @@ def accumulate(nusc,
     for ind in sortind:
         pred_box = pred_boxes_list[ind]
         token = pred_box.sample_token
-        interpolated_gts = interpolated_cache[token]
+        interpolated_gts, instance_tokens = interpolated_cache[token]
 
         min_dist = np.inf
         match_gt_idx = None
@@ -680,6 +714,12 @@ def accumulate(nusc,
             conf.append(pred_box.detection_score)
 
             gt_box_match = interpolated_gts[match_gt_idx]
+            instance_token = instance_tokens[match_gt_idx]
+
+            # Track instance hit
+            if instance_token is not None:
+                instance_hits[instance_token] = instance_hits.get(instance_token, 0) + 1
+
             match_data['trans_err'].append(center_distance(gt_box_match, pred_box))
             match_data['vel_err'].append(velocity_l2(gt_box_match, pred_box))
             match_data['scale_err'].append(1 - scale_iou(gt_box_match, pred_box))
@@ -693,7 +733,7 @@ def accumulate(nusc,
             conf.append(pred_box.detection_score)
 
     if len(match_data['trans_err']) == 0:
-        return DetectionMetricData.no_predictions()
+        return DetectionMetricData.no_predictions(), instance_hits
 
     tp = np.cumsum(tp).astype(float)
     fp = np.cumsum(fp).astype(float)
@@ -722,7 +762,8 @@ def accumulate(nusc,
         scale_err=match_data['scale_err'],
         orient_err=match_data['orient_err'],
         attr_err=match_data['attr_err']
-    )
+    ), instance_hits
+
 
 
 def load_prediction_of_sample_tokens(result_path: str,
@@ -760,12 +801,32 @@ pred_boxes = load_prediction_of_sample_tokens(prediction_path, [], True, verbose
 
 metrics = {}
 metric_data_list = DetectionMetricDataList()
+all_instance_hits = {dist_th: defaultdict(int) for dist_th in dist_ths}
+
 for class_name in classes:
     for dist_th in dist_ths:
-        md = accumulate(nusc, pred_boxes, class_name, center_distance, dist_th)
+        md, instance_hits = accumulate(nusc, pred_boxes, class_name, center_distance, dist_th)
+        
+        # Record AP
         metric_data_list.set(class_name, dist_th, md)
         ap = calc_ap(md, 0.1, 0.1)
         metrics[(class_name, dist_th)] = ap
 
+        # Aggregate instance hits per threshold
+        for inst_token, count in instance_hits.items():
+            all_instance_hits[dist_th][inst_token] += count
+
 print(metrics)
 
+# Optional: Show instance hit stats for each distance threshold
+for dist_th, hits_dict in all_instance_hits.items():
+    print(f"\n[Threshold {dist_th}] Unique instances matched: {len(hits_dict)}")
+    top_hits = sorted(hits_dict.items(), key=lambda x: -x[1])[:5]
+    print("Top 5 most matched instances:")
+    for token, count in top_hits:
+        print(f"  Instance {token}: matched {count} times")
+
+
+    file_path = f"dist_{dist_th}.json"
+    with open(file_path, 'w') as json_file:
+        json.dump(hits_dict, json_file, indent=4)
