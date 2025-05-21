@@ -7,20 +7,25 @@ from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2, CompressedImage
 import sensor_msgs_py.point_cloud2 as pc2
 import numpy as np
-from cv_bridge import CvBridge
 from mmdet3d.apis import LidarDet3DInferencer
 from mmdet.apis import DetInferencer
 from p_perf.pPerf import pPerf
+from p_perf.utils import lidar_nusc_box_to_global, lidar_output_to_nusc_box
+from p_perf.config.constant import class_range, classes, nusc
 import warnings
 import pandas as pd
 from filelock import FileLock
 import os
 import cv2
+import mmengine
+from nuscenes.nuscenes import NuScenes
+
 
 warnings.filterwarnings("ignore")
 
 WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151603597909.pcd.bin'
 WARM_IMAGE = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603612404.jpg'
+
 
 class InferenceNode(Node):
     def __init__(self):
@@ -72,10 +77,12 @@ class InferenceNode(Node):
 
         # INTIALIZATION OF LOCAL DATA
         self.latest_data = None
-        self.latest_name = ''
+        self.latest_token = ''
         self.sub_lidar_count = 0
         self.sub_image_count = 0
 
+        self.dets = []
+        self.lidar_eval_json = os.path.join(self.data_dir, f"lidar_predictions_{self.index}.json")
         self.delay_csv = os.path.join(self.data_dir, f"delays_{self.index}.csv")
         self.delay_log = []
 
@@ -118,7 +125,7 @@ class InferenceNode(Node):
         else:
             input_name = frame_id.split('/')[-1]
 
-        self.latest_name = input_name
+        self.latest_token = input_name
 
         points = []
         for p in pc2.read_points(msg, field_names=['x', 'y', 'z', 'intensity', 'ring'], skip_nans=True):
@@ -142,7 +149,7 @@ class InferenceNode(Node):
         else:
             input_name = frame_id.split('/')[-1]
 
-        self.latest_name = input_name
+        self.latest_token = input_name
 
         try:
             # Decode JPEG or PNG encoded image bytes to OpenCV format
@@ -161,7 +168,20 @@ class InferenceNode(Node):
         if self.input_type == 'publisher':
             self._log_delay(msg, input_name)
 
+    def process_latest_data(self):
+        """Processes the latest received data at a controlled rate."""
+        if self.latest_data is None:
+            return  # No new data received yet, skip processing
+        
+        det = self.profiler.run_inference(self.latest_data, self.latest_token)
+        if self.mode == 'lidar':
+            self.dets.append((self.latest_token, det['predictions'][0].pred_instances_3d))
+        else:
+            self.dets.append((self.latest_token, det['predictions'][0].pred_instances))
 
+        self.latest_data = None
+        self.latest_token = ''
+    
     def _log_delay(self, msg, input_name):
         recv_time = self.get_clock().now().nanoseconds / 1e9
         sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
@@ -171,13 +191,79 @@ class InferenceNode(Node):
             'delay': recv_time - sent_time
         })
 
-    def process_latest_data(self):
-        """Processes the latest received data at a controlled rate."""
-        if self.latest_data is None:
-            return  # No new data received yet, skip processing
+    def save_lidar_detections(self):
+        nusc_annos = {}
+        for det in self.dets:
+            token = det[0]
+            boxes = lidar_output_to_nusc_box(det[1], token)
+            boxes = lidar_nusc_box_to_global(nusc, token, boxes)
+
+            annos = []
+            for box in boxes:
+                name = classes[box.label]
+                nusc_anno = dict(
+                    sample_token=token,
+                    translation=box.center.tolist(),
+                    size=box.wlh.tolist(),
+                    rotation=box.orientation.elements.tolist(),
+                    velocity=box.velocity[:2].tolist(),
+                    detection_name=name,
+                    detection_score=box.score,
+                    attribute_name='')
+                annos.append(nusc_anno)
+            nusc_annos[token] = annos
         
-        self.profiler.run_inference(self.latest_data, self.latest_name)
-        self.latest_data = None
+        nusc_submission = {
+            'meta': {
+                'use_camera': False,
+                'use_lidar': True,
+                'use_radar': False,
+                'use_map': False,
+                'use_external': False
+            },
+            'results': nusc_annos
+        }
+        
+        mmengine.dump(nusc_submission, self.lidar_eval_json)
+        print(f"Results written to {self.lidar_eval_json}")
+
+    def save_image_detections(self):
+        nusc_annos = {}
+        for det in self.dets:
+            print(det)
+            token = det[0]
+            boxes = lidar_output_to_nusc_box(det[1], token)
+            boxes = lidar_nusc_box_to_global(nusc, token, boxes)
+
+            annos = []
+            for box in boxes:
+                name = classes[box.label]
+                nusc_anno = dict(
+                    sample_token=token,
+                    translation=box.center.tolist(),
+                    size=box.wlh.tolist(),
+                    rotation=box.orientation.elements.tolist(),
+                    velocity=box.velocity[:2].tolist(),
+                    detection_name=name,
+                    detection_score=box.score,
+                    attribute_name='')
+                annos.append(nusc_anno)
+            nusc_annos[token] = annos
+        
+        nusc_submission = {
+            'meta': {
+                'use_camera': False,
+                'use_lidar': True,
+                'use_radar': False,
+                'use_map': False,
+                'use_external': False
+            },
+            'results': nusc_annos
+        }
+        
+        mmengine.dump(nusc_submission, self.lidar_eval_json)
+        print(f"Results written to {self.lidar_eval_json}")
+
             
 
     def terminate_callback(self, msg):
@@ -186,6 +272,12 @@ class InferenceNode(Node):
 
             print(f'sub lidar count: {self.sub_lidar_count}')
             print(f'sub image count: {self.sub_image_count}')
+
+            # save lidar detections
+            if self.mode == 'lidar':
+                self.save_lidar_detections()
+            else:
+                self.save_image_detections()
 
             # Shared delay file path
             lock_path = self.delay_csv + ".lock"

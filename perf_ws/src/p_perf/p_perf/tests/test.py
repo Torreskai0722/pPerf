@@ -1,5 +1,11 @@
-import threading
-import time
+import numpy as np
+from mmdet3d.apis import LidarDet3DInferencer, inference_multi_modality_detector, init_model
+from mmdet.apis import DetInferencer
+from p_perf.utils import list_filenames
+import mmcv
+import matplotlib.pyplot as plt
+from mmdet.visualization import DetLocalVisualizer
+import os
 from pynvml import (
     nvmlInit,
     nvmlShutdown,
@@ -8,15 +14,18 @@ from pynvml import (
     nvmlDeviceGetMemoryInfo,
     nvmlDeviceGetPowerUsage
 )
+import threading
+import cv2
 import torch
 import functools
 import inspect
-import functools
-import inspect
 import time
+from pyquaternion import Quaternion
+import json
 
+WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151603597909.pcd.bin'
 
-class pPerf:
+class AutoProfiler:
     def __init__(self, model_name, inferencer, depth, monitor_interval=0.1):
         self.model_name = model_name
         self.method_timings = {}  # {method_id: (start, end, tag)}
@@ -196,7 +205,7 @@ class pPerf:
     
     def run_inference(self, data, input_name):
         torch.cuda.nvtx.range_push(f'{input_name}.{self.model_name}.e2e')
-        result = self.inferencer(data, return_datasamples=True)
+        result = self.inferencer(data, return_datasamples=True, pred_score_thr=0.5)
         torch.cuda.nvtx.range_pop()
         return result
     
@@ -234,3 +243,71 @@ class pPerf:
         if self.gpu_monitor_thread is not None:
             self.gpu_monitor_thread.join()
         nvmlShutdown()
+
+
+from nuscenes.nuscenes import NuScenes
+from nuscenes.utils.data_classes import Box as NuScenesBox
+from mmdet3d.structures import (CameraInstance3DBoxes, LiDARInstance3DBoxes,
+                                bbox3d2result, xywhr2xyxyr)
+
+
+nusc = NuScenes(
+    version='v1.0-mini',            # or 'v1.0-mini', 'v1.0-test', etc.
+    dataroot='/mmdetection3d_ros2/data/nuscenes'  # replace with the actual path
+)
+
+def get_token_from_filename(nusc, filename):
+    """
+    Given a filename (e.g., 'n015-2018-08-01-11-03-03+0800__LIDAR_TOP__1533091988890184.bin'),
+    return the corresponding sample_data token.
+    """
+    for sd in nusc.sample_data:
+        if filename in sd['filename']:  # or use os.path.basename(sd['filename']) == filename
+            return sd['token']
+    return None
+
+# lidar_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP', 'bin')
+# inferencer = LidarDet3DInferencer('pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d')
+# points = np.fromfile(lidar_paths[0], dtype=np.float32).reshape(-1, 5)
+# input_tensor = dict(points=np.array(points, dtype=np.float32))  # or your actual test input
+
+# profiler = AutoProfiler("pointpillar", inferencer, 0)
+# profiler.warm_up(input_tensor)
+# profiler.register_hooks(input_tensor)
+# # Optional: View summary
+# profiler.summary()
+
+# dets = []
+# results = []
+# for path in lidar_paths[:200]:
+#     input_name = os.path.basename(path).split('.')[0]
+#     points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
+#     input_tensor = dict(points=np.array(points, dtype=np.float32)) 
+#     det = profiler.run_inference(input_tensor, input_name)
+#     dets.append((os.path.basename(path), det['predictions'][0].pred_instances_3d))
+
+
+
+
+img_paths = list_filenames('/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT', 'jpg')
+image_inferencer = DetInferencer('faster-rcnn_r50_fpn_1x_coco')
+input_tensor = cv2.imread(img_paths[0])
+
+profiler = AutoProfiler("faster_rcnn", image_inferencer, 0)
+profiler.warm_up(input_tensor)
+profiler.register_hooks(input_tensor)
+
+# Optional: View summary
+profiler.summary()
+
+dets = []
+# Step 4: Run actual profiling
+for path in img_paths[1:5]:
+    input_name = os.path.basename(path).split('.')[0]
+    image = cv2.imread(path)
+    det = profiler.run_inference(input_tensor, input_name)
+    print(det)
+    dets.append((os.path.basename(path), det['predictions'][0].pred_instances))
+
+
+
