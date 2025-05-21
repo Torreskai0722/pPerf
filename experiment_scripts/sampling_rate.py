@@ -4,6 +4,8 @@ import csv
 from itertools import product
 from subprocess import TimeoutExpired
 import pandas as pd
+from p_perf.pPerf_eval import lidar_evaluater
+from p_perf.config.constant import class_range, classes, nusc
 
 # Base nsys command
 nsys_base = [
@@ -29,7 +31,7 @@ with open(failure_log, "w") as flog:
 # Parameter sweep setup
 image_sample_freqs = [10]
 lidar_sample_freqs = [10]
-depths = [0, 1, 2, 3]
+depths = [1, 2]
 image_models = [
     'faster-rcnn_r50_fpn_1x_coco'
     # 'detr_r50_8xb2-150e_coco',
@@ -65,7 +67,7 @@ for i, row in df.iterrows():
     img_model = row["image_model"]
     lidar_model = row["lidar_model"]
 
-    output_file = f"{output_base}/test_run_{i}"
+    prefix = f"{output_base}/test_run_{i}"
 
     # Base ROS 2 launch command
     ros2_cmd = [
@@ -83,13 +85,13 @@ for i, row in df.iterrows():
     ]
 
 
-    full_cmd = nsys_base + ["-o", output_file] + ros2_cmd
+    full_cmd = nsys_base + ["-o", prefix] + ros2_cmd
 
     print(f"\n>>> Running ({i+1}/{len(df)}): {' '.join(full_cmd)}\n")
 
     try:
         subprocess.run(full_cmd, check=True, timeout=180)
-        df.at[i, "status"] = "success"
+
     except subprocess.CalledProcessError as e:
         print(f"*** Run {i} failed with return code {e.returncode}")
         df.at[i, "status"] = f"failed ({e.returncode})"
@@ -111,37 +113,26 @@ for i, row in df.iterrows():
                        f"depth={depth}, img_model={img_model}, lidar_model={lidar_model}, "
                        f"error={str(e)}\n")
 
-    try:
-        command = ["python3", "src/p_perf/p_perf/pPerf_post.py", output_file]
-        print(f"\nRunning: {' '.join(command)}")
-        result = subprocess.run(command, capture_output=True, text=True)
+    # EVALUATION PIPELINE OF INFERENCE TIME
+    # command = ["python3", "src/p_perf/p_perf/pPerf_post.py", prefix]
+    # print(f"\nRunning: {' '.join(command)}")
+    # result = subprocess.run(command, capture_output=True, text=True)
 
-        print("STDOUT:", result.stdout)
-        print("STDERR:", result.stderr)
+    # print("STDOUT:", result.stdout)
+    # print("STDERR:", result.stderr)
 
-        # Delete the corresponding .json file after processing
-        json_path = f"{output_file}.json"
-        if os.path.exists(json_path):
-            os.remove(json_path)
+    # # Delete the corresponding .json file after processing
+    # json_path = f"{prefix}.json"
+    # if os.path.exists(json_path):
+    #     os.remove(json_path)
 
-    except subprocess.TimeoutExpired:
-        print(f"*** Post-processing for run {i} timed out")
-        df.at[i, "status"] += " + post-timeout"
-        with open(failure_log, "a") as flog:
-            flog.write(f"Run {i} post-processing timeout for {output_file}\n")
-
-    except subprocess.CalledProcessError as e:
-        print(f"*** Post-processing failed with code {e.returncode}")
-        df.at[i, "status"] += f" + post-failed ({e.returncode})"
-        with open(failure_log, "a") as flog:
-            flog.write(f"Run {i} post-processing failed: return_code={e.returncode}\n")
-
-    except Exception as e:
-        print(f"*** Unexpected error during post-processing: {e}")
-        df.at[i, "status"] += " + post-error"
-        with open(failure_log, "a") as flog:
-            flog.write(f"Run {i} post-processing error: {str(e)}\n")
+    # EVALUATION PIPELINE OF LIDAR ACCURACY 
+    prediction_file = f"{output_base}/lidar_predictions_{i}.json"
+    lidar_evaluater = lidar_evaluater(prediction_file, nusc, output_base, i)
+    pred_boxes = lidar_evaluater.load_prediction_of_sample_tokens([], all=True)
+    lidar_evaluater.evaluate(pred_boxes)
 
 
     # Save status to CSV after each run
+    df.at[i, "status"] = "success"
     df.to_csv(mapping_file, index=False)

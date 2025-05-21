@@ -189,8 +189,7 @@ class SensorPublisherNode(Node):
 
         self.pub_lidar_count += 1
 
-        msg, input_name = self.lidar_data[self.lidar_index]
-        msg.header.frame_id = input_name
+        msg = self.lidar_data[self.lidar_index]
         msg.header.stamp = self.get_clock().now().to_msg()
         self.lidar_publisher.publish(msg)
         self.lidar_index += 1
@@ -202,8 +201,7 @@ class SensorPublisherNode(Node):
         
         self.pub_image_count += 1
 
-        msg, input_name = self.image_data[self.image_index]
-        msg.header.frame_id = input_name
+        msg = self.image_data[self.image_index]
         msg.header.stamp = self.get_clock().now().to_msg()
         self.image_publisher.publish(msg)
         self.image_index += 1
