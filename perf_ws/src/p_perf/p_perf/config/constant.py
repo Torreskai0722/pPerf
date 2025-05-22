@@ -26,10 +26,14 @@ nusc = NuScenes(
         )
 
 # Image evaluation constants
-category_id_map = {
-    0: 1,  # internal class 0 maps to COCO category ID 1 (e.g., person)
-    1: 2,  # internal class 1 maps to COCO category ID 2 (e.g., bicycle)
-    2: 3,  # ...
-    # etc.
+coco_to_nusc = {
+    'car': 'car',
+    'truck': 'truck',
+    'bus': 'bus',
+    'bicycle': 'bicycle',
+    'motorcycle': 'motorcycle',
+    'person': 'pedestrian',
 }
+
+
 
