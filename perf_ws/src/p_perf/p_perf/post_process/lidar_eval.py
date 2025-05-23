@@ -1,25 +1,115 @@
+from nuscenes.utils.data_classes import Box as NuScenesBox
 from nuscenes.eval.common.data_classes import EvalBoxes
 from nuscenes.eval.common.utils import center_distance, scale_iou, yaw_diff, velocity_l2, attr_acc, cummean
 import numpy as np
 from nuscenes.eval.detection.data_classes import (
     DetectionBox,
-    DetectionConfig,
     DetectionMetricDataList,
-    DetectionMetrics,
     DetectionMetricData
 )
 from nuscenes.eval.detection.algo import calc_ap
-import os
 import json
 import csv
 from collections import defaultdict
+from pyquaternion import Quaternion
 
-from p_perf.config.constant import classes, class_range, dist_ths
+from p_perf.config.constant import lidar_classes, dist_ths
 from p_perf.utils import interpolate_gt
+from mmdet3d.structures import LiDARInstance3DBoxes
 
+# HELPER FUNCTION FOR EVALUATION PIPELINE ==> LIDAR
+def lidar_output_to_nusc_box(
+        detection, token, score_thresh=0.5):
+    """Convert the output to the box class in the nuScenes.
 
+    Args:
+        detection (Det3DDataSample): Detection results.
 
-json_path = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/sample_data.json'
+            - bboxes_3d (:obj:`BaseInstance3DBoxes`): Detection bbox.
+            - scores_3d (torch.Tensor): Detection scores.
+            - labels_3d (torch.Tensor): Predicted box labels.
+
+    Returns:
+        Tuple[List[:obj:`NuScenesBox`], np.ndarray or None]: List of standard
+        NuScenesBoxes and attribute labels.
+    """
+    bbox3d = detection.bboxes_3d.to('cpu')
+    scores = detection.scores_3d.cpu().numpy()
+    labels = detection.labels_3d.cpu().numpy()
+
+    box_gravity_center = bbox3d.gravity_center.numpy()
+    box_dims = bbox3d.dims.numpy()
+    box_yaw = bbox3d.yaw.numpy()
+
+    box_list = []
+
+    if isinstance(bbox3d, LiDARInstance3DBoxes):
+        # our LiDAR coordinate system -> nuScenes box coordinate system
+        nus_box_dims = box_dims[:, [1, 0, 2]]
+        for i in range(len(bbox3d)):
+            # filter out bbox with low confidence score
+            if scores[i] < score_thresh:
+                continue
+            quat = Quaternion(axis=[0, 0, 1], radians=box_yaw[i])
+            velocity = (*bbox3d.tensor[i, 7:9], 0.0)
+            box = NuScenesBox(
+                box_gravity_center[i],
+                nus_box_dims[i],
+                quat,
+                label=labels[i],
+                score=scores[i],
+                velocity=velocity,
+                token=token)
+            box_list.append(box)
+    else:
+        raise NotImplementedError(
+            f'Do not support convert {type(bbox3d)} bboxes '
+            'to standard NuScenesBoxes.')
+
+    return box_list
+
+def lidar_nusc_box_to_global(
+        nusc,
+        sample_data_token: str,
+        boxes):
+    """
+    Convert predicted NuScenesBoxes from LiDAR to global coordinates using sample_data_token.
+
+    Args:
+        nusc: NuScene instance
+        sample_data_token (str): Token for the sample_data (e.g. from file name).
+        boxes (List[NuScenesBox]): Predicted bounding boxes in LiDAR coordinates.
+
+    Returns:
+        List[NuScenesBox]: Boxes transformed into global coordinates and filtered.
+    """
+    # Step 1: Get sensor calibration and ego poses
+    sd_record = nusc.get('sample_data', sample_data_token)
+    cs_record = nusc.get('calibrated_sensor', sd_record['calibrated_sensor_token'])
+    pose_record = nusc.get('ego_pose', sd_record['ego_pose_token'])
+
+    # Construct transformation matrices
+    lidar2ego_rot = Quaternion(cs_record['rotation']).rotation_matrix
+    lidar2ego_trans = np.array(cs_record['translation'])
+
+    ego2global_rot = Quaternion(pose_record['rotation']).rotation_matrix
+    ego2global_trans = np.array(pose_record['translation'])
+
+    # Transform boxes
+    box_list = []
+    for box in boxes:
+        # LiDAR -> Ego
+        box.rotate(Quaternion(matrix=lidar2ego_rot))
+        box.translate(lidar2ego_trans)
+
+        # Ego -> Global
+        box.rotate(Quaternion(matrix=ego2global_rot))
+        box.translate(ego2global_trans)
+
+        box_list.append(box)
+
+    return box_list
+
 
 
 class lidar_evaluater():
@@ -55,7 +145,7 @@ class lidar_evaluater():
 
         # Precompute interpolated GTs per sample_data_token
         for token in pred_boxes.sample_tokens:
-            boxes, instance_tokens = interpolate_gt(self.nusc, token)
+            boxes, instance_tokens = interpolate_gt(self.nusc, token, False, [])
             interpolated_cache[token] = (boxes, instance_tokens)
 
         # Compute total GTs for this class (avoid double counting)
@@ -176,7 +266,7 @@ class lidar_evaluater():
         metric_data_list = DetectionMetricDataList()
         all_instance_hits = {dist_th: defaultdict(int) for dist_th in dist_ths}
 
-        for class_name in classes:
+        for class_name in lidar_classes:
             for dist_th in dist_ths:
                 md, instance_hits = self.accumulate(pred_boxes, class_name, center_distance, dist_th)
                 
@@ -203,18 +293,6 @@ class lidar_evaluater():
             with open(file_path, 'w') as json_file:
                 json.dump(hits_dict, json_file, indent=4)
 
-
-
-class image_evaluator():
-    def __init__(self, prediction_json, nusc, output_dir, index):
-        '''        
-        :param result_path: Path to the .json result file provided by the user.
-        '''
-        self.nusc = nusc
-        self.result_path = prediction_json
-        self.output_dir = output_dir
-        self.index = index
-        self.ap_path = f"{output_dir}/image_ap_{index}.csv"
 
     
     

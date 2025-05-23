@@ -1,11 +1,8 @@
 import os
 from contextlib import redirect_stdout
-import random
 from pyquaternion import Quaternion
 import numpy as np
-from nuscenes.utils.data_classes import Box as NuScenesBox
-from mmdet3d.structures import LiDARInstance3DBoxes
-from mmdet.datasets.coco import CocoDataset
+
 
 from nuscenes.eval.detection.data_classes import (
     DetectionBox,
@@ -14,8 +11,8 @@ from nuscenes.eval.detection.data_classes import (
     DetectionMetrics,
 )
 from nuscenes.eval.detection.utils import category_to_detection_name
-
-from p_perf.config.constant import classes
+import cv2
+from p_perf.config.constant import lidar_classes, image_classes
 
 VIDEO_DICT = {
         'rainy_night_city': ['02d478d1-e6811391', '024dd592-94359ff1', '00a04f65-8c891f94'],
@@ -46,296 +43,187 @@ def suppress_function_output(func, *args, **kwargs):
     return result
 
 
-# HELPER FUNCTION FOR EVALUATION PIPELINE ==> LIDAR
-
-def lidar_output_to_nusc_box(
-        detection, token, score_thresh=0.5):
-    """Convert the output to the box class in the nuScenes.
-
-    Args:
-        detection (Det3DDataSample): Detection results.
-
-            - bboxes_3d (:obj:`BaseInstance3DBoxes`): Detection bbox.
-            - scores_3d (torch.Tensor): Detection scores.
-            - labels_3d (torch.Tensor): Predicted box labels.
-
-    Returns:
-        Tuple[List[:obj:`NuScenesBox`], np.ndarray or None]: List of standard
-        NuScenesBoxes and attribute labels.
-    """
-    bbox3d = detection.bboxes_3d.to('cpu')
-    scores = detection.scores_3d.cpu().numpy()
-    labels = detection.labels_3d.cpu().numpy()
-
-    box_gravity_center = bbox3d.gravity_center.numpy()
-    box_dims = bbox3d.dims.numpy()
-    box_yaw = bbox3d.yaw.numpy()
-
-    box_list = []
-
-    if isinstance(bbox3d, LiDARInstance3DBoxes):
-        # our LiDAR coordinate system -> nuScenes box coordinate system
-        nus_box_dims = box_dims[:, [1, 0, 2]]
-        for i in range(len(bbox3d)):
-            # filter out bbox with low confidence score
-            if scores[i] < score_thresh:
-                continue
-            quat = Quaternion(axis=[0, 0, 1], radians=box_yaw[i])
-            velocity = (*bbox3d.tensor[i, 7:9], 0.0)
-            box = NuScenesBox(
-                box_gravity_center[i],
-                nus_box_dims[i],
-                quat,
-                label=labels[i],
-                score=scores[i],
-                velocity=velocity,
-                token=token)
-            box_list.append(box)
-    else:
-        raise NotImplementedError(
-            f'Do not support convert {type(bbox3d)} bboxes '
-            'to standard NuScenesBoxes.')
-
-    return box_list
-
-def lidar_nusc_box_to_global(
-        nusc,
-        sample_data_token: str,
-        boxes):
-    """
-    Convert predicted NuScenesBoxes from LiDAR to global coordinates using sample_data_token.
-
-    Args:
-        nusc: NuScene instance
-        sample_data_token (str): Token for the sample_data (e.g. from file name).
-        boxes (List[NuScenesBox]): Predicted bounding boxes in LiDAR coordinates.
-
-    Returns:
-        List[NuScenesBox]: Boxes transformed into global coordinates and filtered.
-    """
-    # Step 1: Get sensor calibration and ego poses
-    sd_record = nusc.get('sample_data', sample_data_token)
-    cs_record = nusc.get('calibrated_sensor', sd_record['calibrated_sensor_token'])
-    pose_record = nusc.get('ego_pose', sd_record['ego_pose_token'])
-
-    # Construct transformation matrices
-    lidar2ego_rot = Quaternion(cs_record['rotation']).rotation_matrix
-    lidar2ego_trans = np.array(cs_record['translation'])
-
-    ego2global_rot = Quaternion(pose_record['rotation']).rotation_matrix
-    ego2global_trans = np.array(pose_record['translation'])
-
-    # Transform boxes
-    box_list = []
-    for box in boxes:
-        # LiDAR -> Ego
-        box.rotate(Quaternion(matrix=lidar2ego_rot))
-        box.translate(lidar2ego_trans)
-
-        # Ego -> Global
-        box.rotate(Quaternion(matrix=ego2global_rot))
-        box.translate(ego2global_trans)
-
-        box_list.append(box)
-
-    return box_list
-
-
-# HELPER_FUNCTION FOR IMAGE EVALUATION PIPELINE
-def image_output_to_coco(detection, image_id, score_thresh=0.5):
-    """
-    Convert image-based detection results to COCO-style format.
-
-    Args:
-        pred_instance (InstanceData): Contains `bboxes`, `labels`, and `scores`.
-        image_id (int or str): Unique image ID in the COCO dataset.
-        category_id_map (dict): Mapping from internal label IDs to COCO category IDs.
-        score_thresh (float): Minimum score threshold to keep predictions.
-
-    Returns:
-        List[dict]: List of COCO-style prediction dicts for this image.
-    """
-    bboxes = detection.bboxes.cpu().numpy()
-    labels = detection.labels.cpu().numpy()
-    labels = mmdet_to_nusc_labels(labels)
-    scores = detection.scores.cpu().numpy()
-
-    coco_results = []
-
-    for bbox, label, score in zip(bboxes, labels, scores):
-        # Apply score threshold
-        if score < score_thresh:
-            continue
-        # Convert [x1, y1, x2, y2] to [x, y, w, h]
-        x1, y1, x2, y2 = bbox
-        coco_bbox = [float(x1), float(y1), float(x2 - x1), float(y2 - y1)]
-
-        result = {
-            "image_id": image_id,
-            "category_id": int(label),
-            "bbox": coco_bbox,
-            "score": float(score)
-        }
-        coco_results.append(result)
-
-    return coco_results
-
-
-def mmdet_to_nusc_labels(mmdet_labels):
-    # MMDetection COCO-style class names
-    mmdet_classes = CocoDataset.METAINFO['classes']
-
-    # Direct class name mappings from COCO to NuScenes (no approximation)
-    coco_to_nusc = {
-        'car': 'car',
-        'truck': 'truck',
-        'bus': 'bus',
-        'bicycle': 'bicycle',
-        'motorcycle': 'motorcycle',
-        'person': 'pedestrian',
-    }
-
-    # Convert: MMDet label index → NuScenes class index
-    result = []
-    for label_id in mmdet_labels:
-        class_name = mmdet_classes[label_id]
-        nusc_name = coco_to_nusc.get(class_name)
-        if nusc_name in classes:
-            nusc_index = classes.index(nusc_name)
-            result.append(nusc_index)
-
-    return np.array(result)
-
-
 # HELPER FUNCTION USED BY BOTH LIDAR AND IMAGE EVALUATION PIPELINE
 
-def interpolate_gt(nusc, sample_data_token: str, box_cls=DetectionBox):
-        """
-        Generate interpolated or fallback ground truth boxes for a given sample_data_token.
-        Falls back to prev or next keyframe if interpolation is not possible.
-        """
-        sd = nusc.get('sample_data', sample_data_token)
-        timestamp = sd['timestamp']
+def interpolate_gt(nusc, sample_data_token: str, visibility: bool, visibilities):
+    """
+    Generate interpolated or fallback ground truth boxes for a given sample_data_token.
+    Falls back to prev or next keyframe if interpolation is not possible.
+    """
+    sd = nusc.get('sample_data', sample_data_token)
+    timestamp = sd['timestamp']
 
-        box_list = []
-        instance_tokens = []
+    box_list = []
+    instance_tokens = []
 
-        if sd['is_key_frame']:
-            sample = nusc.get('sample', sd['sample_token'])
-            annos = [nusc.get('sample_annotation', tok) for tok in sample['anns']]
-
-            for a in annos:
-                detection_name = category_to_detection_name(a['category_name'])
-                if detection_name is None:
-                    continue
-
-                box_list.append(box_cls(
-                    sample_token=sample_data_token,
-                    translation=a['translation'],
-                    size=a['size'],
-                    rotation=a['rotation'],
-                    velocity=a.get('velocity', [0.0, 0.0]),
-                    detection_name=detection_name,
-                    attribute_name=''  # optional
-                ))
-                instance_tokens.append(a['instance_token'])
-
-            return box_list, instance_tokens
-
-        # Walk backward to find previous keyframe
-        prev_sd_token = sd['prev']
-        prev_keyframe = None
-        while prev_sd_token:
-            prev_sd = nusc.get('sample_data', prev_sd_token)
-            if prev_sd['is_key_frame']:
-                prev_keyframe = prev_sd
-                break
-            prev_sd_token = prev_sd['prev']
-
-        # Walk forward to find next keyframe
-        next_sd_token = sd['next']
-        next_keyframe = None
-        while next_sd_token:
-            next_sd = nusc.get('sample_data', next_sd_token)
-            if next_sd['is_key_frame']:
-                next_keyframe = next_sd
-                break
-            next_sd_token = next_sd['next']
-
-        if prev_keyframe and next_keyframe:
-            # Interpolation case
-            t0, t1 = prev_keyframe['timestamp'], next_keyframe['timestamp']
-            alpha = (timestamp - t0) / (t1 - t0) if t1 != t0 else 0.0
-
-            prev_sample = nusc.get('sample', prev_keyframe['sample_token'])
-            next_sample = nusc.get('sample', next_keyframe['sample_token'])
-
-            prev_annos = [nusc.get('sample_annotation', tok) for tok in prev_sample['anns']]
-            next_annos = [nusc.get('sample_annotation', tok) for tok in next_sample['anns']]
-
-            prev_map = {a['instance_token']: a for a in prev_annos}
-            next_map = {a['instance_token']: a for a in next_annos}
-
-            common_instances = set(prev_map.keys()) & set(next_map.keys())
-
-            for inst in common_instances:
-                a0, a1 = prev_map[inst], next_map[inst]
-
-                t0 = np.array(a0['translation'])
-                t1 = np.array(a1['translation'])
-                center = (1 - alpha) * t0 + alpha * t1
-
-                s0 = np.array(a0['size'])
-                s1 = np.array(a1['size'])
-                size = (1 - alpha) * s0 + alpha * s1
-
-                q0 = Quaternion(a0['rotation'])
-                q1 = Quaternion(a1['rotation'])
-                rotation = Quaternion.slerp(q0, q1, amount=alpha)
-
-                v0 = np.array(a0.get('velocity', [0, 0]))
-                v1 = np.array(a1.get('velocity', [0, 0]))
-                velocity = (1 - alpha) * v0 + alpha * v1
-
-                detection_name = category_to_detection_name(a0['category_name'])
-                if detection_name is None:
-                    continue
-
-                box_list.append(box_cls(
-                    sample_token=sample_data_token,
-                    translation=center.tolist(),
-                    size=size.tolist(),
-                    rotation=rotation.elements.tolist(),
-                    velocity=velocity.tolist(),
-                    detection_name=detection_name,
-                    attribute_name=''
-                ))
-                instance_tokens.append(inst)
-
-            return box_list, instance_tokens
-
-        # Fallback case
-        fallback_frame = prev_keyframe or next_keyframe
-        fallback_sample = nusc.get('sample', fallback_frame['sample_token'])
-        annos = [nusc.get('sample_annotation', tok) for tok in fallback_sample['anns']]
+    if sd['is_key_frame']:
+        sample = nusc.get('sample', sd['sample_token'])
+        annos = [nusc.get('sample_annotation', tok) for tok in sample['anns']]
+        if visibility:
+            annos = [anno for anno in annos if (anno['visibility_token'] in visibilities)]
 
         for a in annos:
             detection_name = category_to_detection_name(a['category_name'])
             if detection_name is None:
                 continue
 
-            box_list.append(box_cls(
+            box_list.append(DetectionBox(
                 sample_token=sample_data_token,
                 translation=a['translation'],
                 size=a['size'],
                 rotation=a['rotation'],
                 velocity=a.get('velocity', [0.0, 0.0]),
                 detection_name=detection_name,
-                attribute_name=''
+                attribute_name=''  # optional
             ))
             instance_tokens.append(a['instance_token'])
 
         return box_list, instance_tokens
+
+    # Walk backward to find previous keyframe
+    prev_sd_token = sd['prev']
+    prev_keyframe = None
+    while prev_sd_token:
+        prev_sd = nusc.get('sample_data', prev_sd_token)
+        if prev_sd['is_key_frame']:
+            prev_keyframe = prev_sd
+            break
+        prev_sd_token = prev_sd['prev']
+
+    # Walk forward to find next keyframe
+    next_sd_token = sd['next']
+    next_keyframe = None
+    while next_sd_token:
+        next_sd = nusc.get('sample_data', next_sd_token)
+        if next_sd['is_key_frame']:
+            next_keyframe = next_sd
+            break
+        next_sd_token = next_sd['next']
+
+    if prev_keyframe and next_keyframe:
+        # Interpolation case
+        t0, t1 = prev_keyframe['timestamp'], next_keyframe['timestamp']
+        alpha = (timestamp - t0) / (t1 - t0) if t1 != t0 else 0.0
+
+        prev_sample = nusc.get('sample', prev_keyframe['sample_token'])
+        next_sample = nusc.get('sample', next_keyframe['sample_token'])
+
+        prev_annos = [nusc.get('sample_annotation', tok) for tok in prev_sample['anns']]
+        next_annos = [nusc.get('sample_annotation', tok) for tok in next_sample['anns']]
+        if visibility:
+            prev_annos = [prev_anno for prev_anno in prev_annos if (prev_anno['visibility_token'] in visibilities)]
+            next_annos = [next_anno for next_anno in next_annos if (next_anno['visibility_token'] in visibilities)]
+
+        prev_map = {a['instance_token']: a for a in prev_annos}
+        next_map = {a['instance_token']: a for a in next_annos}
+
+        common_instances = set(prev_map.keys()) & set(next_map.keys())
+
+        for inst in common_instances:
+            a0, a1 = prev_map[inst], next_map[inst]
+
+            t0 = np.array(a0['translation'])
+            t1 = np.array(a1['translation'])
+            center = (1 - alpha) * t0 + alpha * t1
+
+            s0 = np.array(a0['size'])
+            s1 = np.array(a1['size'])
+            size = (1 - alpha) * s0 + alpha * s1
+
+            q0 = Quaternion(a0['rotation'])
+            q1 = Quaternion(a1['rotation'])
+            rotation = Quaternion.slerp(q0, q1, amount=alpha)
+
+            v0 = np.array(a0.get('velocity', [0, 0]))
+            v1 = np.array(a1.get('velocity', [0, 0]))
+            velocity = (1 - alpha) * v0 + alpha * v1
+
+            detection_name = category_to_detection_name(a0['category_name'])
+            if detection_name is None:
+                continue
+
+            box_list.append(DetectionBox(
+                sample_token=sample_data_token,
+                translation=center.tolist(),
+                size=size.tolist(),
+                rotation=rotation.elements.tolist(),
+                velocity=velocity.tolist(),
+                detection_name=detection_name,
+                attribute_name=''
+            ))
+            instance_tokens.append(inst)
+
+        return box_list, instance_tokens
+
+    # Fallback case
+    fallback_frame = prev_keyframe or next_keyframe
+    fallback_sample = nusc.get('sample', fallback_frame['sample_token'])
+    annos = [nusc.get('sample_annotation', tok) for tok in fallback_sample['anns']]
+    if visibility:
+        annos = [anno for anno in annos if (anno['visibility_token'] in visibilities)]
+
+    for a in annos:
+        detection_name = category_to_detection_name(a['category_name'])
+        if detection_name is None:
+            continue
+
+        box_list.append(DetectionBox(
+            sample_token=sample_data_token,
+            translation=a['translation'],
+            size=a['size'],
+            rotation=a['rotation'],
+            velocity=a.get('velocity', [0.0, 0.0]),
+            detection_name=detection_name,
+            attribute_name=''
+        ))
+        instance_tokens.append(a['instance_token'])
+
+    return box_list, instance_tokens
+
+
+
+
+
+
+
+def draw_coco_bboxes_from_path(image_path, coco_bboxes, labels=None, scores=None, class_names=None, color=(0, 255, 0), thickness=2):
+    """
+    Load an image from file and draw COCO-format bounding boxes on it.
+
+    Args:
+        image_path (str): Path to the image file.
+        coco_bboxes (List[List[float]]): List of [x, y, w, h] boxes.
+        labels (List[int], optional): COCO category IDs.
+        scores (List[float], optional): Confidence scores.
+        class_names (Dict[int, str], optional): COCO category_id to name mapping.
+        color (Tuple[int, int, int], optional): Box color in BGR.
+        thickness (int): Box line thickness.
+
+    Returns:
+        np.ndarray: Image with boxes drawn.
+    """
+    image = cv2.imread(image_path)
+    if image is None:
+        raise FileNotFoundError(f"Could not read image: {image_path}")
+
+    for i, box in enumerate(coco_bboxes):
+        x, y, w, h = map(int, box)
+        cv2.rectangle(image, (x, y), (x + w, y + h), color, thickness)
+
+        label_text = ""
+        if labels is not None:
+            class_id = labels[i]
+            label_text += class_names[class_id] if class_names else f"class {class_id}"
+        if scores is not None:
+            label_text += f" {scores[i]:.2f}"
+
+        if label_text:
+            cv2.putText(image, label_text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1, cv2.LINE_AA)
+    
+    # Show image before returning
+    cv2.imshow("COCO Detections", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 

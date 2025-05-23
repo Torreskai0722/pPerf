@@ -9,16 +9,19 @@ import sensor_msgs_py.point_cloud2 as pc2
 import numpy as np
 from mmdet3d.apis import LidarDet3DInferencer
 from mmdet.apis import DetInferencer
-from p_perf.pPerf import pPerf
-from p_perf.utils import lidar_nusc_box_to_global, lidar_output_to_nusc_box
-from p_perf.config.constant import class_range, classes, nusc
+
 import warnings
 import pandas as pd
 from filelock import FileLock
 import os
+import json
 import cv2
 import mmengine
-from nuscenes.nuscenes import NuScenes
+
+from p_perf.pPerf import pPerf
+from p_perf.post_process.lidar_eval import lidar_nusc_box_to_global, lidar_output_to_nusc_box
+from p_perf.post_process.image_eval import image_output_to_coco, generate_coco_gt, change_pred_imageid
+from p_perf.config.constant import lidar_classes, nusc
 
 
 warnings.filterwarnings("ignore")
@@ -82,7 +85,9 @@ class InferenceNode(Node):
         self.sub_image_count = 0
 
         self.dets = []
-        self.lidar_eval_json = os.path.join(self.data_dir, f"lidar_predictions_{self.index}.json")
+        self.lidar_pred_json = os.path.join(self.data_dir, f"lidar_pred_{self.index}.json")
+        self.image_pred_json = os.path.join(self.data_dir, f"image_pred_{self.index}.json")
+        self.image_gt_json = os.path.join(self.data_dir, f"image_gt_{self.index}.json")
         self.delay_csv = os.path.join(self.data_dir, f"delays_{self.index}.csv")
         self.delay_log = []
 
@@ -101,7 +106,7 @@ class InferenceNode(Node):
         self.timer = self.create_timer(1.0 / self.sample_freq, self.process_latest_data)
 
         # Subscribe to termination signal
-        self.create_subscription(String, 'terminate_inferencers', self.terminate_callback, 10)
+        self.create_subscription(String, 'terminate_inferencers', self._terminate_callback, 10)
 
         # WARMUP
         self.profiler = pPerf(self.model_name, self.inferencer, self.depth)
@@ -123,6 +128,7 @@ class InferenceNode(Node):
         if self.input_type == "publisher":
             input_name = frame_id
         else:
+            print(frame_id)
             input_name = frame_id.split('/')[-1]
 
         self.latest_token = input_name
@@ -191,7 +197,7 @@ class InferenceNode(Node):
             'delay': recv_time - sent_time
         })
 
-    def save_lidar_detections(self):
+    def _save_lidar_detections(self):
         nusc_annos = {}
         for det in self.dets:
             token = det[0]
@@ -200,7 +206,7 @@ class InferenceNode(Node):
 
             annos = []
             for box in boxes:
-                name = classes[box.label]
+                name = lidar_classes[box.label]
                 nusc_anno = dict(
                     sample_token=token,
                     translation=box.center.tolist(),
@@ -224,49 +230,29 @@ class InferenceNode(Node):
             'results': nusc_annos
         }
         
-        mmengine.dump(nusc_submission, self.lidar_eval_json)
-        print(f"Results written to {self.lidar_eval_json}")
+        mmengine.dump(nusc_submission, self.lidar_pred_json)
+        print(f"Results written to {self.lidar_pred_json}")
 
-    def save_image_detections(self):
-        nusc_annos = {}
+    def _save_image_detections(self):
+        coco_predictions = []
+        tokens = []
         for det in self.dets:
-            print(det)
-            token = det[0]
-            boxes = lidar_output_to_nusc_box(det[1], token)
-            boxes = lidar_nusc_box_to_global(nusc, token, boxes)
+            coco_pred = image_output_to_coco(det[1], det[0])
+            tokens.append(det[0])
+            coco_predictions.extend(coco_pred)
+        
+        with open(self.image_pred_json, 'w') as f:
+            json.dump(coco_predictions, f, indent=2)
+        
+        # Save the ground truth json
+        generate_coco_gt(tokens, self.image_gt_json)
 
-            annos = []
-            for box in boxes:
-                name = classes[box.label]
-                nusc_anno = dict(
-                    sample_token=token,
-                    translation=box.center.tolist(),
-                    size=box.wlh.tolist(),
-                    rotation=box.orientation.elements.tolist(),
-                    velocity=box.velocity[:2].tolist(),
-                    detection_name=name,
-                    detection_score=box.score,
-                    attribute_name='')
-                annos.append(nusc_anno)
-            nusc_annos[token] = annos
-        
-        nusc_submission = {
-            'meta': {
-                'use_camera': False,
-                'use_lidar': True,
-                'use_radar': False,
-                'use_map': False,
-                'use_external': False
-            },
-            'results': nusc_annos
-        }
-        
-        mmengine.dump(nusc_submission, self.lidar_eval_json)
-        print(f"Results written to {self.lidar_eval_json}")
+        # modify the image_id in prediction as the prediction's image_id is still nuscene token
+        change_pred_imageid(self.image_pred_json, self.image_gt_json)
+
 
             
-
-    def terminate_callback(self, msg):
+    def _terminate_callback(self, msg):
         if msg.data.strip() == "TERMINATE":
             self.get_logger().info(f"{self.mode} Inferencer shutting down.................")
 
@@ -275,9 +261,9 @@ class InferenceNode(Node):
 
             # save lidar detections
             if self.mode == 'lidar':
-                self.save_lidar_detections()
+                self._save_lidar_detections()
             else:
-                self.save_image_detections()
+                self._save_image_detections()
 
             # Shared delay file path
             lock_path = self.delay_csv + ".lock"
