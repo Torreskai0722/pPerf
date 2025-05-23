@@ -1,7 +1,7 @@
 from nuscenes.nuscenes import NuScenes
 
 # Lidar evaluations constants
-classes = ['car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
+lidar_classes = ['car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
          'motorcycle', 'pedestrian', 'traffic_cone', 'barrier']
 
 class_range = {
@@ -34,6 +34,8 @@ coco_to_nusc = {
     'motorcycle': 'motorcycle',
     'person': 'pedestrian',
 }
+
+image_classes = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian']
 
 
 
