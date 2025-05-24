@@ -4,8 +4,10 @@ import csv
 from itertools import product
 from subprocess import TimeoutExpired
 import pandas as pd
-from p_perf.pPerf_eval import lidar_evaluater
-from p_perf.config.constant import class_range, classes, nusc
+
+from p_perf.post_process.lidar_eval import lidar_evaluater
+from p_perf.post_process.image_eval import image_evaluater
+from p_perf.config.constant import nusc
 
 # Base nsys command
 nsys_base = [
@@ -13,7 +15,7 @@ nsys_base = [
     "--trace=cuda,nvtx,cudnn",
     "--backtrace=none",
     "--force-overwrite", "true",
-    "--export=json",
+    # "--export=json",
 ]
 
 # Output folder
@@ -127,11 +129,17 @@ for i, row in df.iterrows():
     #     os.remove(json_path)
 
     # EVALUATION PIPELINE OF LIDAR ACCURACY 
-    prediction_file = f"{output_base}/lidar_predictions_{i}.json"
-    lidar_evaluater = lidar_evaluater(prediction_file, nusc, output_base, i)
-    pred_boxes = lidar_evaluater.load_prediction_of_sample_tokens([], all=True)
-    lidar_evaluater.evaluate(pred_boxes)
+    lidar_pred_file = f"{output_base}/lidar_pred_{i}.json"
+    lidar_evaluate = lidar_evaluater(lidar_pred_file, nusc, output_base, i)
+    pred_boxes = lidar_evaluate.load_prediction_of_sample_tokens([], all=True)
+    lidar_evaluate.evaluate(pred_boxes)
 
+    # EVALUATION PIPELINE OF IMAGE ACCURACY
+    image_pred_file = f"{output_base}/image_pred_{i}.json"
+    image_gt_file = f"{output_base}/image_gt_{i}.json"
+    image_evaluate = image_evaluater(image_pred_file, image_gt_file, nusc, output_base, i)
+    image_evaluate.mAP_evaluate()
+    print(image_evaluate.get_instance_hit())
 
     # Save status to CSV after each run
     df.at[i, "status"] = "success"
