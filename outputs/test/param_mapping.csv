@@ -1,3 +1,3 @@
 run_index,image_sample_freq,lidar_sample_freq,depth,image_model,lidar_model,status
-0,10,10,1,faster-rcnn_r50_fpn_1x_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,pending
-1,10,10,2,faster-rcnn_r50_fpn_1x_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,pending
+0,10,10,1,faster-rcnn_r50_fpn_1x_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
+1,10,10,2,faster-rcnn_r50_fpn_1x_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
