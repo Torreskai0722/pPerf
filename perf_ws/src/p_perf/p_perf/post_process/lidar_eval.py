@@ -288,6 +288,8 @@ class lidar_evaluater():
 
         # Show instance hit stats for each distance threshold
         for dist_th, hits_dict in all_instance_hits.items():
+            if dist_th != 1:
+                continue
             print(f"\n[Threshold {dist_th}] Unique instances matched: {len(hits_dict)}")
             file_path = f"{self.output_dir}/instance_{self.index}_{dist_th}.json"
             with open(file_path, 'w') as json_file:

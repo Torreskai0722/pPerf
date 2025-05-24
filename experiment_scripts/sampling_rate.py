@@ -4,8 +4,9 @@ import csv
 from itertools import product
 from subprocess import TimeoutExpired
 import pandas as pd
-from p_perf.pPerf_eval import lidar_evaluater
-from p_perf.config.constant import class_range, classes, nusc
+from p_perf.post_process.lidar_eval import lidar_evaluater
+from p_perf.post_process.image_eval import image_evaluater
+from p_perf.config.constant import nusc
 
 # Base nsys command
 nsys_base = [
@@ -13,14 +14,14 @@ nsys_base = [
     "--trace=cuda,nvtx,cudnn",
     "--backtrace=none",
     "--force-overwrite", "true",
-    "--export=json",
+    # "--export=json",
 ]
 
 # Output folder
 output_base = "/mmdetection3d_ros2/outputs/test"
 os.makedirs(output_base, exist_ok=True)
 
-run_time = 5
+run_time = 20
 
 # Failure log file
 failure_log = os.path.join(output_base, "failures.log")
@@ -31,18 +32,18 @@ with open(failure_log, "w") as flog:
 # Parameter sweep setup
 image_sample_freqs = [10]
 lidar_sample_freqs = [10]
-depths = [1, 2]
+depths = [0]
 image_models = [
-    'faster-rcnn_r50_fpn_1x_coco'
-    # 'detr_r50_8xb2-150e_coco',
-    # 'yolov3_d53_320_273e_coco',
-    # 'centernet_r18-dcnv2_8xb16-crop512-140e_coco'
+    'faster-rcnn_r50_fpn_1x_coco',
+    'detr_r50_8xb2-150e_coco',
+    'yolov3_d53_320_273e_coco',
+    'centernet_r18-dcnv2_8xb16-crop512-140e_coco'
 ]
 
 lidar_models = [
-    'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d'
-    # 'hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d',
-    # 'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d',
+    'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d',
+    'hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d',
+    'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d',
 ]
 
 # Generate all combinations
@@ -127,11 +128,17 @@ for i, row in df.iterrows():
     #     os.remove(json_path)
 
     # EVALUATION PIPELINE OF LIDAR ACCURACY 
-    prediction_file = f"{output_base}/lidar_predictions_{i}.json"
-    lidar_evaluater = lidar_evaluater(prediction_file, nusc, output_base, i)
-    pred_boxes = lidar_evaluater.load_prediction_of_sample_tokens([], all=True)
-    lidar_evaluater.evaluate(pred_boxes)
+    lidar_pred = f"{output_base}/lidar_pred_{i}.json"
+    lidar_evaluate = lidar_evaluater(lidar_pred, nusc, output_base, i)
+    pred_boxes = lidar_evaluate.load_prediction_of_sample_tokens([], all=True)
+    lidar_evaluate.evaluate(pred_boxes)
 
+    # EVALUATION PIPELINE OF IMAGE ACCURACY 
+    image_pred = f"{output_base}/image_pred_{i}.json"
+    image_gt = f"{output_base}/image_gt_{i}.json"
+    image_evaluate = image_evaluater(image_pred, image_gt, nusc, output_base, i)
+    image_evaluate.mAP_evaluate()
+    instance_hits = image_evaluate.get_instance_hit()
 
     # Save status to CSV after each run
     df.at[i, "status"] = "success"
