@@ -303,6 +303,7 @@ class image_evaluater():
         self.output_dir = output_dir
         self.index = index
         self.ap_path = f"{output_dir}/image_ap_{index}.csv"
+        self.instance_path = f"{output_dir}/image_instance_{index}.csv"
     
     def mAP_evaluate(self):
         # Load GT and predictions
@@ -356,4 +357,5 @@ class image_evaluater():
                     if instance_token is not None:
                         instance_hits[instance_token] += 1
 
-        return dict(instance_hits)
+        with open(self.instance_path, 'w') as f:
+            json.dump(dict(instance_hits), f, indent=2)
