@@ -1,3 +1,18 @@
 run_index,image_sample_freq,lidar_sample_freq,depth,image_model,lidar_model,status
+<<<<<<< HEAD
 0,10,10,1,faster-rcnn_r50_fpn_1x_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
 1,10,10,2,faster-rcnn_r50_fpn_1x_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
+=======
+0,10,10,0,faster-rcnn_r50_fpn_1x_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
+1,10,10,0,faster-rcnn_r50_fpn_1x_coco,hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d,success
+2,10,10,0,faster-rcnn_r50_fpn_1x_coco,centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d,success
+3,10,10,0,detr_r50_8xb2-150e_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
+4,10,10,0,detr_r50_8xb2-150e_coco,hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d,success
+5,10,10,0,detr_r50_8xb2-150e_coco,centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d,success
+6,10,10,0,yolov3_d53_320_273e_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
+7,10,10,0,yolov3_d53_320_273e_coco,hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d,success
+8,10,10,0,yolov3_d53_320_273e_coco,centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d,success
+9,10,10,0,centernet_r18-dcnv2_8xb16-crop512-140e_coco,pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d,success
+10,10,10,0,centernet_r18-dcnv2_8xb16-crop512-140e_coco,hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d,success
+11,10,10,0,centernet_r18-dcnv2_8xb16-crop512-140e_coco,centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d,success
+>>>>>>> 4003469cd447a86e1498a66c921a028d64ca7b61
