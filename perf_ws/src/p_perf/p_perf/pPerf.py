@@ -11,10 +11,8 @@ from pynvml import (
 import torch
 import functools
 import inspect
-import functools
-import inspect
 import time
-
+from collections import deque
 
 class pPerf:
     def __init__(self, model_name, inferencer, depth, monitor_interval=0.1):
@@ -22,6 +20,7 @@ class pPerf:
         self.method_timings = {}  # {method_id: (start, end, tag)}
         self.filtered_methods = []  # methods selected after filtering
         self.module_method_map = {}  # for looking up method handles
+        self.method_called = set() 
         self.target_depth = depth
 
         # Model inferencing
@@ -37,6 +36,7 @@ class pPerf:
     def _trace_wrapper(self, fn, tag, method_id):
         @functools.wraps(fn)
         def wrapped(*args, **kwargs):
+            self.method_called.add(method_id)  # Track this method was used
             torch.cuda.synchronize()
             start = time.time()
             result = fn(*args, **kwargs)
@@ -116,7 +116,7 @@ class pPerf:
         # Step 4: Source-based filtering
         filtered = []
         for method_id in keep_set:
-            module, _, _ = self.module_method_map[method_id]
+            module, _, tag = self.module_method_map[method_id]
             if id(module) in valid_modules:
                 filtered.append(method_id)
 
@@ -178,7 +178,7 @@ class pPerf:
             for method_id in self.filtered_methods:
                 if self.method_depths[method_id] == d:
                     _, _, tag = self.module_method_map[method_id]
-                    print(f"{tag}")
+                    print(tag, self.method_timings[method_id])
 
     # ACTUAL METHODS USED IN INFERENCER
     # During inferencing, the pipeline should be 
@@ -190,6 +190,21 @@ class pPerf:
 
     def register_hooks(self, warm_data):
         self.trace_and_record_times(warm_data)
+
+        # Purge unused method hooks
+        unused = set(self.module_method_map.keys()) - self.method_called
+        for method_id in unused:
+            module, name, _ = self.module_method_map[method_id]
+            original = getattr(module, f"_original_{name}", None)
+            if original:
+                setattr(module, name, original)
+            self.method_timings.pop(method_id, None)
+
+        # Purge from map too
+        self.module_method_map = {
+            mid: self.module_method_map[mid] for mid in self.method_called
+        }
+
         self.filter_nested_ranges(self.inferencer.model)
         self.wrap_filtered_methods_with_nvtx()
         print("MAX_DEPTH is: ", max(self.method_depths.values(), default=-1))

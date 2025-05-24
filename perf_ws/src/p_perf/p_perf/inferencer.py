@@ -116,6 +116,7 @@ class InferenceNode(Node):
             warm_data = WARM_IMAGE
         self.profiler.warm_up(warm_data)
         self.profiler.register_hooks(warm_data)
+        self.profiler.summary()
 
         # INFERENCER READY MSG FOR SENSOR PUBLISHER
         self.get_logger().info(f"{self.mode.capitalize()} model '{self.model_name}' is ready.")
@@ -281,6 +282,7 @@ class InferenceNode(Node):
             self.destroy_timer(self.timer)
             self.destroy_node()
             raise SystemExit
+    
     
 def main(args=None):
     rclpy.init(args=args)
