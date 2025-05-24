@@ -18,7 +18,7 @@ nsys_base = [
 output_base = "/mmdetection3d_ros2/outputs/bag"
 os.makedirs(output_base, exist_ok=True)
 
-run_time = 30
+run_time = 5
 
 # Failure log file
 failure_log = os.path.join(output_base, "failures.log")
