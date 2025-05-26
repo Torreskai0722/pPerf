@@ -1,0 +1,4 @@
+# ninja log v5
+0	5528	1748118068681254146	/mmdetection3d_ros2/DINO/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/models/dino/ops/src/cpu/ms_deform_attn_cpu.o	eb983159cefcd5aa
+0	15848	1748118078993911825	/mmdetection3d_ros2/DINO/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/models/dino/ops/src/vision.o	56436ced90f97923
+0	37039	1748118100183263117	/mmdetection3d_ros2/DINO/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/models/dino/ops/src/cuda/ms_deform_attn_cuda.o	22a12d9d93dc4c75
