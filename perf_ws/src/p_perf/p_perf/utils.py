@@ -2,7 +2,10 @@ import os
 from contextlib import redirect_stdout
 from pyquaternion import Quaternion
 import numpy as np
-
+import pandas as pd
+import json
+import os
+import cv2
 
 from nuscenes.eval.detection.data_classes import (
     DetectionBox,
@@ -45,12 +48,15 @@ def suppress_function_output(func, *args, **kwargs):
 
 # HELPER FUNCTION USED BY BOTH LIDAR AND IMAGE EVALUATION PIPELINE
 
-def interpolate_gt(nusc, sample_data_token: str, visibility: bool, visibilities):
+def interpolate_gt(nusc, sd_token: str, sd_offset_token: str, visibility: bool, visibilities):
     """
     Generate interpolated or fallback ground truth boxes for a given sample_data_token.
     Falls back to prev or next keyframe if interpolation is not possible.
+
+    Args:
+        streaming_gt: if set to true
     """
-    sd = nusc.get('sample_data', sample_data_token)
+    sd = nusc.get('sample_data', sd_offset_token)
     timestamp = sd['timestamp']
 
     box_list = []
@@ -68,7 +74,7 @@ def interpolate_gt(nusc, sample_data_token: str, visibility: bool, visibilities)
                 continue
 
             box_list.append(DetectionBox(
-                sample_token=sample_data_token,
+                sample_token=sd_token,
                 translation=a['translation'],
                 size=a['size'],
                 rotation=a['rotation'],
@@ -143,7 +149,7 @@ def interpolate_gt(nusc, sample_data_token: str, visibility: bool, visibilities)
                 continue
 
             box_list.append(DetectionBox(
-                sample_token=sample_data_token,
+                sample_token=sd_token,
                 translation=center.tolist(),
                 size=size.tolist(),
                 rotation=rotation.elements.tolist(),
@@ -168,7 +174,7 @@ def interpolate_gt(nusc, sample_data_token: str, visibility: bool, visibilities)
             continue
 
         box_list.append(DetectionBox(
-            sample_token=sample_data_token,
+            sample_token=sd_token,
             translation=a['translation'],
             size=a['size'],
             rotation=a['rotation'],
@@ -182,49 +188,49 @@ def interpolate_gt(nusc, sample_data_token: str, visibility: bool, visibilities)
 
 
 
-
-
-
-
-def draw_coco_bboxes_from_path(image_path, coco_bboxes, labels=None, scores=None, class_names=None, color=(0, 255, 0), thickness=2):
+def get_offset_sd_token(nusc, start_token: str, sensor_type: str, delay_csv_path: str) -> str:
     """
-    Load an image from file and draw COCO-format bounding boxes on it.
+    Given a sample_data token, sensor type, and delay CSV, compute the nearest sample token
+    based on the processing time from the CSV.
 
     Args:
-        image_path (str): Path to the image file.
-        coco_bboxes (List[List[float]]): List of [x, y, w, h] boxes.
-        labels (List[int], optional): COCO category IDs.
-        scores (List[float], optional): Confidence scores.
-        class_names (Dict[int, str], optional): COCO category_id to name mapping.
-        color (Tuple[int, int, int], optional): Box color in BGR.
-        thickness (int): Box line thickness.
+        nusc: NuScenes instance
+        start_token: Current sample_data token (e.g. from a frame just processed)
+        sensor_type: 'image' or 'lidar'
+        delay_csv_path: Path to the CSV file containing process_time column
 
     Returns:
-        np.ndarray: Image with boxes drawn.
+        A future sample_data token that is closest to when processing finishes
     """
-    image = cv2.imread(image_path)
-    if image is None:
-        raise FileNotFoundError(f"Could not read image: {image_path}")
+    assert sensor_type in ['image', 'lidar'], "sensor_type must be 'image' or 'lidar'"
 
-    for i, box in enumerate(coco_bboxes):
-        x, y, w, h = map(int, box)
-        cv2.rectangle(image, (x, y), (x + w, y + h), color, thickness)
+    # Load delay CSV
+    df = pd.read_csv(delay_csv_path)
 
-        label_text = ""
-        if labels is not None:
-            class_id = labels[i]
-            label_text += class_names[class_id] if class_names else f"class {class_id}"
-        if scores is not None:
-            label_text += f" {scores[i]:.2f}"
+    # Find the matching row
+    row = df[(df['input_token'] == start_token) & (df['sensor_type'] == sensor_type)]
+    if row.empty:
+        raise ValueError(f"No matching row for token {start_token} and sensor type {sensor_type}")
 
-        if label_text:
-            cv2.putText(image, label_text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1, cv2.LINE_AA)
-    
-    # Show image before returning
-    cv2.imshow("COCO Detections", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # Extract process_time in seconds
+    process_time = float(row['process_time'].values[0])
 
+    # Determine frame interval
+    freq = 12 if sensor_type == 'image' else 20
+    frame_interval = 1.0 / freq
+
+    # Compute how many frames ahead
+    frame_offset = round(process_time / frame_interval)
+
+    # Walk forward through the sample_data chain
+    token = start_token
+    for _ in range(frame_offset):
+        sd = nusc.get('sample_data', token)
+        if not sd['next']:
+            break
+        token = sd['next']
+
+    return token
 
 
 def load_sweep_sd(nusc, scene, sensor_channel='CAM_FRONT'):
@@ -276,3 +282,50 @@ def get_paths_from_sd(nusc, sd_tokens):
 
 
 
+import json
+import os
+import cv2
+
+def visualize_coco_predictions(image_id, pred_json_path, gt_json_path, image_dir, score_thresh=0.3):
+    # Load prediction and GT files
+    with open(pred_json_path) as f:
+        preds = json.load(f)
+
+    with open(gt_json_path) as f:
+        gt = json.load(f)
+
+    # Map category ID to name
+    id_to_name = {cat['id']: cat['name'] for cat in gt['categories']}
+
+    # Find image filename from ground truth metadata
+    image_info = next(img for img in gt['images'] if img['id'] == image_id)
+    image_path = os.path.join(image_dir, image_info['file_name'])
+
+    # Load image using OpenCV
+    image = cv2.imread(image_path)
+    if image is None:
+        raise FileNotFoundError(f"Image not found: {image_path}")
+
+    # Draw ground truth boxes (green)
+    for ann in gt['annotations']:
+        if ann['image_id'] != image_id:
+            continue
+        x, y, w, h = map(int, ann['bbox'])
+        label = id_to_name.get(ann['category_id'], str(ann['category_id']))
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(image, f"GT: {label}", (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+
+    # Draw predicted boxes (red)
+    for pred in preds:
+        if pred['image_id'] != image_id or pred['score'] < score_thresh:
+            continue
+        x, y, w, h = map(int, pred['bbox'])
+        label = id_to_name.get(pred['category_id'], str(pred['category_id']))
+        score = pred['score']
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        cv2.putText(image, f"Pred: {label} {score:.2f}", (x, y + h + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+
+    # Show image
+    cv2.imshow(f"Prediction vs Ground Truth - ID {image_id}", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

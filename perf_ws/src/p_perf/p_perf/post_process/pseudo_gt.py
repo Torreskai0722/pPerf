@@ -4,7 +4,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from nuscenes.nuscenes import NuScenes
-from p_perf.utils import load_sweep_sd
+from p_perf.utils import load_sweep_sd, get_offset_sd_token
 
 import dino_package.datasets.transforms as T
 from dino_package.util.slconfig import SLConfig
@@ -86,7 +86,6 @@ def infer_image(image_path, model, postprocessors, id2name, threshold=0.5, devic
         return None
 
     # Scale boxes to original image size
-    print(labels)
     boxes[:, [0, 2]] *= W
     boxes[:, [1, 3]] *= H
 
@@ -131,7 +130,7 @@ def visualization(image, boxes, labels, scores, save_path=None):
     return image
 
 
-def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2name, json_path: str, 
+def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2name, delay_csv_path, json_path: str, 
                             image_size=(1600, 900), threshold=0.5):
     """
     Generate COCO-format ground truth using model predictions (pseudo-GT) from NuScenes sample_data_tokens.
@@ -141,6 +140,7 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
         model: DINO model
         postprocessors: DINO postprocessors
         id2name: dict mapping category ID to label name
+        delay_csv_path: a csv file that contains of all the required information regarding a token's coom delay, processing dealy,
         json_path: output path for COCO-format annotation
         nusc: NuScenes instance
         image_size: expected image size (default for CAM_FRONT: 1600x900)
@@ -165,15 +165,18 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
     for image_id, token in enumerate(sample_data_tokens):
         # Get file path from NuScenes
         sd_rec = nusc.get('sample_data', token)
-        img_path = os.path.join(nusc.dataroot, sd_rec['filename'])
+        sd_offset_token = get_offset_sd_token(nusc, token, 'image', delay_csv_path)
+        sd_offset = nusc.get('sample_data', sd_offset_token)
+        img_path = os.path.join(nusc.dataroot, sd_offset['filename'])
 
         # Register the image in COCO
         coco["images"].append({
             "id": image_id,
-            "file_name": sd_rec["filename"],
+            "file_name": sd_offset["filename"],
             "width": image_size[0],
             "height": image_size[1],
-            "token": token
+            "token": token,
+            "offset_token": sd_offset_token
         })
 
         # Run inference
@@ -198,8 +201,7 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
                 "category_id": int(category_id),
                 "bbox": [float(x1), float(y1), float(w), float(h)],
                 "area": float(area),
-                "iscrowd": 0,
-                "instance_token": None
+                "iscrowd": 0
             })
             annotation_id += 1
 
