@@ -4,10 +4,13 @@ import csv
 from itertools import product
 from subprocess import TimeoutExpired
 import pandas as pd
+import json
 
 from p_perf.post_process.lidar_eval import lidar_evaluater
 from p_perf.post_process.image_eval import image_evaluater
 from p_perf.config.constant import nusc
+from p_perf.post_process.pseudo_gt import generate_pseudo_coco_gt, load_model
+from p_perf.post_process.image_eval import generate_coco_gt, change_pred_imageid
 
 # Base nsys command
 nsys_base = [
@@ -128,6 +131,7 @@ for i, row in df.iterrows():
     # if os.path.exists(json_path):
     #     os.remove(json_path)
 
+    delay_csv = f"{output_base}/delays_{i}.csv"
     # EVALUATION PIPELINE OF LIDAR ACCURACY 
     lidar_pred_file = f"{output_base}/lidar_pred_{i}.json"
     lidar_evaluate = lidar_evaluater(lidar_pred_file, nusc, output_base, i)
@@ -137,6 +141,24 @@ for i, row in df.iterrows():
     # EVALUATION PIPELINE OF IMAGE ACCURACY
     image_pred_file = f"{output_base}/image_pred_{i}.json"
     image_gt_file = f"{output_base}/image_gt_{i}.json"
+
+    with open(image_pred_file, 'r') as f:
+        data = json.load(f)  # should be a list of dicts
+    tokens = [d['image_id'] for d in data if 'image_id' in d]
+
+    config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
+    config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
+    ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
+    id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
+
+    with open(id2name_path) as f:
+        id2name = {int(k): v for k, v in json.load(f).items()}
+    model, postprocessors = load_model(config_path, ckpt_path)
+    generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, delay_csv, image_gt_file)
+
+    # modify the image_id in prediction as the prediction's image_id is still nuscene token
+    change_pred_imageid(image_pred_file, image_gt_file)
+
     image_evaluate = image_evaluater(image_pred_file, image_gt_file, nusc, output_base, i)
     image_evaluate.mAP_evaluate()
     print(image_evaluate.get_instance_hit())

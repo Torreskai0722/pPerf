@@ -17,14 +17,14 @@ from mmdet.datasets.coco import CocoDataset
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval, Params
 
+
 # PREDICTION PROCESSING
 def image_output_to_coco(detection, image_id, score_thresh=0.5):
     """
     Convert image-based detection results to COCO-style format.
 
     Args:
-        pred_instance (InstanceData): Contains `bboxes`, `labels`, and `scores`.
-        image_id (int or str): Unique image ID in the COCO dataset.
+        image_id (int or str): Unique sd token in NuScene
         category_id_map (dict): Mapping from internal label IDs to COCO category IDs.
         score_thresh (float): Minimum score threshold to keep predictions.
 

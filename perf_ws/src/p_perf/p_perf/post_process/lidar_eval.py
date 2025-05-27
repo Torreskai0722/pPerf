@@ -14,7 +14,7 @@ from collections import defaultdict
 from pyquaternion import Quaternion
 
 from p_perf.config.constant import lidar_classes, dist_ths
-from p_perf.utils import interpolate_gt
+from p_perf.utils import interpolate_gt, get_offset_sd_token
 from mmdet3d.structures import LiDARInstance3DBoxes
 
 # HELPER FUNCTION FOR EVALUATION PIPELINE ==> LIDAR
@@ -122,6 +122,7 @@ class lidar_evaluater():
         self.output_dir = output_dir
         self.index = index
         self.ap_path = f"{output_dir}/lidar_ap_{index}.csv"
+        self.delay_path = f"{output_dir}/delays_{index}.csv"
 
 
     def accumulate(self,
@@ -145,7 +146,8 @@ class lidar_evaluater():
 
         # Precompute interpolated GTs per sample_data_token
         for token in pred_boxes.sample_tokens:
-            boxes, instance_tokens = interpolate_gt(self.nusc, token, False, [])
+            sd_offset = get_offset_sd_token(self.nusc, token, 'lidar', self.delay_path)
+            boxes, instance_tokens = interpolate_gt(self.nusc, token, sd_offset, False, [])
             interpolated_cache[token] = (boxes, instance_tokens)
 
         # Compute total GTs for this class (avoid double counting)
