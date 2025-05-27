@@ -9,12 +9,13 @@ import numpy as np
 import cv2
 import os
 import time
+from nuscenes.nuscenes import NuScenes
 
 import pandas as pd
 import json
 
 from p_perf.pPerf import pPerf
-from p_perf.utils import list_filenames
+from p_perf.utils import load_sweep_sd, get_paths_from_sd
 
 LIDAR_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP'
 IMAGE_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT'
@@ -31,18 +32,16 @@ class SensorPublisherNode(Node):
         self.expected_models = self.get_parameter('expected_models').value
         self.index = self.get_parameter('index').value
         self.data_dir = self.get_parameter('data_dir').value
-        json_path = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/sample_data.json'
-        self.filename_to_token = self.load_filename_to_token_map_from_json(json_path)
 
         # BASIC EXPERIMENT PARAMETERS
         self.declare_parameter('publish_freq_lidar', 20)
         self.declare_parameter('publish_freq_image', 12)
-        self.declare_parameter('run_time', 30)
+        self.declare_parameter('scene', 'cc8c0bf57f984915a77078b10eb33198')
         self.declare_parameter('gpu_duration', 0.025)
 
         self.publish_freq_lidar = self.get_parameter('publish_freq_lidar').value
         self.publish_freq_image = self.get_parameter('publish_freq_image').value
-        self.run_time = self.get_parameter('run_time').value
+        scene_token = self.get_parameter('scene').value
         self.gpu_duration = self.get_parameter('gpu_duration').value
 
         # COMMUNICATION EXPERIMENT PARAMETERS
@@ -74,11 +73,20 @@ class SensorPublisherNode(Node):
         self.create_subscription(String, 'inferencer_ready', self.inferencer_ready_callback, 10)
 
         # DATA LOADING SECTION
-        self.lidar_files = list_filenames(LIDAR_DIR, 'bin')
-        self.image_files = list_filenames(IMAGE_DIR, 'jpg')
+        DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
+        nusc = NuScenes(
+                    version='v1.0-mini',
+                    dataroot=DATA_ROOT 
+                )
 
-        self.max_lidar_msgs = min(len(self.lidar_files), int(self.run_time * self.publish_freq_lidar))
-        self.max_image_msgs = min(len(self.image_files), int(self.run_time * self.publish_freq_image))
+        self.scene = nusc.get('scene', scene_token)
+        self.lidar_tokens = load_sweep_sd(nusc, self.scene, 'LIDAR_TOP')
+        self.image_tokens = load_sweep_sd(nusc, self.scene, 'CAM_FRONT')
+        self.lidar_files = get_paths_from_sd(nusc, self.lidar_tokens)
+        self.image_files = get_paths_from_sd(nusc, self.image_tokens)
+
+        self.len_lidar_msgs = len(self.lidar_files)
+        self.len_image_msgs = len(self.image_files)
 
         self.lidar_index = 0
         self.image_index = 0
@@ -96,23 +104,13 @@ class SensorPublisherNode(Node):
         self.preload_all_data()
 
 
-    def load_filename_to_token_map_from_json(self, json_path):
-        with open(json_path, 'r') as f:
-            sample_data = json.load(f)
-        mapping = {}
-        for item in sample_data:
-            filename = os.path.basename(item['filename'])  # Extract only the filename, e.g., 'n015...bin'
-            mapping[filename] = item['token']
-        return mapping
-
-
     def preload_all_data(self):
-        for i in range(self.max_lidar_msgs):
+        for i in range(self.len_lidar_msgs):
             try:
                 path = self.lidar_files[i]
+                token = self.lidar_tokens[i]
                 points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
                 filename = os.path.basename(path)
-                token = self.filename_to_token.get(filename)
 
                 dtype = np.float32
                 itemsize = np.dtype(dtype).itemsize
@@ -140,12 +138,11 @@ class SensorPublisherNode(Node):
             except Exception as e:
                 self.get_logger().error(f"Failed to load LIDAR {path}: {e}")
 
-        for i in range(self.max_image_msgs):
+        for i in range(self.len_image_msgs):
             try:
                 path = self.image_files[i]
+                token = self.image_tokens[i]
                 img = cv2.imread(path)
-                filename = os.path.basename(path)
-                token = self.filename_to_token.get(filename)
                 if img is None:
                     raise ValueError("cv2.imread returned None")
 
@@ -169,23 +166,21 @@ class SensorPublisherNode(Node):
 
             if self.models_ready_count == self.expected_models:
                 while not self.preloading_done:
-                    print("waiting for preloading")
-                self.profiler.start_gpu_monitoring()
+                    self.get_logger().info("waiting for preloading")
                 self.start_publishing()
 
         except ValueError:
             self.get_logger().warn("Received invalid readiness message.")
 
     def start_publishing(self):
-        if self.start_time is None:
-            self.start_time = time.time()
-            self.get_logger().info("All expected models are ready. Starting data publishing.")
+        self.get_logger().info("All expected models are ready. Starting data publishing.")
+        self.profiler.start_gpu_monitoring()
+        self.lidar_timer = self.create_timer(1.0 / self.publish_freq_lidar, self.publish_lidar)
+        self.image_timer = self.create_timer(1.0 / self.publish_freq_image, self.publish_image)
 
-            self.lidar_timer = self.create_timer(1.0 / self.publish_freq_lidar, self.publish_lidar)
-            self.image_timer = self.create_timer(1.0 / self.publish_freq_image, self.publish_image)
 
     def publish_lidar(self):
-        if self.lidar_index >= self.max_lidar_msgs or time.time() - self.start_time > self.run_time:
+        if self.lidar_index >= self.len_lidar_msgs:
             self.shutdown()
             return
 
@@ -196,8 +191,9 @@ class SensorPublisherNode(Node):
         self.lidar_publisher.publish(msg)
         self.lidar_index += 1
 
+
     def publish_image(self):
-        if self.image_index >= self.max_image_msgs or time.time() - self.start_time > self.run_time:
+        if self.image_index >= self.len_image_msgs:
             self.shutdown()
             return
         

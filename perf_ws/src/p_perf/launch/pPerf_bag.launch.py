@@ -5,11 +5,11 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument("sensor_run_time", default_value="1"),
+        DeclareLaunchArgument("scene", default_value="1"),
         DeclareLaunchArgument("sensor_expected_models", default_value="2"),
         DeclareLaunchArgument("idx", default_value="0"),
         DeclareLaunchArgument("input_type", default_value="publisher"),
-        DeclareLaunchArgument("bag_dir", default_value="/mmdetection3d_ros2/data/rosbag"),
+        DeclareLaunchArgument("bag_dir", default_value="/mmdetection3d_ros2/data/bag"),
 
         DeclareLaunchArgument("image_sample_freq", default_value="10"),
         DeclareLaunchArgument("image_model_name", default_value="yolov3_d53_320_273e_coco"),
@@ -19,7 +19,7 @@ def generate_launch_description():
         DeclareLaunchArgument("lidar_model_name", default_value="pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d"),
         DeclareLaunchArgument("lidar_depth", default_value="0"),
 
-        DeclareLaunchArgument("data_dir", default_value="/mmdetection3d_ros2/outputs/test"),
+        DeclareLaunchArgument("data_dir", default_value="/mmdetection3d_ros2/outputs/bag"),
 
         Node(
             package="p_perf",
@@ -27,7 +27,8 @@ def generate_launch_description():
             name="sensor_publisher",
             output="screen",
             parameters=[{
-                "run_time": LaunchConfiguration("sensor_run_time"),
+                'use_sim_time': True,
+                "scene": LaunchConfiguration("scene"),
                 "expected_models": LaunchConfiguration("sensor_expected_models"),
                 "index": LaunchConfiguration("idx"),
                 "bag_dir": LaunchConfiguration("bag_dir"),
@@ -41,6 +42,7 @@ def generate_launch_description():
             name="image_inference_node",
             output="screen",
             parameters=[{
+                'use_sim_time': True,
                 "sample_freq": LaunchConfiguration("image_sample_freq"),
                 "depth": LaunchConfiguration("image_depth"),
                 "model_name": LaunchConfiguration("image_model_name"),
@@ -57,6 +59,7 @@ def generate_launch_description():
             name="lidar_inference_node",
             output="screen",
             parameters=[{
+                'use_sim_time': True,
                 "sample_freq": LaunchConfiguration("lidar_sample_freq"),
                 "depth": LaunchConfiguration("lidar_depth"),
                 "model_name": LaunchConfiguration("lidar_model_name"),

@@ -73,9 +73,7 @@ class pPerf:
                     setattr(module, name, wrapped)
                     self.module_method_map[method_id] = (module, name, tag)
 
-        print("[AutoProfiler] Running input to measure execution time...")
         self.inferencer(warmup_data)
-        print(f"[AutoProfiler] Recorded {len(self.method_timings)} method timings.")
         
 
     def filter_nested_ranges(self, model, tolerance_ms=0.5):
@@ -143,7 +141,6 @@ class pPerf:
             active_stack.append((method_id, end))
 
         self.filtered_methods = filtered
-        print(f"[AutoProfiler] Kept {len(filtered)} methods after time + module filtering with depth info.")
 
     def _nvtx_wrapper(self, fn, tag):
         @functools.wraps(fn)

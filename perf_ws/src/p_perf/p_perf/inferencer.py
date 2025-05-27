@@ -21,6 +21,7 @@ import mmengine
 from p_perf.pPerf import pPerf
 from p_perf.post_process.lidar_eval import lidar_nusc_box_to_global, lidar_output_to_nusc_box
 from p_perf.post_process.image_eval import image_output_to_coco, generate_coco_gt, change_pred_imageid
+from p_perf.post_process.pseudo_gt import generate_pseudo_coco_gt, load_model
 from p_perf.config.constant import lidar_classes, nusc
 
 
@@ -57,8 +58,8 @@ class InferenceNode(Node):
         self.data_dir = self.get_parameter('data_dir').value
 
         # COMMUNICATION EXPERIMENT PARAMETERS
-        self.declare_parameter('lidar_queue', 5)
-        self.declare_parameter('image_queue', 5)
+        self.declare_parameter('lidar_queue', 1)
+        self.declare_parameter('image_queue', 1)
 
         self.lidar_queue = self.get_parameter('lidar_queue').value
         self.image_queue = self.get_parameter('image_queue').value
@@ -103,6 +104,7 @@ class InferenceNode(Node):
         self.inferencer.show_progress = False
 
         # CALLBACK TO PROCESS LATEST DAATA
+        print('MY SAMPLE FREQ IS: ', self.sample_freq)
         self.timer = self.create_timer(1.0 / self.sample_freq, self.process_latest_data)
 
         # Subscribe to termination signal
@@ -116,7 +118,7 @@ class InferenceNode(Node):
             warm_data = WARM_IMAGE
         self.profiler.warm_up(warm_data)
         self.profiler.register_hooks(warm_data)
-        self.profiler.summary()
+        # self.profiler.summary()
 
         # INFERENCER READY MSG FOR SENSOR PUBLISHER
         self.get_logger().info(f"{self.mode.capitalize()} model '{self.model_name}' is ready.")
@@ -126,11 +128,11 @@ class InferenceNode(Node):
 
     def lidar_callback(self, msg):
         frame_id = msg.header.frame_id
+        self._log_delay(msg)
         if self.input_type == "publisher":
             input_name = frame_id
         else:
-            print(frame_id)
-            input_name = frame_id.split('/')[-1]
+            input_name = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
 
         self.latest_token = input_name
 
@@ -146,15 +148,15 @@ class InferenceNode(Node):
         self.latest_data = dict(points=np.array(points, dtype=np.float32))
         self.sub_lidar_count += 1
 
-        if self.input_type == 'publisher':
-            self._log_delay(msg, input_name)
+            
 
     def image_callback(self, msg):
         frame_id = msg.header.frame_id
+        self._log_delay(msg)
         if self.input_type == "publisher":
             input_name = frame_id
         else:
-            input_name = frame_id.split('/')[-1]
+            input_name = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
 
         self.latest_token = input_name
 
@@ -172,12 +174,11 @@ class InferenceNode(Node):
             self.latest_data = None
             return
 
-        if self.input_type == 'publisher':
-            self._log_delay(msg, input_name)
 
     def process_latest_data(self):
         """Processes the latest received data at a controlled rate."""
         if self.latest_data is None:
+            print('no data recieved')
             return  # No new data received yet, skip processing
         
         det = self.profiler.run_inference(self.latest_data, self.latest_token)
@@ -189,11 +190,10 @@ class InferenceNode(Node):
         self.latest_data = None
         self.latest_token = ''
     
-    def _log_delay(self, msg, input_name):
+    def _log_delay(self, msg):
         recv_time = self.get_clock().now().nanoseconds / 1e9
         sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         self.delay_log.append({
-            'frame': input_name,
             'sensor_type': self.mode,
             'delay': recv_time - sent_time
         })
@@ -244,12 +244,20 @@ class InferenceNode(Node):
         
         with open(self.image_pred_json, 'w') as f:
             json.dump(coco_predictions, f, indent=2)
-        
-        # Save the ground truth json
-        generate_coco_gt(tokens, self.image_gt_json)
 
-        # modify the image_id in prediction as the prediction's image_id is still nuscene token
-        change_pred_imageid(self.image_pred_json, self.image_gt_json)
+        # config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
+        # config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
+        # ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
+        # id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
+
+        # with open(id2name_path) as f:
+        #     id2name = {int(k): v for k, v in json.load(f).items()}
+
+        # model, postprocessors = load_model(config_path, ckpt_path)
+        # generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, self.image_gt_json)
+
+        # # modify the image_id in prediction as the prediction's image_id is still nuscene token
+        # change_pred_imageid(self.image_pred_json, self.image_gt_json)
 
 
             
@@ -283,7 +291,7 @@ class InferenceNode(Node):
             self.destroy_node()
             raise SystemExit
     
-    
+
 def main(args=None):
     rclpy.init(args=args)
     node = InferenceNode()
