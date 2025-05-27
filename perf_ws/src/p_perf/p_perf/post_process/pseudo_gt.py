@@ -1,20 +1,24 @@
 import os
 import json
 import torch
-from PIL import Image
-import dino_package.datasets.transforms as T
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+from nuscenes.nuscenes import NuScenes
+from p_perf.utils import load_sweep_sd
 
+import dino_package.datasets.transforms as T
 from dino_package.util.slconfig import SLConfig
-from PIL import ImageDraw, ImageFont
+
+
 
 # ---- Set once globally ----
-transform = T.Compose([
+TRANSFORM = T.Compose([
     T.RandomResize([800], max_size=1333),
     T.ToTensor(),
     T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-image_classes = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian']
+IMAGE_CLASSES = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'person']
 
 
 def load_model(config_path, ckpt_path, device='cuda'):
@@ -47,25 +51,46 @@ def infer_image(image_path, model, postprocessors, id2name, threshold=0.5, devic
     # Load and transform image
     image = Image.open(image_path).convert('RGB')
     W, H = image.size
-    img_tensor, _ = transform(image, None)
+    img_tensor, _ = TRANSFORM(image, None)
     img_tensor = img_tensor.to(device)
 
     with torch.no_grad():
         outputs = model(img_tensor[None])
         outputs = postprocessors['bbox'](outputs, torch.Tensor([[1.0, 1.0]]).to(device))[0]
 
-    # Filter by threshold
-    scores = outputs['scores']
-    keep = scores > threshold
-    boxes = outputs['boxes'][keep].cpu().numpy()
-    labels = outputs['labels'][keep].cpu().numpy()
-    scores = scores[keep].cpu().numpy()
+    # Step 1: Raw predictions
+    scores_all = outputs['scores']
+    boxes_all = outputs['boxes'].cpu().numpy()
+    labels_all = outputs['labels'].cpu().numpy()
+    scores_all = scores_all.cpu().numpy()
+
+    # Step 2: Convert label indices to class names using id2name
+    label_names_all = [id2name[int(l)] for l in labels_all]
+
+    # Step 3: Keep only predictions passing both threshold and class filter
+    filtered = [
+        (box, label_name, score)
+        for box, label_name, score in zip(boxes_all, label_names_all, scores_all)
+        if score > threshold and label_name in IMAGE_CLASSES
+    ]
+
+    # Step 4: Unpack filtered results
+    if filtered:
+        boxes, labels, scores = zip(*filtered)
+        boxes = list(boxes)
+        boxes = np.array(boxes)
+        labels = list(labels)
+        scores = list(scores)
+    else:
+        boxes, labels, scores = [], [], []
+        return None
 
     # Scale boxes to original image size
+    print(labels)
     boxes[:, [0, 2]] *= W
     boxes[:, [1, 3]] *= H
 
-    return boxes, [id2name[int(l)] for l in labels], scores
+    return boxes, labels, scores
 
 
 def visualization(image, boxes, labels, scores, save_path=None):
@@ -105,6 +130,85 @@ def visualization(image, boxes, labels, scores, save_path=None):
     
     return image
 
+
+def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2name, json_path: str, 
+                            image_size=(1600, 900), threshold=0.5):
+    """
+    Generate COCO-format ground truth using model predictions (pseudo-GT) from NuScenes sample_data_tokens.
+
+    Args:
+        sample_data_tokens: list of camera sample_data tokens (e.g., CAM_FRONT)
+        model: DINO model
+        postprocessors: DINO postprocessors
+        id2name: dict mapping category ID to label name
+        json_path: output path for COCO-format annotation
+        nusc: NuScenes instance
+        image_size: expected image size (default for CAM_FRONT: 1600x900)
+        threshold: confidence threshold for filtering predictions
+    """
+    coco = {
+        "images": [],
+        "annotations": [],
+        "categories": []
+    }
+
+    # Build COCO categories
+    for i, name in enumerate(IMAGE_CLASSES):
+        coco["categories"].append({
+            "id": i + 1,
+            "name": name,
+            "supercategory": "object"
+        })
+
+    annotation_id = 0
+
+    for image_id, token in enumerate(sample_data_tokens):
+        # Get file path from NuScenes
+        sd_rec = nusc.get('sample_data', token)
+        img_path = os.path.join(nusc.dataroot, sd_rec['filename'])
+
+        # Register the image in COCO
+        coco["images"].append({
+            "id": image_id,
+            "file_name": sd_rec["filename"],
+            "width": image_size[0],
+            "height": image_size[1],
+            "token": token
+        })
+
+        # Run inference
+        result = infer_image(img_path, model, postprocessors, id2name, threshold=threshold)
+        if result is None:
+            continue
+
+        boxes, labels, _ = result
+
+        for bbox, label in zip(boxes, labels):
+            if label not in IMAGE_CLASSES:
+                continue  # Skip labels not in allowed list
+
+            x1, y1, x2, y2 = bbox
+            w, h = x2 - x1, y2 - y1
+            area = w * h
+            category_id = IMAGE_CLASSES.index(label) + 1
+
+            coco["annotations"].append({
+                "id": int(annotation_id),
+                "image_id": int(image_id),
+                "category_id": int(category_id),
+                "bbox": [float(x1), float(y1), float(w), float(h)],
+                "area": float(area),
+                "iscrowd": 0,
+                "instance_token": None
+            })
+            annotation_id += 1
+
+    with open(json_path, 'w') as f:
+        json.dump(coco, f, indent=2)
+
+    print(f"Pseudo COCO GT saved {json_path}")
+
+
 if __name__ == '__main__':
     torch.cuda.empty_cache()
     torch.cuda.ipc_collect()
@@ -118,18 +222,17 @@ if __name__ == '__main__':
 
     with open(id2name_path) as f:
         id2name = {int(k): v for k, v in json.load(f).items()}
+    
+    DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
+    nusc = NuScenes(
+                version='v1.0-mini',
+                dataroot=DATA_ROOT 
+            )
 
     model, postprocessors = load_model(config_path, ckpt_path)
-
-    # -- run inference on a list of images --
-    image_list = [
-        f'{data_dir}/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603612404.jpg',
-        f'{data_dir}/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603662404.jpg',
-        f'{data_dir}/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603762404.jpg'
-    ]
-
-    for img_path in image_list:
-        boxes, labels, scores = infer_image(img_path, model, postprocessors, id2name)
-        vis_image = visualization(img_path, boxes, labels, scores,
-                                     save_path=f'/mmdetection3d_ros2/{os.path.basename(img_path)}')
+    
+    scene = nusc.scene[0]
+    sd_tokens = load_sweep_sd(nusc, scene, 'CAM_FRONT')
+    
+    generate_pseudo_coco_gt(nusc, sd_tokens, model, postprocessors, id2name, 'pseudo.json')
         

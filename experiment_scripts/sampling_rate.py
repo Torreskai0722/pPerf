@@ -22,7 +22,7 @@ nsys_base = [
 output_base = "/mmdetection3d_ros2/outputs/test"
 os.makedirs(output_base, exist_ok=True)
 
-run_time = 5
+scenes = ['cc8c0bf57f984915a77078b10eb33198']
 
 # Failure log file
 failure_log = os.path.join(output_base, "failures.log")
@@ -33,7 +33,7 @@ with open(failure_log, "w") as flog:
 # Parameter sweep setup
 image_sample_freqs = [10]
 lidar_sample_freqs = [10]
-depths = [1, 2]
+depths = [0, 1]
 image_models = [
     'faster-rcnn_r50_fpn_1x_coco'
     # 'detr_r50_8xb2-150e_coco',
@@ -48,15 +48,15 @@ lidar_models = [
 ]
 
 # Generate all combinations
-combinations = list(product(image_sample_freqs, lidar_sample_freqs, depths, image_models, lidar_models))
+combinations = list(product(image_sample_freqs, lidar_sample_freqs, depths, image_models, lidar_models, scenes))
 
 # Create mapping CSV with all combinations marked "pending"
 mapping_file = os.path.join(output_base, "param_mapping.csv")
 with open(mapping_file, mode='w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["run_index", "image_sample_freq", "lidar_sample_freq", "depth", "image_model", "lidar_model", "status"])
-    for i, (img_freq, lidar_freq, depth, img_model, lidar_model) in enumerate(combinations):
-        writer.writerow([i, img_freq, lidar_freq, depth, img_model, lidar_model, "pending"])
+    writer.writerow(["run_index", "scene", "image_sample_freq", "lidar_sample_freq", "depth", "image_model", "lidar_model", "status"])
+    for i, (img_freq, lidar_freq, depth, img_model, lidar_model, scene) in enumerate(combinations):
+        writer.writerow([i, scene, img_freq, lidar_freq, depth, img_model, lidar_model, "pending"])
 
 # Now run them and update status
 df = pd.read_csv(mapping_file)
@@ -76,7 +76,7 @@ for i, row in df.iterrows():
         "ros2", "launch", "p_perf", "pPerf_test.launch.py",
         f"idx:={i}",
         f"data_dir:={output_base}",
-        f"sensor_run_time:={run_time}",
+        f"scene:={scene}",
         "sensor_expected_models:=2",
         f"image_sample_freq:={img_freq}",
         f"image_depth:={depth}",

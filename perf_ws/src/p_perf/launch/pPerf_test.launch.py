@@ -7,7 +7,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument("sensor_publish_freq_lidar", default_value="20"),
         DeclareLaunchArgument("sensor_publish_freq_image", default_value="12"),
-        DeclareLaunchArgument("sensor_run_time", default_value="1"),
+        DeclareLaunchArgument("scene", default_value="None"),
         DeclareLaunchArgument("sensor_expected_models", default_value="2"),
         DeclareLaunchArgument("idx", default_value="0"),
 
@@ -29,7 +29,7 @@ def generate_launch_description():
             parameters=[{
                 "publish_freq_lidar": LaunchConfiguration("sensor_publish_freq_lidar"),
                 "publish_freq_image": LaunchConfiguration("sensor_publish_freq_image"),
-                "run_time": LaunchConfiguration("sensor_run_time"),
+                "scene": LaunchConfiguration("scene"),
                 "expected_models": LaunchConfiguration("sensor_expected_models"),
                 "index": LaunchConfiguration("idx"),
                 "data_dir": LaunchConfiguration("data_dir")

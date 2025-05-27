@@ -227,6 +227,52 @@ def draw_coco_bboxes_from_path(image_path, coco_bboxes, labels=None, scores=None
 
 
 
+def load_sweep_sd(nusc, scene, sensor_channel='CAM_FRONT'):
+    """
+    Get all sample_data tokens (including intermediate sweep frames) for a given channel from a scene.
+
+    Args:
+        nusc: NuScenes instance
+        scene: scene dictionary from nusc.scene
+        sensor_channel: e.g., 'CAM_FRONT'
+
+    Returns:
+        List of sample_data tokens (str) ordered by time, including all sweeps.
+    """
+    # Get the first sample token
+    first_sample_token = scene['first_sample_token']
+    first_sample = nusc.get('sample', first_sample_token)
+    
+    # Get the initial sample_data token for the desired sensor channel
+    current_sd_token = None
+    for sd_token in first_sample['data'].values():
+        sd = nusc.get('sample_data', sd_token)
+        if sd['channel'] == sensor_channel:
+            current_sd_token = sd_token
+            break
+
+    if current_sd_token is None:
+        raise ValueError(f"No sample_data found for channel {sensor_channel} in first sample")
+
+    # Traverse through sample_data's 'next' field to get all sweep frames
+    sweep_tokens = []
+    while current_sd_token:
+        sd = nusc.get('sample_data', current_sd_token)
+        if sd['channel'] == sensor_channel:
+            sweep_tokens.append(current_sd_token)
+        current_sd_token = sd['next'] if sd['next'] else None
+
+    return sweep_tokens
+
+def get_paths_from_sd(nusc, sd_tokens):
+    """
+    Given a list of sample_data tokens, return the corresponding filenames.
+    """
+    filenames = []
+    for token in sd_tokens:
+        sd = nusc.get('sample_data', token)
+        filenames.append(os.path.join(nusc.dataroot, sd['filename']))
+    return filenames
 
 
 

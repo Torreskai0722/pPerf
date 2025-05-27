@@ -5,10 +5,11 @@ from rclpy.node import Node
 from std_msgs.msg import String
 import pandas as pd
 import subprocess
-import time
 import os
 from glob import glob
 from p_perf.pPerf import pPerf
+import time
+from p_perf.config.constant import nusc
 
 class SensorReplayer(Node):
     def __init__(self):
@@ -18,27 +19,31 @@ class SensorReplayer(Node):
         self.declare_parameter('expected_models', 2)
         self.declare_parameter('index', 0)
         self.declare_parameter('gpu_duration', 0.05)
-        self.declare_parameter('run_time', 30)  # seconds
-        self.declare_parameter('bag_dir', '')            # directory containing .mcap files
-        self.declare_parameter('data_dir', '')    
+        self.declare_parameter('bag_dir', '')
+        self.declare_parameter('data_dir', '')
+        self.declare_parameter('scene', '')    
 
         self.expected_models = self.get_parameter('expected_models').value
         self.data_dir = self.get_parameter('data_dir').value
         self.index = self.get_parameter('index').value
         self.gpu_duration = self.get_parameter('gpu_duration').value
-        self.run_time = self.get_parameter('run_time').value
         self.bag_dir = self.get_parameter('bag_dir').value
+        print(self.bag_dir)
 
+        scene_token = self.get_parameter('scene').value
+        self.scene = nusc.get('scene', scene_token)['name']
+
+        print(self.scene)
+        
         # Discover .mcap files
-        self.bag_files = sorted(glob(os.path.join(self.bag_dir, "*.mcap")))
-        if not self.bag_files:
-            raise RuntimeError(f"No .mcap files found in: {self.bag_dir}")
-        self.get_logger().info(f"Found {len(self.bag_files)} .mcap files.")
+        all_bags = glob(os.path.join(self.bag_dir, '**', "*.mcap"), recursive=True)
+        print(all_bags)
+        self.bag_file = sorted([f for f in all_bags if self.scene in os.path.basename(f)])
+        if not self.bag_file:
+            raise RuntimeError(f"No .mcap files found for {self.scene}")
 
         self.models_ready_count = 0
         self.replay_started = False
-        self.replay_start_time = None
-        self.shutdown_requested = False
 
         self.profiler = pPerf('', 0, self.gpu_duration)
 
@@ -53,55 +58,26 @@ class SensorReplayer(Node):
             if self.models_ready_count == self.expected_models and not self.replay_started:
                 self.profiler.start_gpu_monitoring()
                 self.get_logger().info("All inferencers ready. Starting profiling and replay.")
-                self.replay_start_time = time.time()
-                self.create_timer(0.5, self.check_shutdown)
                 self.start_rosbag_sequence()
         except ValueError:
             self.get_logger().warn("Invalid readiness message.")
 
     def start_rosbag_sequence(self):
         self.replay_started = True
-        for bag_path in self.bag_files:
-            if self.shutdown_requested:
-                self.get_logger().warn("Replay stopped early due to time limit.")
-                break
-
+        for bag_path in self.bag_file:
             cmd = [
-                "ros2", "bag", "play", bag_path,
-                "--remap", "/LIDAR_TOP:=/lidar_data", "CAM_FRONT/image_rect_compressed:=/image_data",
+                "ros2", "bag", "play", bag_path, "--clock", 
+                "--remap", "/LIDAR_TOP:=/lidar_data", "/CAM_FRONT/image_rect_compressed:=/image_data",
                 "--topics", "/LIDAR_TOP", "/CAM_FRONT/image_rect_compressed"
             ]
 
-
             self.get_logger().info(f"Replaying: {bag_path}")
             proc = subprocess.Popen(cmd)
-            while proc.poll() is None:
-                if self.time_exceeded():
-                    proc.terminate()
-                    try:
-                        proc.wait(timeout=3)
-                    except subprocess.TimeoutExpired:
-                        proc.kill()
-                    return
-                time.sleep(0.1)  # Avoid busy wait
+            proc.wait()
 
         self.shutdown()
 
-    def check_shutdown(self):
-        if self.time_exceeded():
-            self.shutdown()
-
-    def time_exceeded(self):
-        if self.replay_start_time is None:
-            return False
-        elapsed = time.time() - self.replay_start_time
-        return elapsed >= self.run_time
-
     def shutdown(self):
-        if self.shutdown_requested:
-            return
-        self.shutdown_requested = True
-
         self.get_logger().info("SensorReplayer shutting down...")
 
         terminate_msg = String()
