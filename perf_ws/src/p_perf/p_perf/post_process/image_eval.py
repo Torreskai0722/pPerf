@@ -2,11 +2,12 @@ import numpy as np
 from pyquaternion.quaternion import Quaternion
 from shapely.geometry import MultiPoint, box
 import json
+import os
 
 from nuscenes.utils.geometry_utils import view_points
 from nuscenes.utils.data_classes import Box
 
-from p_perf.utils import interpolate_gt
+from p_perf.utils import interpolate_gt, get_offset_sd_token
 from p_perf.config.constant import image_classes, nusc
 
 from typing import List, Tuple, Union
@@ -86,7 +87,7 @@ def _mmdet_to_nusc_labels(mmdet_labels):
 # GROUNDTRUTH processing
 def post_process_coords(corner_coords: List,
                         imsize: Tuple[int, int] = (1600, 900),
-                        min_iob: float = 0.5) -> Union[Tuple[float, float, float, float], None]:
+                        min_iob: float = 0.3) -> Union[Tuple[float, float, float, float], None]:
     """
     Get the intersection of the convex hull of the reprojected bbox corners and the image canvas,
     return None if no intersection or the intersection area is too small.
@@ -125,7 +126,7 @@ def post_process_coords(corner_coords: List,
     return min_x, min_y, max_x, max_y
 
 
-def get_2d_boxes(sample_data_token: str, visibilities: List[str], visibility=True):
+def get_2d_boxes(sd_token: str, sd_offset_token, iob_thresh, visibilities: List[str], visibility=True):
     """
     Project 3D boxes from interpolate_gt() into 2D and return records in COCO-style format.
     
@@ -139,7 +140,7 @@ def get_2d_boxes(sample_data_token: str, visibilities: List[str], visibility=Tru
         (list of projected 2D boxes and list of labels (str detection name))
     """
     # Get the sample data and related calibration/pose info
-    sd_rec = nusc.get('sample_data', sample_data_token)
+    sd_rec = nusc.get('sample_data', sd_token)
     assert sd_rec['sensor_modality'] == 'camera', 'get_2d_boxes only works for camera data!'
 
     cs_rec = nusc.get('calibrated_sensor', sd_rec['calibrated_sensor_token'])
@@ -147,7 +148,7 @@ def get_2d_boxes(sample_data_token: str, visibilities: List[str], visibility=Tru
     camera_intrinsic = np.array(cs_rec['camera_intrinsic'])
 
     # Get interpolated boxes instead of raw annotations
-    boxes_3d, instances = interpolate_gt(nusc, sample_data_token, visibility=visibility, visibilities=visibilities)
+    boxes_3d, instances = interpolate_gt(nusc, sd_token, sd_offset_token, visibility=visibility, visibilities=visibilities)
 
     bboxes = []
     labels = []
@@ -177,7 +178,7 @@ def get_2d_boxes(sample_data_token: str, visibilities: List[str], visibility=Tru
         corner_coords = view_points(corners_3d, camera_intrinsic, True).T[:, :2].tolist()
 
         # Filter to valid image bounds
-        final_coords = post_process_coords(corner_coords)
+        final_coords = post_process_coords(corner_coords, min_iob=iob_thresh)
         if final_coords is None:
             continue
         min_x, min_y, max_x, max_y = final_coords
@@ -200,7 +201,7 @@ def _xyxy_to_coco(bboxes_xyxy):
     return np.stack([x1, y1, w, h], axis=1)
 
 
-def generate_coco_gt(sample_data_tokens, json_path: str, image_size=(1600, 900), visibilities=['3', '4']):
+def generate_coco_gt(sample_data_tokens, json_path: str, delay_csv_path, iob_thresh, image_size=(1600, 900), visibilities=['3', '4']):
     coco = {
         "images": [],
         "annotations": [],
@@ -218,17 +219,23 @@ def generate_coco_gt(sample_data_tokens, json_path: str, image_size=(1600, 900),
     annotation_id = 0
 
     for image_id, token in enumerate(sample_data_tokens):
-        # Get image metadata from NuScenes
+        # Get file path from NuScenes
         sd_rec = nusc.get('sample_data', token)
+        sd_offset_token = get_offset_sd_token(nusc, token, 'image', delay_csv_path)
+        sd_offset = nusc.get('sample_data', sd_offset_token)
+        img_path = os.path.join(nusc.dataroot, sd_offset['filename'])
+
+        # Register the image in COCO
         coco["images"].append({
             "id": image_id,
-            "file_name": sd_rec["filename"],
+            "file_name": sd_offset["filename"],
             "width": image_size[0],
             "height": image_size[1],
-            "token": token
+            "token": token,
+            "offset_token": sd_offset_token
         })
 
-        bboxes, labels, instances = get_2d_boxes(token, visibilities)
+        bboxes, labels, instances = get_2d_boxes(token, sd_offset_token, iob_thresh, visibilities)
 
         for bbox, label, instance in zip(bboxes, labels, instances):
             if label not in image_classes:

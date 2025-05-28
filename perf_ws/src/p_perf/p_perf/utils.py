@@ -286,7 +286,7 @@ import json
 import os
 import cv2
 
-def visualize_coco_predictions(image_id, pred_json_path, gt_json_path, image_dir, score_thresh=0.3):
+def visualize_coco_predictions(nusc_token, pred_json_path, gt_json_path, image_dir, index, score_thresh=0.3):
     # Load prediction and GT files
     with open(pred_json_path) as f:
         preds = json.load(f)
@@ -294,12 +294,17 @@ def visualize_coco_predictions(image_id, pred_json_path, gt_json_path, image_dir
     with open(gt_json_path) as f:
         gt = json.load(f)
 
+    # Build mapping from token → image_id
+    token_to_image = {img['token']: img for img in gt['images']}
+    if nusc_token not in token_to_image:
+        raise ValueError(f"Token {nusc_token} not found in ground truth JSON.")
+
+    image_info = token_to_image[nusc_token]
+    image_id = image_info['id']
+    image_path = os.path.join(image_dir, image_info['file_name'])
+
     # Map category ID to name
     id_to_name = {cat['id']: cat['name'] for cat in gt['categories']}
-
-    # Find image filename from ground truth metadata
-    image_info = next(img for img in gt['images'] if img['id'] == image_id)
-    image_path = os.path.join(image_dir, image_info['file_name'])
 
     # Load image using OpenCV
     image = cv2.imread(image_path)
@@ -326,6 +331,4 @@ def visualize_coco_predictions(image_id, pred_json_path, gt_json_path, image_dir
         cv2.putText(image, f"Pred: {label} {score:.2f}", (x, y + h + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
 
     # Show image
-    cv2.imshow(f"Prediction vs Ground Truth - ID {image_id}", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite(f'{index}.png', image)
