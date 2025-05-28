@@ -348,11 +348,19 @@
 
 
 from p_perf.utils import visualize_coco_predictions
+import json
 output_base = "/mmdetection3d_ros2/outputs/test"
+# image_pred_file = f"{output_base}/image_pred_0.json"
+# image_gt_file = f"{output_base}/image_gt_0.json"
+
+# visualize_coco_predictions(12, image_pred_file, image_gt_file, '/mmdetection3d_ros2/data/nuscenes')
+
+
+
 image_pred_file = f"{output_base}/image_pred_0.json"
-image_gt_file = f"{output_base}/image_gt_0.json"
 
-visualize_coco_predictions(12, image_pred_file, image_gt_file, '/mmdetection3d_ros2/data/nuscenes')
-
-
-
+with open(image_pred_file, 'r') as f:
+    data = json.load(f)  # should be a list of dicts
+tokens = [d['image_id'] for d in data if 'image_id' in d]
+tokens = list(set(tokens))
+print(len(tokens))
