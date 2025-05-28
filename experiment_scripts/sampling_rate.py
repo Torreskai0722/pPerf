@@ -147,22 +147,27 @@ for i, row in df.iterrows():
     tokens = [d['image_id'] for d in data if 'image_id' in d]
     tokens = list(set(tokens))
 
-    config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
-    config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
-    ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
-    id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
+    # config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
+    # config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
+    # ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
+    # id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
 
-    with open(id2name_path) as f:
-        id2name = {int(k): v for k, v in json.load(f).items()}
-    model, postprocessors = load_model(config_path, ckpt_path)
-    generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, delay_csv, image_gt_file)
+    # with open(id2name_path) as f:
+    #     id2name = {int(k): v for k, v in json.load(f).items()}
+    # model, postprocessors = load_model(config_path, ckpt_path)
+    # generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, delay_csv, image_gt_file)
+
+    generate_pseudo_coco_gt(nusc, tokens, None, None, None, delay_csv, image_gt_file)
 
     # modify the image_id in prediction as the prediction's image_id is still nuscene token
     change_pred_imageid(image_pred_file, image_gt_file)
 
     image_evaluate = image_evaluater(image_pred_file, image_gt_file, nusc, output_base, i)
     image_evaluate.mAP_evaluate()
-    print(image_evaluate.get_instance_hit())
+
+    # clean up the output directory
+    if os.path.exists(f"{output_base}/delays_{i}.csv.lock"):
+        os.remove(f"{output_base}/delays_{i}.csv.lock")
 
     # Save status to CSV after each run
     df.at[i, "status"] = "success"

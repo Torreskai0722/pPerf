@@ -347,20 +347,28 @@
 
 
 
-from p_perf.utils import visualize_coco_predictions
+from p_perf.utils import visualize_coco_predictions, load_sweep_sd
+from p_perf.post_process.image_eval import generate_coco_gt
+from p_perf.post_process.pseudo_gt import generate_pseudo_coco_gt
 import json
+from nuscenes import NuScenes
+
 output_base = "/mmdetection3d_ros2/outputs/test"
-# image_pred_file = f"{output_base}/image_pred_0.json"
-# image_gt_file = f"{output_base}/image_gt_0.json"
-
-# visualize_coco_predictions(12, image_pred_file, image_gt_file, '/mmdetection3d_ros2/data/nuscenes')
-
-
-
 image_pred_file = f"{output_base}/image_pred_0.json"
+image_gt_file = f"{output_base}/image_gt_0.json"
 
-with open(image_pred_file, 'r') as f:
-    data = json.load(f)  # should be a list of dicts
-tokens = [d['image_id'] for d in data if 'image_id' in d]
-tokens = list(set(tokens))
-print(len(tokens))
+nusc = NuScenes(version='v1.0-mini', dataroot='/mmdetection3d_ros2/data/nuscenes', verbose=True)
+
+
+delay_csv = f"{output_base}/delays_0.csv"
+with open(image_gt_file, 'r') as f:
+    data = json.load(f)
+
+tokens = [img['token'] for img in data.get('images', []) if 'token' in img]
+# generate_coco_gt(tokens, 'test.json', delay_csv, iob_thresh=0.2, visibilities=['2', '3', '4'])
+generate_pseudo_coco_gt(nusc, tokens, None, None, None, delay_csv, 'test.json')
+
+sample_tokens = load_sweep_sd(nusc, nusc.scene[0])
+for i, token in enumerate(sample_tokens[:40]):
+    if token in tokens:
+        visualize_coco_predictions(token, image_pred_file, 'test.json', '/mmdetection3d_ros2/data/nuscenes', i)
