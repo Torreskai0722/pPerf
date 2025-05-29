@@ -5,6 +5,7 @@ from itertools import product
 from subprocess import TimeoutExpired
 import pandas as pd
 import json
+import ast
 
 from p_perf.post_process.lidar_eval import lidar_evaluater
 from p_perf.post_process.image_eval import image_evaluater
@@ -18,11 +19,11 @@ nsys_base = [
     "--trace=cuda,nvtx,cudnn",
     "--backtrace=none",
     "--force-overwrite", "true",
-    # "--export=json",
+    "--export=json",
 ]
 
 # Output folder
-output_base = "/mmdetection3d_ros2/outputs/test"
+output_base = "/mmdetection3d_ros2/outputs/nusc_scene0"
 os.makedirs(output_base, exist_ok=True)
 
 scenes = ['cc8c0bf57f984915a77078b10eb33198']
@@ -45,9 +46,11 @@ image_models = [
 ]
 
 lidar_models = [
-    # 'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d',
-    'hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d',
-    # 'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d',
+    # ('pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d', 'nus', 0.5),    # VOXEL BASED
+    # ('centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d', 'nus', 0.5),        # VOXEL BASED
+    ('point-rcnn_8xb2_kitti-3d-3class', 'kitti', 0.2),            # POINT BASED
+    ('3dssd_4x4_kitti-3d-car', 'kitti', 0.2),                       # POINT BASED
+    ('pv_rcnn_8xb2-80e_kitti-3d-3class', 'kitti', 0.2),             # POINT + VOXEL (Hybrid)
 ]
 
 # Generate all combinations
@@ -65,16 +68,21 @@ with open(mapping_file, mode='w', newline='') as csvfile:
 df = pd.read_csv(mapping_file)
 
 for i, row in df.iterrows():
-
     img_freq = row["image_sample_freq"]
     lidar_freq = row["lidar_sample_freq"]
     depth = row["depth"]
     img_model = row["image_model"]
-    lidar_model = row["lidar_model"]
+    lidar_model_tuple = ast.literal_eval(row["lidar_model"])  # Safely convert string to tuple
+    lidar_model = lidar_model_tuple[0]
+    lidar_model_mode = lidar_model_tuple[1]
+    lidar_thresh = lidar_model_tuple[2]
+    scene = row["scene"]
+
+    print(lidar_model)
+    print(lidar_model_mode)
 
     prefix = f"{output_base}/test_run_{i}"
 
-    # Base ROS 2 launch command
     ros2_cmd = [
         "ros2", "launch", "p_perf", "pPerf_test.launch.py",
         f"idx:={i}",
@@ -86,7 +94,9 @@ for i, row in df.iterrows():
         f"image_model_name:={img_model}",
         f"lidar_sample_freq:={lidar_freq}",
         f"lidar_depth:={depth}",
-        f"lidar_model_name:={lidar_model}"
+        f"lidar_model_name:={lidar_model}",
+        f"lidar_model_mode:={lidar_model_mode}",
+        f"lidar_model_thresh:={lidar_thresh}"
     ]
 
 
@@ -119,17 +129,17 @@ for i, row in df.iterrows():
                        f"error={str(e)}\n")
 
     # EVALUATION PIPELINE OF INFERENCE TIME
-    # command = ["python3", "src/p_perf/p_perf/pPerf_post.py", prefix]
-    # print(f"\nRunning: {' '.join(command)}")
-    # result = subprocess.run(command, capture_output=True, text=True)
+    command = ["python3", "/mmdetection3d_ros2/perf_ws/src/p_perf/p_perf/post_process/timing_post.py", prefix]
+    print(f"\nRunning: {' '.join(command)}")
+    result = subprocess.run(command, capture_output=True, text=True)
 
-    # print("STDOUT:", result.stdout)
-    # print("STDERR:", result.stderr)
+    print("STDOUT:", result.stdout)
+    print("STDERR:", result.stderr)
 
-    # # Delete the corresponding .json file after processing
-    # json_path = f"{prefix}.json"
-    # if os.path.exists(json_path):
-    #     os.remove(json_path)
+    # Delete the corresponding .json file after processing
+    json_path = f"{prefix}.json"
+    if os.path.exists(json_path):
+        os.remove(json_path)
 
     delay_csv = f"{output_base}/delays_{i}.csv"
     # EVALUATION PIPELINE OF LIDAR ACCURACY 

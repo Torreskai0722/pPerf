@@ -1,7 +1,7 @@
 setup.py
-/mmdetection3d_ros2/DINO/models/dino/ops/src/vision.cpp
-/mmdetection3d_ros2/DINO/models/dino/ops/src/cpu/ms_deform_attn_cpu.cpp
-/mmdetection3d_ros2/DINO/models/dino/ops/src/cuda/ms_deform_attn_cuda.cu
+/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/vision.cpp
+/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/cpu/ms_deform_attn_cpu.cpp
+/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/cuda/ms_deform_attn_cuda.cu
 MultiScaleDeformableAttention.egg-info/PKG-INFO
 MultiScaleDeformableAttention.egg-info/SOURCES.txt
 MultiScaleDeformableAttention.egg-info/dependency_links.txt

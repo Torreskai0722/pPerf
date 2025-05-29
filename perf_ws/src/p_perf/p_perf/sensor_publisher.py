@@ -16,6 +16,7 @@ import json
 
 from p_perf.pPerf import pPerf
 from p_perf.utils import load_sweep_sd, get_paths_from_sd
+from p_perf.config.constant import nusc
 
 LIDAR_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/LIDAR_TOP'
 IMAGE_DIR = '/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT'
@@ -28,10 +29,12 @@ class SensorPublisherNode(Node):
         self.declare_parameter('expected_models', 2)
         self.declare_parameter('index', 0)
         self.declare_parameter('data_dir', '')
+        self.declare_parameter('lidar_model_mode', 'nus')
 
         self.expected_models = self.get_parameter('expected_models').value
         self.index = self.get_parameter('index').value
         self.data_dir = self.get_parameter('data_dir').value
+        self.lidar_model_mode = self.get_parameter('lidar_model_mode').value  
 
         # BASIC EXPERIMENT PARAMETERS
         self.declare_parameter('publish_freq_lidar', 20)
@@ -73,12 +76,6 @@ class SensorPublisherNode(Node):
         self.create_subscription(String, 'inferencer_ready', self.inferencer_ready_callback, 10)
 
         # DATA LOADING SECTION
-        DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
-        nusc = NuScenes(
-                    version='v1.0-mini',
-                    dataroot=DATA_ROOT 
-                )
-
         self.scene = nusc.get('scene', scene_token)
         self.lidar_tokens = load_sweep_sd(nusc, self.scene, 'LIDAR_TOP')
         self.image_tokens = load_sweep_sd(nusc, self.scene, 'CAM_FRONT')
@@ -103,14 +100,30 @@ class SensorPublisherNode(Node):
         self.preloading_done = False
         self.preload_all_data()
 
+    def convert_to_kitti(self, nusc, lidar_token):
+        # Load metadata
+        lidar_data = nusc.get('sample_data', lidar_token)
+        lidar_path = os.path.join(nusc.dataroot, lidar_data["filename"])
+        scan = np.fromfile(lidar_path, dtype=np.float32).reshape((-1, 5))[:, :4]  # [x, y, z, intensity]
+        scan[:, 3] = (scan[:, 3] - scan[:, 3].min()) / max(1e-5, scan[:, 3].ptp())
+        scan[:, 1] *= -1  # Flip y-axis to match KITTI convention
 
+        zeros_col = np.zeros((scan.shape[0], 1), dtype=np.float32)
+        scan_kitti = np.hstack((scan, zeros_col))
+
+        return scan_kitti
+    
     def preload_all_data(self):
         for i in range(self.len_lidar_msgs):
             try:
                 path = self.lidar_files[i]
                 token = self.lidar_tokens[i]
-                points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
-                filename = os.path.basename(path)
+                if self.lidar_model_mode == 'kitti':
+                    points = self.convert_to_kitti(nusc, self.lidar_tokens[i])
+                elif self.lidar_model_mode == 'nus':
+                    points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
+                else:
+                    print("ERROR")
 
                 dtype = np.float32
                 itemsize = np.dtype(dtype).itemsize

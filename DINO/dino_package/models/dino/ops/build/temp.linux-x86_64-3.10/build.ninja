@@ -2,9 +2,9 @@ ninja_required_version = 1.3
 cxx = c++
 nvcc = /usr/local/cuda/bin/nvcc
 
-cflags = -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -g -fwrapv -O2 -fPIC -DWITH_CUDA -I/mmdetection3d_ros2/DINO/models/dino/ops/src -I/usr/local/lib/python3.10/dist-packages/torch/include -I/usr/local/lib/python3.10/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3.10/dist-packages/torch/include/TH -I/usr/local/lib/python3.10/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3.10 -c
+cflags = -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -g -fwrapv -O2 -fPIC -DWITH_CUDA -I/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src -I/usr/local/lib/python3.10/dist-packages/torch/include -I/usr/local/lib/python3.10/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3.10/dist-packages/torch/include/TH -I/usr/local/lib/python3.10/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3.10 -c
 post_cflags = -DTORCH_API_INCLUDE_EXTENSION_H '-DPYBIND11_COMPILER_TYPE="_gcc"' '-DPYBIND11_STDLIB="_libstdcpp"' '-DPYBIND11_BUILD_ABI="_cxxabi1011"' -DTORCH_EXTENSION_NAME=MultiScaleDeformableAttention -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++17
-cuda_cflags = -DWITH_CUDA -I/mmdetection3d_ros2/DINO/models/dino/ops/src -I/usr/local/lib/python3.10/dist-packages/torch/include -I/usr/local/lib/python3.10/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3.10/dist-packages/torch/include/TH -I/usr/local/lib/python3.10/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3.10 -c
+cuda_cflags = -DWITH_CUDA -I/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src -I/usr/local/lib/python3.10/dist-packages/torch/include -I/usr/local/lib/python3.10/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3.10/dist-packages/torch/include/TH -I/usr/local/lib/python3.10/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3.10 -c
 cuda_post_cflags = -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr --compiler-options ''"'"'-fPIC'"'"'' -DCUDA_HAS_FP16=1 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ -DTORCH_API_INCLUDE_EXTENSION_H '-DPYBIND11_COMPILER_TYPE="_gcc"' '-DPYBIND11_STDLIB="_libstdcpp"' '-DPYBIND11_BUILD_ABI="_cxxabi1011"' -DTORCH_EXTENSION_NAME=MultiScaleDeformableAttention -D_GLIBCXX_USE_CXX11_ABI=0 -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_86,code=compute_86 -gencode=arch=compute_86,code=sm_86 -std=c++17
 cuda_dlink_post_cflags = 
 ldflags = 
@@ -23,9 +23,9 @@ rule cuda_compile
 
 
 
-build /mmdetection3d_ros2/DINO/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/models/dino/ops/src/cpu/ms_deform_attn_cpu.o: compile /mmdetection3d_ros2/DINO/models/dino/ops/src/cpu/ms_deform_attn_cpu.cpp
-build /mmdetection3d_ros2/DINO/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/models/dino/ops/src/cuda/ms_deform_attn_cuda.o: cuda_compile /mmdetection3d_ros2/DINO/models/dino/ops/src/cuda/ms_deform_attn_cuda.cu
-build /mmdetection3d_ros2/DINO/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/models/dino/ops/src/vision.o: compile /mmdetection3d_ros2/DINO/models/dino/ops/src/vision.cpp
+build /mmdetection3d_ros2/DINO/dino_package/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/cpu/ms_deform_attn_cpu.o: compile /mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/cpu/ms_deform_attn_cpu.cpp
+build /mmdetection3d_ros2/DINO/dino_package/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/cuda/ms_deform_attn_cuda.o: cuda_compile /mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/cuda/ms_deform_attn_cuda.cu
+build /mmdetection3d_ros2/DINO/dino_package/models/dino/ops/build/temp.linux-x86_64-3.10/mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/vision.o: compile /mmdetection3d_ros2/DINO/dino_package/models/dino/ops/src/vision.cpp
 
 
 

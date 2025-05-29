@@ -1,6 +1,6 @@
 from nuscenes.utils.data_classes import Box as NuScenesBox
 from nuscenes.eval.common.data_classes import EvalBoxes
-from nuscenes.eval.common.utils import center_distance, scale_iou, yaw_diff, velocity_l2, attr_acc, cummean
+from nuscenes.eval.common.utils import center_distance, scale_iou, yaw_diff, attr_acc, cummean
 import numpy as np
 from nuscenes.eval.detection.data_classes import (
     DetectionBox,
@@ -19,7 +19,7 @@ from mmdet3d.structures import LiDARInstance3DBoxes
 
 # HELPER FUNCTION FOR EVALUATION PIPELINE ==> LIDAR
 def lidar_output_to_nusc_box(
-        detection, token, score_thresh=0.5):
+        detection, token, mode, score_thresh=0.5):
     """Convert the output to the box class in the nuScenes.
 
     Args:
@@ -51,14 +51,14 @@ def lidar_output_to_nusc_box(
             if scores[i] < score_thresh:
                 continue
             quat = Quaternion(axis=[0, 0, 1], radians=box_yaw[i])
-            velocity = (*bbox3d.tensor[i, 7:9], 0.0)
+            # velocity = (*bbox3d.tensor[i, 7:9], 0.0)
             box = NuScenesBox(
                 box_gravity_center[i],
                 nus_box_dims[i],
                 quat,
                 label=labels[i],
                 score=scores[i],
-                velocity=velocity,
+                # velocity=velocity,
                 token=token)
             box_list.append(box)
     else:
@@ -191,7 +191,7 @@ class lidar_evaluater():
                     instance_hits[instance_token] = instance_hits.get(instance_token, 0) + 1
 
                 match_data['trans_err'].append(center_distance(gt_box_match, pred_box))
-                match_data['vel_err'].append(velocity_l2(gt_box_match, pred_box))
+                match_data['vel_err'].append(0.1)
                 match_data['scale_err'].append(1 - scale_iou(gt_box_match, pred_box))
                 period = np.pi if class_name == 'barrier' else 2 * np.pi
                 match_data['orient_err'].append(yaw_diff(gt_box_match, pred_box, period))

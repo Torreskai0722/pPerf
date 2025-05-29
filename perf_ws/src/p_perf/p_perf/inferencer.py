@@ -39,7 +39,13 @@ class InferenceNode(Node):
 
         # INPUT MODE
         self.declare_parameter('input_type', 'publisher')
-        self.input_type = self.get_parameter('input_type').value   
+        self.declare_parameter('lidar_model_mode', 'nus')
+        self.declare_parameter('lidar_model_thresh', 0.2)
+
+        self.input_type = self.get_parameter('input_type').value  
+        self.lidar_model_mode = self.get_parameter('lidar_model_mode').value  
+        self.lidar_model_thresh = self.get_parameter('lidar_model_thresh').value 
+
 
         # MODEL RELATED PARAMETERS
         self.declare_parameter('mode', 'lidar')
@@ -168,8 +174,13 @@ class InferenceNode(Node):
         # DECODE BEFORE INFERENCE
         if self.mode == 'lidar':
             points = []
-            for p in pc2.read_points(self.latest_data, field_names=['x', 'y', 'z', 'intensity', 'ring'], skip_nans=True):
-                points.append([p[0], p[1], p[2], p[3], p[4]])
+            raw_points = pc2.read_points(self.latest_data, field_names=['x', 'y', 'z', 'intensity', 'ring'], skip_nans=True)
+            if self.lidar_model_mode == 'nus':
+                for p in raw_points:
+                    points.append([p[0], p[1], p[2], p[3], p[4]])
+            elif self.lidar_model_mode == 'kitti':
+                for p in raw_points:
+                    points.append([p[0], p[1], p[2], p[3]])
             input_data = dict(points=np.array(points, dtype=np.float32))
         else:
             np_arr = np.frombuffer(self.latest_data, np.uint8)
@@ -227,7 +238,7 @@ class InferenceNode(Node):
         nusc_annos = {}
         for det in self.dets:
             token = det[0]
-            boxes = lidar_output_to_nusc_box(det[1], token, 0.5)
+            boxes = lidar_output_to_nusc_box(det[1], token, self.lidar_model_thresh)
             boxes = lidar_nusc_box_to_global(nusc, token, boxes)
 
             annos = []
