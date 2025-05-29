@@ -22,7 +22,8 @@ dist_ths = [0.5, 1, 2, 4]
 DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
 nusc = NuScenes(
             version='v1.0-mini',
-            dataroot=DATA_ROOT 
+            dataroot=DATA_ROOT,
+            verbose=False
         )
 
 # Image evaluation constants

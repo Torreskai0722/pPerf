@@ -8,13 +8,15 @@ from p_perf.utils import load_sweep_sd, get_offset_sd_token
 
 import dino_package.datasets.transforms as T
 from dino_package.util.slconfig import SLConfig
-
-from detectron2.engine import DefaultPredictor
-from detectron2.config import get_cfg
-from detectron2.data import MetadataCatalog
-from detectron2 import model_zoo
+from dino_package.models.registry import MODULE_BUILD_FUNCS
+# from detectron2.engine import DefaultPredictor
+# from detectron2.config import get_cfg
+# from detectron2.data import MetadataCatalog
+# from detectron2 import model_zoo
 import cv2
 
+import warnings
+warnings.filterwarnings("ignore")
 
 # ---- Set once globally ----
 TRANSFORM = T.Compose([
@@ -25,29 +27,29 @@ TRANSFORM = T.Compose([
 
 IMAGE_CLASSES = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'person']
 
-class Pseudo_Detectron2Detector:
-    def __init__(self):
-        self.cfg = get_cfg()
-        self.cfg.merge_from_file(model_zoo.get_config_file('COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml'))
-        self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url('COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml')
+# class Pseudo_Detectron2Detector:
+#     def __init__(self):
+#         self.cfg = get_cfg()
+#         self.cfg.merge_from_file(model_zoo.get_config_file('COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml'))
+#         self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url('COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml')
 
-        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
-        self.cfg.MODEL.DEVICE = 'cuda'
+#         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
+#         self.cfg.MODEL.DEVICE = 'cuda'
 
-        self.predictor = DefaultPredictor(self.cfg)
+#         self.predictor = DefaultPredictor(self.cfg)
 
-    def inference(self, image_path):
-        print(self.cfg.dump())
-        input = cv2.imread(image_path)
-        pred = self.predictor(input)
-        boxes = pred['instances'].pred_boxes
-        labels = pred['instances'].pred_classes
+#     def inference(self, image_path):
+#         print(self.cfg.dump())
+#         input = cv2.imread(image_path)
+#         pred = self.predictor(input)
+#         boxes = pred['instances'].pred_boxes
+#         labels = pred['instances'].pred_classes
 
-        meta = MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
-        class_names = meta.get("thing_classes")
-        labels = [class_names[i] for i in labels]
+#         meta = MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
+#         class_names = meta.get("thing_classes")
+#         labels = [class_names[i] for i in labels]
 
-        return boxes, labels
+#         return boxes, labels
 
 
 
@@ -55,7 +57,6 @@ def load_model(config_path, ckpt_path, device='cuda'):
 
     def build_model_main(args):
         # we use register to maintain models from catdet6 on.
-        from dino_package.models.registry import MODULE_BUILD_FUNCS
         assert args.modelname in MODULE_BUILD_FUNCS._module_dict
         build_func = MODULE_BUILD_FUNCS.get(args.modelname)
         model, criterion, postprocessors = build_func(args)
@@ -190,7 +191,7 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
             "supercategory": "object"
         })
 
-    detector = Pseudo_Detectron2Detector()
+    # detector = Pseudo_Detectron2Detector()
 
     annotation_id = 0
 
@@ -212,10 +213,10 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
         })
 
         # Run inference
-        # result = infer_image(img_path, model, postprocessors, id2name, threshold=threshold)
-        # boxes, labels, _ = result
+        result = infer_image(img_path, model, postprocessors, id2name, threshold=threshold)
+        boxes, labels, _ = result
         
-        boxes, labels = detector.inference(img_path) 
+        # boxes, labels = detector.inference(img_path) 
 
         for bbox, label in zip(boxes, labels):
             if label not in IMAGE_CLASSES:
