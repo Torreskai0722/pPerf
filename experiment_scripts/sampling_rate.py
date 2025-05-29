@@ -39,15 +39,15 @@ lidar_sample_freqs = [10]
 depths = [0]
 image_models = [    
     'faster-rcnn_r50_fpn_1x_coco',
-    'yolox_x_8x8_300e_coco',
-    'tood_x101-64x4d_fpn_ms-2x_coco',
-    'detr_r50_8xb2-150e_coco'
+    # 'yolox_x_8x8_300e_coco',
+    # 'tood_x101-64x4d_fpn_ms-2x_coco',
+    # 'detr_r50_8xb2-150e_coco'
 ]
 
 lidar_models = [
-    'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d',
+    # 'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d',
     'hv_ssn_secfpn_sbn-all_16xb2-2x_nus-3d',
-    'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d',
+    # 'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d',
 ]
 
 # Generate all combinations
@@ -147,17 +147,17 @@ for i, row in df.iterrows():
     tokens = [d['image_id'] for d in data if 'image_id' in d]
     tokens = list(set(tokens))
 
-    # config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
-    # config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
-    # ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
-    # id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
+    config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
+    config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
+    ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
+    id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
 
-    # with open(id2name_path) as f:
-    #     id2name = {int(k): v for k, v in json.load(f).items()}
-    # model, postprocessors = load_model(config_path, ckpt_path)
-    # generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, delay_csv, image_gt_file)
+    with open(id2name_path) as f:
+        id2name = {int(k): v for k, v in json.load(f).items()}
+    model, postprocessors = load_model(config_path, ckpt_path)
+    generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, delay_csv, image_gt_file)
 
-    generate_pseudo_coco_gt(nusc, tokens, None, None, None, delay_csv, image_gt_file)
+    # generate_pseudo_coco_gt(nusc, tokens, None, None, None, delay_csv, image_gt_file)
 
     # modify the image_id in prediction as the prediction's image_id is still nuscene token
     change_pred_imageid(image_pred_file, image_gt_file)

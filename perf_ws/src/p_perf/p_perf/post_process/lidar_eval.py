@@ -259,7 +259,6 @@ class lidar_evaluater():
 
         # Deserialize results and get meta data.
         boxes_of_split = EvalBoxes.deserialize(results_of_split, box_cls)
-
         return boxes_of_split
     
 
