@@ -17,6 +17,8 @@ def generate_launch_description():
 
         DeclareLaunchArgument("lidar_sample_freq", default_value="10"),
         DeclareLaunchArgument("lidar_model_name", default_value="pv_rcnn_8xb2-80e_kitti-3d-3class"),
+        DeclareLaunchArgument("lidar_model_mode", default_value="nus"),
+        DeclareLaunchArgument("lidar_model_thresh", default_value="0.2"),
         DeclareLaunchArgument("lidar_depth", default_value="0"),
 
         DeclareLaunchArgument("data_dir", default_value="0"),
@@ -32,7 +34,8 @@ def generate_launch_description():
                 "scene": LaunchConfiguration("scene"),
                 "expected_models": LaunchConfiguration("sensor_expected_models"),
                 "index": LaunchConfiguration("idx"),
-                "data_dir": LaunchConfiguration("data_dir")
+                "data_dir": LaunchConfiguration("data_dir"),
+                "lidar_model_mode": LaunchConfiguration("lidar_model_mode")
             }]
         ),
 
@@ -48,7 +51,7 @@ def generate_launch_description():
                 "mode": "image",
                 "data_dir": LaunchConfiguration("data_dir"),
                 "index": LaunchConfiguration("idx"),
-                "input_type": "publisher"
+                "input_type": "publisher"              
             }]
         ),
 
@@ -64,7 +67,9 @@ def generate_launch_description():
                 "mode": "lidar",
                 "data_dir": LaunchConfiguration("data_dir"),
                 "index": LaunchConfiguration("idx"),
-                "input_type": "publisher"
+                "input_type": "publisher",
+                "lidar_model_mode": LaunchConfiguration("lidar_model_mode"),
+                "lidar_model_thresh": LaunchConfiguration("lidar_model_thresh") 
             }]
         ),
     ])
