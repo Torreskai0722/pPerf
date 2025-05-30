@@ -15,7 +15,7 @@ from nuscenes.eval.detection.data_classes import (
 )
 from nuscenes.eval.detection.utils import category_to_detection_name
 import cv2
-from p_perf.config.constant import lidar_classes, image_classes
+from p_perf.config.constant import nus_lidar_classes, image_classes
 
 VIDEO_DICT = {
         'rainy_night_city': ['02d478d1-e6811391', '024dd592-94359ff1', '00a04f65-8c891f94'],
@@ -332,3 +332,105 @@ def visualize_coco_predictions(nusc_token, pred_json_path, gt_json_path, image_d
 
     # Show image
     cv2.imwrite(f'{index}.png', image)
+
+
+
+def visualize_lidar_predictions(nusc, token, pred_json_path, delay_path):
+    import json
+    import numpy as np
+    import open3d as o3d
+    from nuscenes.utils.data_classes import Box
+    from pyquaternion import Quaternion
+
+    def create_open3d_box(box, color=[1, 0, 0]):
+        corners = box.corners().T
+        lines = [
+            [0, 1], [1, 2], [2, 3], [3, 0],
+            [4, 5], [5, 6], [6, 7], [7, 4],
+            [0, 4], [1, 5], [2, 6], [3, 7]
+        ]
+        colors = [color for _ in lines]
+        line_set = o3d.geometry.LineSet(
+            points=o3d.utility.Vector3dVector(corners),
+            lines=o3d.utility.Vector2iVector(lines)
+        )
+        line_set.colors = o3d.utility.Vector3dVector(colors)
+        return line_set
+
+    # Load point cloud
+    sd = nusc.get('sample_data', token)
+    lidar_path = nusc.get_sample_data_path(token)
+    points = np.fromfile(lidar_path, dtype=np.float32).reshape(-1, 5)[:, :3]
+
+    # Get transforms
+    cs_record = nusc.get('calibrated_sensor', sd['calibrated_sensor_token'])
+    ego_pose = nusc.get('ego_pose', sd['ego_pose_token'])
+
+    lidar2ego_trans = np.array(cs_record['translation'])
+    lidar2ego_rot = Quaternion(cs_record['rotation']).rotation_matrix
+
+    ego2global_trans = np.array(ego_pose['translation'])
+    ego2global_rot = Quaternion(ego_pose['rotation']).rotation_matrix
+
+    # Ground Truth Boxes (in global)
+    sd_offset = get_offset_sd_token(nusc, token, 'lidar', delay_path)
+    gt_boxes_raw, _ = interpolate_gt(nusc, token, sd_offset, False, [])
+    gt_boxes = []
+
+    for det_box in gt_boxes_raw:
+        box = Box(
+            center=det_box.translation,
+            size=det_box.size,
+            orientation=Quaternion(det_box.rotation),
+            name=det_box.detection_name,
+            score=det_box.detection_score
+        )
+
+        # Global → Ego
+        box.translate(-ego2global_trans)
+        box.rotate(Quaternion(matrix=ego2global_rot).inverse)
+
+        # Ego → LiDAR
+        box.translate(-lidar2ego_trans)
+        box.rotate(Quaternion(matrix=lidar2ego_rot).inverse)
+
+        gt_boxes.append(box)
+
+    # Load prediction boxes
+    with open(pred_json_path) as f:
+        pred_json = json.load(f)
+
+    pred_boxes = []
+    if token in pred_json["results"]:
+        for item in pred_json["results"][token]:
+            center = item['translation']
+            size = item['size']
+            rot = item['rotation']  # [w, x, y, z]
+            box = Box(center=center, size=size, orientation=Quaternion(rot))
+
+            # Global -> Ego -> LiDAR
+            box.translate(-ego2global_trans)
+            box.rotate(Quaternion(matrix=ego2global_rot).inverse)
+            box.translate(-lidar2ego_trans)
+            box.rotate(Quaternion(matrix=lidar2ego_rot).inverse)
+
+            pred_boxes.append(box)
+
+    # Visualization
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    
+    # Point cloud
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points)
+    pcd.paint_uniform_color([0.6, 0.6, 0.6])
+    vis.add_geometry(pcd)
+
+    # GT = red, Pred = green
+    for box in gt_boxes:
+        vis.add_geometry(create_open3d_box(box, color=[1, 0, 0]))
+    for box in pred_boxes:
+        vis.add_geometry(create_open3d_box(box, color=[0, 1, 0]))
+
+    vis.run()
+    vis.destroy_window()

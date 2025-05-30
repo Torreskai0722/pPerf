@@ -13,13 +13,13 @@ import csv
 from collections import defaultdict
 from pyquaternion import Quaternion
 
-from p_perf.config.constant import lidar_classes, dist_ths
+from p_perf.config.constant import nus_lidar_classes, dist_ths
 from p_perf.utils import interpolate_gt, get_offset_sd_token
 from mmdet3d.structures import LiDARInstance3DBoxes
 
 # HELPER FUNCTION FOR EVALUATION PIPELINE ==> LIDAR
 def lidar_output_to_nusc_box(
-        detection, token, mode, score_thresh=0.5):
+        detection, token, score_thresh=0.5):
     """Convert the output to the box class in the nuScenes.
 
     Args:
@@ -33,6 +33,7 @@ def lidar_output_to_nusc_box(
         Tuple[List[:obj:`NuScenesBox`], np.ndarray or None]: List of standard
         NuScenesBoxes and attribute labels.
     """
+    print('-'*15, score_thresh, '-'*15)
     bbox3d = detection.bboxes_3d.to('cpu')
     scores = detection.scores_3d.cpu().numpy()
     labels = detection.labels_3d.cpu().numpy()
@@ -267,7 +268,7 @@ class lidar_evaluater():
         metric_data_list = DetectionMetricDataList()
         all_instance_hits = {dist_th: defaultdict(int) for dist_th in dist_ths}
 
-        for class_name in lidar_classes:
+        for class_name in nus_lidar_classes:
             for dist_th in dist_ths:
                 md, instance_hits = self.accumulate(pred_boxes, class_name, center_distance, dist_th)
                 

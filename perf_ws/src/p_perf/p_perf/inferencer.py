@@ -24,7 +24,7 @@ import mmengine
 from p_perf.pPerf import pPerf
 from p_perf.post_process.lidar_eval import lidar_nusc_box_to_global, lidar_output_to_nusc_box
 from p_perf.post_process.image_eval import image_output_to_coco, generate_coco_gt, change_pred_imageid
-from p_perf.config.constant import lidar_classes, nusc
+from p_perf.config.constant import nus_lidar_classes, nusc, kitti_lidar_classes
 
 
 warnings.filterwarnings("ignore")
@@ -178,7 +178,7 @@ class InferenceNode(Node):
             if self.lidar_model_mode == 'nus':
                 for p in raw_points:
                     points.append([p[0], p[1], p[2], p[3], p[4]])
-            elif self.lidar_model_mode == 'kitti':
+            elif 'kitti' in self.lidar_model_mode:
                 for p in raw_points:
                     points.append([p[0], p[1], p[2], p[3]])
             input_data = dict(points=np.array(points, dtype=np.float32))
@@ -243,7 +243,10 @@ class InferenceNode(Node):
 
             annos = []
             for box in boxes:
-                name = lidar_classes[box.label]
+                if self.lidar_model_mode == 'nus' or 'car' in self.lidar_model_mode:
+                    name = nus_lidar_classes[box.label]
+                else:
+                    name = kitti_lidar_classes[box.label]
                 nusc_anno = dict(
                     sample_token=token,
                     translation=box.center.tolist(),

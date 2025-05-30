@@ -151,7 +151,7 @@ WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR
 # image_pred_file = f"{output_base}/image_pred_0.json"
 # image_gt_file = f"{output_base}/image_gt_0.json"
 
-# nusc = NuScenes(version='v1.0-mini', dataroot='/mmdetection3d_ros2/data/nuscenes', verbose=True)
+nusc = NuScenes(version='v1.0-mini', dataroot='/mmdetection3d_ros2/data/nuscenes', verbose=True)
 
 
 # delay_csv = f"{output_base}/delays_0.csv"
@@ -169,15 +169,12 @@ WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR
 
 
 import pandas as pd
+from p_perf.utils import visualize_lidar_predictions
 
-# Path to your feather file
-feather_path = '/mmdetection3d_ros2/data/Argoverse/sensor/train/00a6ffc1-6ce9-3bc3-a060-6006e9893a1a/annotations.feather'
-csv_path = '/mmdetection3d_ros2/data/Argoverse/sensor/train/00a6ffc1-6ce9-3bc3-a060-6006e9893a1a/annotation.csv'
 
-# Read the feather file
-df = pd.read_feather(feather_path)
+output_base = "/mmdetection3d_ros2/outputs/nusc_scene0"
+pred_json_path = f"{output_base}/lidar_pred_2.json"
+delay_path = f"{output_base}/delays_2.csv"
+token = '0cedf1d2d652468d92d23491136b5d15'
 
-# Save to CSV
-df.to_csv(csv_path, index=False)
-
-print(f"Saved CSV to {csv_path}")
+visualize_lidar_predictions(nusc, token, pred_json_path, delay_path)
