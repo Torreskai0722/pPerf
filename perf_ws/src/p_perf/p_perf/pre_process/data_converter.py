@@ -21,10 +21,10 @@ nusc = NuScenes(version='v1.0-mini', dataroot='/mmdetection3d_ros2/data/nuscenes
 
 points = convert_lidar_token_to_kitti_array(nusc, token)
 
-inferencer_1 = LidarDet3DInferencer('pv_rcnn_8xb2-80e_kitti-3d-3class')
+inferencer_1 = LidarDet3DInferencer('3dssd_4x4_kitti-3d-car')
 
-result = inferencer_1(dict(points=np.array(points, dtype=np.float32)), return_datasamples=True)
-print(result['predictions'][0].pred_instances_3d.bboxes_3d)
+result = inferencer_1(dict(points=np.array(points, dtype=np.float32)), return_datasamples=True, show=True)
+print(result['predictions'][0])
 
 sd = nusc.get('sample_data', token)
 img_path = os.path.join(nusc.dataroot, sd['filename'])
@@ -32,5 +32,5 @@ points = np.fromfile(img_path, dtype=np.float32).reshape(-1, 5)
 input_tensor = dict(points=np.array(points, dtype=np.float32))
 inferencer_2 = LidarDet3DInferencer('centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d')
 
-result = inferencer_2(input_tensor)
+result = inferencer_2(input_tensor, show=True)
 print(result['predictions'][0])

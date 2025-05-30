@@ -118,7 +118,7 @@ class SensorPublisherNode(Node):
             try:
                 path = self.lidar_files[i]
                 token = self.lidar_tokens[i]
-                if self.lidar_model_mode == 'kitti':
+                if 'kitti' in self.lidar_model_mode:
                     points = self.convert_to_kitti(nusc, self.lidar_tokens[i])
                 elif self.lidar_model_mode == 'nus':
                     points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
