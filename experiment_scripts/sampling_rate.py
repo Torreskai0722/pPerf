@@ -133,58 +133,58 @@ for i, row in df.iterrows():
 
 
     # EVALUATION PIPELINE OF INFERENCE TIME
-    command = ["python3", "/mmdetection3d_ros2/perf_ws/src/p_perf/p_perf/post_process/timing_post.py", prefix]
-    print(f"\nRunning: {' '.join(command)}")
-    result = subprocess.run(command, capture_output=True, text=True)
+    # command = ["python3", "/mmdetection3d_ros2/perf_ws/src/p_perf/p_perf/post_process/timing_post.py", prefix]
+    # print(f"\nRunning: {' '.join(command)}")
+    # result = subprocess.run(command, capture_output=True, text=True)
 
-    print("STDOUT:", result.stdout)
-    print("STDERR:", result.stderr)
+    # print("STDOUT:", result.stdout)
+    # print("STDERR:", result.stderr)
 
     # Delete the corresponding .json file after processing
-    # json_path = f"{prefix}.json"
-    # if os.path.exists(json_path):
-    #     os.remove(json_path)
+    json_path = f"{prefix}.json"
+    if os.path.exists(json_path):
+        os.remove(json_path)
 
-    delay_csv = f"{output_base}/delays_{i}.csv"
+    # delay_csv = f"{output_base}/delays_{i}.csv"
     # EVALUATION PIPELINE OF LIDAR ACCURACY 
-    lidar_pred_file = f"{output_base}/lidar_pred_{i}.json"
-    if 'nus' in lidar_model_mode or 'car' in lidar_model_mode:
-        lidar_evaluate = lidar_evaluater(lidar_pred_file, nusc, output_base, i, nus_lidar_classes)
-    else:
-        lidar_evaluate = lidar_evaluater(lidar_pred_file, nusc, output_base, i, kitti_lidar_classes)
-    pred_boxes = lidar_evaluate.load_prediction_of_sample_tokens([], all=True)
-    lidar_evaluate.evaluate(pred_boxes)
+    # lidar_pred_file = f"{output_base}/lidar_pred_{i}.json"
+    # if 'nus' in lidar_model_mode or 'car' in lidar_model_mode:
+    #     lidar_evaluate = lidar_evaluater(lidar_pred_file, nusc, output_base, i, nus_lidar_classes)
+    # else:
+    #     lidar_evaluate = lidar_evaluater(lidar_pred_file, nusc, output_base, i, kitti_lidar_classes)
+    # pred_boxes = lidar_evaluate.load_prediction_of_sample_tokens([], all=True)
+    # lidar_evaluate.evaluate(pred_boxes)
 
-    # EVALUATION PIPELINE OF IMAGE ACCURACY
-    image_pred_file = f"{output_base}/image_pred_{i}.json"
-    image_gt_file = f"{output_base}/image_gt_{i}.json"
+    # # EVALUATION PIPELINE OF IMAGE ACCURACY
+    # image_pred_file = f"{output_base}/image_pred_{i}.json"
+    # image_gt_file = f"{output_base}/image_gt_{i}.json"
 
-    with open(image_pred_file, 'r') as f:
-        data = json.load(f)  # should be a list of dicts
-    tokens = [d['image_id'] for d in data if 'image_id' in d]
-    tokens = list(set(tokens))
+    # with open(image_pred_file, 'r') as f:
+    #     data = json.load(f)  # should be a list of dicts
+    # tokens = [d['image_id'] for d in data if 'image_id' in d]
+    # tokens = list(set(tokens))
 
-    config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
-    config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
-    ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
-    id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
+    # config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
+    # config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
+    # ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
+    # id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
 
-    with open(id2name_path) as f:
-        id2name = {int(k): v for k, v in json.load(f).items()}
-    model, postprocessors = load_model(config_path, ckpt_path)
-    generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, delay_csv, image_gt_file)
+    # with open(id2name_path) as f:
+    #     id2name = {int(k): v for k, v in json.load(f).items()}
+    # model, postprocessors = load_model(config_path, ckpt_path)
+    # generate_pseudo_coco_gt(nusc, tokens, model, postprocessors, id2name, delay_csv, image_gt_file)
 
-    # generate_pseudo_coco_gt(nusc, tokens, None, None, None, delay_csv, image_gt_file)
+    # # generate_pseudo_coco_gt(nusc, tokens, None, None, None, delay_csv, image_gt_file)
 
-    # modify the image_id in prediction as the prediction's image_id is still nuscene token
-    change_pred_imageid(image_pred_file, image_gt_file)
+    # # modify the image_id in prediction as the prediction's image_id is still nuscene token
+    # change_pred_imageid(image_pred_file, image_gt_file)
 
-    image_evaluate = image_evaluater(image_pred_file, image_gt_file, nusc, output_base, i)
-    image_evaluate.mAP_evaluate()
+    # image_evaluate = image_evaluater(image_pred_file, image_gt_file, nusc, output_base, i)
+    # image_evaluate.mAP_evaluate()
 
-    # clean up the output directory
-    if os.path.exists(f"{output_base}/delays_{i}.csv.lock"):
-        os.remove(f"{output_base}/delays_{i}.csv.lock")
+    # # clean up the output directory
+    # if os.path.exists(f"{output_base}/delays_{i}.csv.lock"):
+    #     os.remove(f"{output_base}/delays_{i}.csv.lock")
 
     # Save status to CSV after each run
     df.at[i, "status"] = "success"
