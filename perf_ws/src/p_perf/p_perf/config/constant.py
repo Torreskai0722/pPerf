@@ -17,7 +17,7 @@ class_range = {
     "barrier": 30
   }
 
-dist_ths = [0.5, 1, 2, 4]
+dist_ths = [0.5, 1, 2, 4, 6]
 
 DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
 nusc = NuScenes(

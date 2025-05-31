@@ -335,7 +335,7 @@ def visualize_coco_predictions(nusc_token, pred_json_path, gt_json_path, image_d
 
 
 
-def visualize_lidar_predictions(nusc, token, pred_json_path, delay_path):
+def visualize_lidar_predictions(nusc, token, interpolate, pred_json_path, delay_path):
     import json
     import numpy as np
     import open3d as o3d
@@ -374,7 +374,28 @@ def visualize_lidar_predictions(nusc, token, pred_json_path, delay_path):
 
     # Ground Truth Boxes (in global)
     sd_offset = get_offset_sd_token(nusc, token, 'lidar', delay_path)
-    gt_boxes_raw, _ = interpolate_gt(nusc, token, sd_offset, False, [])
+    if interpolate:
+        gt_boxes_raw, _ = interpolate_gt(nusc, token, sd_offset, False, [])
+    else:
+        gt_boxes_raw = []
+        sample = nusc.get('sample', sd['sample_token'])
+        annos = [nusc.get('sample_annotation', tok) for tok in sample['anns']]
+
+        for a in annos:
+            detection_name = category_to_detection_name(a['category_name'])
+            if detection_name is None:
+                continue
+
+            gt_boxes_raw.append(DetectionBox(
+                sample_token=token,
+                translation=a['translation'],
+                size=a['size'],
+                rotation=a['rotation'],
+                velocity=a.get('velocity', [0.0, 0.0]),
+                detection_name=detection_name,
+                attribute_name=''  # optional
+            ))
+
     gt_boxes = []
 
     for det_box in gt_boxes_raw:

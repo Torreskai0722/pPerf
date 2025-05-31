@@ -105,12 +105,25 @@ class SensorPublisherNode(Node):
         lidar_data = nusc.get('sample_data', lidar_token)
         lidar_path = os.path.join(nusc.dataroot, lidar_data["filename"])
         scan = np.fromfile(lidar_path, dtype=np.float32).reshape((-1, 5))[:, :4]  # [x, y, z, intensity]
+        
+        # Normalize intensity
         scan[:, 3] = (scan[:, 3] - scan[:, 3].min()) / max(1e-5, scan[:, 3].ptp())
-        scan[:, 1] *= -1  # Flip y-axis to match KITTI convention
+        
+        # Transform from nuScenes to KITTI
+        x_nusc = scan[:, 0]
+        y_nusc = scan[:, 1]
+        z_nusc = scan[:, 2]
+        intensity = scan[:, 3]
 
-        zeros_col = np.zeros((scan.shape[0], 1), dtype=np.float32)
-        scan_kitti = np.hstack((scan, zeros_col))
+        x_kitti = y_nusc
+        y_kitti = -x_nusc
+        z_kitti = z_nusc
 
+        scan_kitti = np.stack((x_kitti, y_kitti, z_kitti, intensity), axis=1)
+
+        # KITTI format uses an extra dummy column (e.g., reflectivity or ring index)
+        zeros_col = np.zeros((scan_kitti.shape[0], 1), dtype=np.float32)
+        scan_kitti = np.hstack((scan_kitti, zeros_col))
         return scan_kitti
     
     def preload_all_data(self):

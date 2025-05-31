@@ -18,22 +18,8 @@ from p_perf.utils import interpolate_gt, get_offset_sd_token
 from mmdet3d.structures import LiDARInstance3DBoxes
 
 # HELPER FUNCTION FOR EVALUATION PIPELINE ==> LIDAR
-def lidar_output_to_nusc_box(
-        detection, token, score_thresh=0.5):
-    """Convert the output to the box class in the nuScenes.
-
-    Args:
-        detection (Det3DDataSample): Detection results.
-
-            - bboxes_3d (:obj:`BaseInstance3DBoxes`): Detection bbox.
-            - scores_3d (torch.Tensor): Detection scores.
-            - labels_3d (torch.Tensor): Predicted box labels.
-
-    Returns:
-        Tuple[List[:obj:`NuScenesBox`], np.ndarray or None]: List of standard
-        NuScenesBoxes and attribute labels.
-    """
-    print('-'*15, score_thresh, '-'*15)
+def lidar_output_to_nusc_box(detection, token, score_thresh=0.2, mode='kitti'):
+    
     bbox3d = detection.bboxes_3d.to('cpu')
     scores = detection.scores_3d.cpu().numpy()
     labels = detection.labels_3d.cpu().numpy()
@@ -45,27 +31,53 @@ def lidar_output_to_nusc_box(
     box_list = []
 
     if isinstance(bbox3d, LiDARInstance3DBoxes):
-        # our LiDAR coordinate system -> nuScenes box coordinate system
-        nus_box_dims = box_dims[:, [1, 0, 2]]
-        for i in range(len(bbox3d)):
-            # filter out bbox with low confidence score
-            if scores[i] < score_thresh:
-                continue
-            quat = Quaternion(axis=[0, 0, 1], radians=box_yaw[i])
-            # velocity = (*bbox3d.tensor[i, 7:9], 0.0)
-            box = NuScenesBox(
-                box_gravity_center[i],
-                nus_box_dims[i],
-                quat,
-                label=labels[i],
-                score=scores[i],
-                # velocity=velocity,
-                token=token)
-            box_list.append(box)
+        if 'kitti' in mode:
+            center_nusc = np.stack([-box_gravity_center[:, 1],
+                                    box_gravity_center[:, 0],
+                                    box_gravity_center[:, 2]], axis=1)
+
+            # Transform dims: [w, l, h] → [l, w, h]
+            dims_nusc = box_dims[:, [1, 0, 2]]
+
+            for i in range(len(bbox3d)):
+                if scores[i] < score_thresh:
+                    continue
+
+                yaw_kitti = box_yaw[i]
+                # Rotate yaw -90 degrees to align KITTI to nuScenes frame
+                yaw_nusc = yaw_kitti - np.pi / 2
+
+                quat = Quaternion(axis=[0, 0, 1], radians=yaw_nusc)
+                box = NuScenesBox(
+                    center_nusc[i],
+                    dims_nusc[i],
+                    quat,
+                    label=labels[i],
+                    score=scores[i],
+                    token=token
+                )
+                box_list.append(box)
+        elif 'nus' in mode:
+            # Already in nuScenes format
+            nus_box_dims = box_dims[:, [1, 0, 2]]
+            for i in range(len(bbox3d)):
+                if scores[i] < score_thresh:
+                    continue
+                quat = Quaternion(axis=[0, 0, 1], radians=box_yaw[i])
+                box = NuScenesBox(
+                    box_gravity_center[i],
+                    nus_box_dims[i],
+                    quat,
+                    label=labels[i],
+                    score=scores[i],
+                    token=token
+                )
+                box_list.append(box)
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
     else:
         raise NotImplementedError(
-            f'Do not support convert {type(bbox3d)} bboxes '
-            'to standard NuScenesBoxes.')
+            f'Do not support converting {type(bbox3d)} bboxes to NuScenesBoxes.')
 
     return box_list
 
@@ -114,7 +126,7 @@ def lidar_nusc_box_to_global(
 
 
 class lidar_evaluater():
-    def __init__(self, prediction_json, nusc, output_dir, index):
+    def __init__(self, prediction_json, nusc, output_dir, index, lidar_classes):
         '''        
         :param result_path: Path to the .json result file provided by the user.
         '''
@@ -124,6 +136,7 @@ class lidar_evaluater():
         self.index = index
         self.ap_path = f"{output_dir}/lidar_ap_{index}.csv"
         self.delay_path = f"{output_dir}/delays_{index}.csv"
+        self.lidar_classes = lidar_classes
 
 
     def accumulate(self,
@@ -268,7 +281,7 @@ class lidar_evaluater():
         metric_data_list = DetectionMetricDataList()
         all_instance_hits = {dist_th: defaultdict(int) for dist_th in dist_ths}
 
-        for class_name in nus_lidar_classes:
+        for class_name in self.lidar_classes:
             for dist_th in dist_ths:
                 md, instance_hits = self.accumulate(pred_boxes, class_name, center_distance, dist_th)
                 
@@ -290,7 +303,7 @@ class lidar_evaluater():
 
         # Show instance hit stats for each distance threshold
         for dist_th, hits_dict in all_instance_hits.items():
-            if dist_th != 1:
+            if dist_th != 4:
                 continue
             print(f"\n[Threshold {dist_th}] Unique instances matched: {len(hits_dict)}")
             file_path = f"{self.output_dir}/instance_{self.index}_{dist_th}.json"
