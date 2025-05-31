@@ -28,6 +28,7 @@ from nuscenes import NuScenes
 import os
 
 from p_perf.post_process.lidar_eval import lidar_output_to_nusc_box, lidar_nusc_box_to_global
+from p_perf.pre_process.data_converter import convert_to_kitti
 
 
 # from p_perf.pPerf import pPerf
@@ -170,11 +171,48 @@ nusc = NuScenes(version='v1.0-mini', dataroot='/mmdetection3d_ros2/data/nuscenes
 
 import pandas as pd
 from p_perf.utils import visualize_lidar_predictions
-
+from p_perf.post_process.lidar_eval import lidar_output_to_nusc_box, lidar_nusc_box_to_global
+import mmengine
 
 output_base = "/mmdetection3d_ros2/outputs/nusc_scene0"
 pred_json_path = f"{output_base}/lidar_pred_2.json"
 delay_path = f"{output_base}/delays_2.csv"
-token = '0cedf1d2d652468d92d23491136b5d15'
+# token = '4f792c8da81e4cb7aca1790654da1c27'
 
-visualize_lidar_predictions(nusc, token, pred_json_path, delay_path)
+with open(pred_json_path) as f:
+    pred_json = json.load(f)
+
+tokens = pred_json['results'].keys()
+for token in tokens:
+    sd = nusc.get('sample_data', token)
+    if sd['is_key_frame']:
+        img_path = os.path.join(nusc.dataroot, sd['filename'])
+        inferencer = LidarDet3DInferencer('pv_rcnn_8xb2-80e_kitti-3d-3class')
+        points = convert_to_kitti(nusc, token)
+        input_tensor = dict(points=np.array(points, dtype=np.float32))  # or your actual test input
+        det = inferencer(input_tensor, show=True, return_datasamples=True)
+
+        # print(det['predictions'][0].pred_instances_3d)
+        # boxes = lidar_output_to_nusc_box(det['predictions'][0].pred_instances_3d, token, 0.1, 'kitti')
+        # boxes = lidar_nusc_box_to_global(nusc, token, boxes)
+
+
+        # nusc_annos = {}
+        # annos = []
+        # for box in boxes:
+        #     nusc_anno = dict(
+        #         sample_token=token,
+        #         translation=box.center.tolist(),
+        #         size=box.wlh.tolist(),
+        #         rotation=box.orientation.elements.tolist(),
+        #         detection_score=box.score,
+        #         attribute_name='')
+        #     annos.append(nusc_anno)
+        # nusc_annos[token] = annos
+        
+        # nusc_submission = {
+        #     'results': nusc_annos
+        # }        
+        # mmengine.dump(nusc_submission, 'test.json')
+
+        visualize_lidar_predictions(nusc, token, False, pred_json_path, delay_path)

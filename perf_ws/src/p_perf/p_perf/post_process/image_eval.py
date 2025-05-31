@@ -3,6 +3,7 @@ from pyquaternion.quaternion import Quaternion
 from shapely.geometry import MultiPoint, box
 import json
 import os
+import csv
 
 from nuscenes.utils.geometry_utils import view_points
 from nuscenes.utils.data_classes import Box
@@ -309,8 +310,8 @@ class image_evaluater():
         self.gt_json = gt_json
         self.output_dir = output_dir
         self.index = index
-        self.ap_path = f"{output_dir}/image_ap_{index}.csv"
         self.instance_path = f"{output_dir}/image_instance_{index}.csv"
+        self.mAP_path = f"{output_dir}/image_mAP_{index}.csv"
     
     def mAP_evaluate(self):
         # Load GT and predictions
@@ -322,6 +323,24 @@ class image_evaluater():
         coco_eval.evaluate()
         coco_eval.accumulate()
         coco_eval.summarize()
+
+        # Extract and label all AP metrics
+        labels = [
+            "AP@[.5:.95]",
+            "AP@.5",
+            "AP@.75",
+            "AP_small",
+            "AP_medium",
+            "AP_large",
+        ]
+        values = coco_eval.stats[:6]
+
+        # Save to CSV
+        with open(self.mAP_path, mode='w', newline='') as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(["Metric", "Value"])
+            for label, val in zip(labels, values):
+                writer.writerow([label, val])
 
     def get_instance_hit(self, iou_type='bbox', iou_thresh=0.5):
         """

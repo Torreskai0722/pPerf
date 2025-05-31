@@ -216,6 +216,10 @@ def generate_mapping(nvtx_df, cuda_df, trace_process_events):
     return mapping
 
 
+class Delay_analyzer():
+    def __init__(self):
+        pass
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python pPerf_nsys.py <filename_prefix>")

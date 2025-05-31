@@ -238,7 +238,7 @@ class InferenceNode(Node):
         nusc_annos = {}
         for det in self.dets:
             token = det[0]
-            boxes = lidar_output_to_nusc_box(det[1], token, self.lidar_model_thresh)
+            boxes = lidar_output_to_nusc_box(det[1], token, self.lidar_model_thresh, self.lidar_model_mode)
             boxes = lidar_nusc_box_to_global(nusc, token, boxes)
 
             annos = []
