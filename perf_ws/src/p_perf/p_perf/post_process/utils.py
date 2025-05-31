@@ -5,6 +5,8 @@ import numpy as np
 from nuscenes.nuscenes import NuScenes
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
+import ast
+
 
 # Set up NuScenes
 BASE = '/home/mg/pdnn/pPerf'
@@ -101,20 +103,110 @@ def plot_metric_by_sampling_frequency(data_dir, image_model_name, lidar_model_na
     # Step 3: Group and Plot
     grouped = merged_df.groupby('sampling_freq')[metric].apply(list)
 
+    save_fig_dir = f'{DELAY_DIR}/visualization/{metric}_VS_rate'
+    os.makedirs(save_fig_dir, exist_ok=True)
     plt.figure(figsize=(12, 6))
     plt.boxplot(grouped, positions=np.arange(len(grouped)), patch_artist=True)
     plt.xticks(ticks=np.arange(len(grouped)), labels=grouped.index.astype(str), rotation=45)
     plt.xlabel(f"{freq_type} (Hz)")
     plt.ylabel(metric.replace('_', ' ').capitalize())
-    plt.title(f"{metric.replace('_', ' ').capitalize()} vs {freq_type} for model pair:\n{image_model_name} + {lidar_model_name}")
+    plt.title(f"model pair:\n{image_model_name} + {lidar_model_name}")
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(f'visulization/{sensor_filter}_{image_model_name}_{lidar_model_name}_{metric}_VS_rate.png')
+    plt.savefig(f'{save_fig_dir}/{sensor_filter}_{image_model_name}_{lidar_model_name}.png')
+
+
+
+def plot_metric_by_fixed_freq(data_dir, fixed_model_name, model_type='image',
+                                        image_freq_val=10, lidar_freq_val=10,
+                                        metric='process_time', sensor_filter='lidar'):
+
+    assert model_type in ['image', 'lidar'], "model_type must be 'image' or 'lidar'"
+
+    param_csv = os.path.join(data_dir, 'param_mapping.csv')
+    param_df = pd.read_csv(param_csv)
+
+    # Parse lidar_model field if needed
+    if 'lidar_model' in param_df.columns:
+        param_df['lidar_model_parsed'] = param_df['lidar_model'].apply(
+            lambda x: ast.literal_eval(x)[0] if isinstance(x, str) and x.startswith("(") else x
+        )
+    else:
+        raise ValueError("Missing 'lidar_model' column in param_mapping.csv")
+
+    # Replace original column for easier use
+    if model_type == 'lidar':
+        param_df['lidar_model'] = param_df['lidar_model_parsed']
+
+    # Step 1: Filter by fixed model and freq pair
+    col_name = 'image_model' if model_type == 'image' else 'lidar_model'
+    opposite_col = 'lidar_model' if model_type == 'image' else 'image_model'
+
+    filtered_df = param_df[
+        (param_df[col_name] == fixed_model_name) &
+        (param_df['image_sample_freq'] == image_freq_val) &
+        (param_df['lidar_sample_freq'] == lidar_freq_val)
+    ]
+
+    if filtered_df.empty:
+        print(f"[WARN] No runs found for {model_type} model: {fixed_model_name} at ({image_freq_val}Hz, {lidar_freq_val}Hz)")
+        return
+
+    box_data = {}
+
+    for _, row in filtered_df.iterrows():
+        run_index = row['run_index']
+        other_model = row[opposite_col]
+        if isinstance(other_model, str) and other_model.startswith("("):
+            try:
+                other_model = ast.literal_eval(other_model)[0]
+            except:
+                pass  # keep original string if parsing fails
+
+        delay_csv = os.path.join(data_dir, f'delays_{run_index}.csv')
+        if not os.path.exists(delay_csv):
+            print(f"[WARN] Missing file: {delay_csv}")
+            continue
+
+        delay_df = pd.read_csv(delay_csv)
+        delay_df = delay_df[delay_df['sensor_type'] == sensor_filter]
+
+        if delay_df.empty or metric not in delay_df.columns:
+            continue
+
+        box_data.setdefault(other_model, []).extend(delay_df[metric].dropna().tolist())
+
+    if not box_data:
+        print("[WARN] No valid data found for plotting.")
+        return
+
+    # Step 2: Plotting
+    save_dir = os.path.join(data_dir, 'visualization', f'{metric}_VS_model')
+    os.makedirs(save_dir, exist_ok=True)
+
+    sorted_keys = sorted(box_data.keys())
+    plt.figure(figsize=(max(12, len(sorted_keys) * 1.5), 6))
+    plt.boxplot([box_data[k] for k in sorted_keys], patch_artist=True)
+    plt.xticks(ticks=np.arange(1, len(sorted_keys) + 1), labels=sorted_keys, rotation=45, ha='right')
+    plt.xlabel(f"{opposite_col.replace('_', ' ').capitalize()} (varied)")
+    plt.ylabel(metric.replace('_', ' ').capitalize())
+    plt.title(f"{metric.replace('_', ' ').capitalize()} for {fixed_model_name}\nImage={image_freq_val}Hz, Lidar={lidar_freq_val}Hz")
+    plt.grid(True)
+    plt.tight_layout()
+
+    safe_model_name = fixed_model_name.replace("/", "_").replace(" ", "_")
+    save_path = os.path.join(save_dir, f'{safe_model_name}_{image_freq_val}Hz_{lidar_freq_val}Hz.png')
+    plt.savefig(save_path)
+    print(f"[INFO] Saved plot to {save_path}")
 
 
 if __name__ == '__main__':
     # df_all = load_all_lidar_delays()
     # plot_box_by_point_bins(df_all)
+    img_freqs = [10, 11, 12]
+    lidar_freqs = [10]
+
+    metrics = ['process_delay', 'comm_delay', 'process_time', 'decode_delay']
 
     image_models = [    
         'faster-rcnn_r50_fpn_1x_coco',      # TWO STAGE
@@ -134,4 +226,18 @@ if __name__ == '__main__':
 
     for image_model in image_models:
         for lidar_model in lidar_models:
-            plot_metric_by_sampling_frequency(DELAY_DIR, image_model, lidar_model, 'process_delay', 'image')
+            for metric in metrics:
+                for model_type in ['image', 'lidar']:
+                    plot_metric_by_sampling_frequency(DELAY_DIR, image_model, lidar_model, metric, 'image')
+
+
+    for image_model in image_models:
+        for img_freq in img_freqs:
+            for metric in metrics:
+                plot_metric_by_fixed_freq(DELAY_DIR, image_model, 'image', img_freq, 10, metric, 'image')
+
+
+    for lidar_model in lidar_models:
+        for img_freq in img_freqs:
+            for metric in metrics:
+                plot_metric_by_fixed_freq(DELAY_DIR, lidar_model, 'lidar', img_freq, 10, metric, 'lidar')
