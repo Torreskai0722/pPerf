@@ -74,6 +74,18 @@ class pPerf:
                     self.module_method_map[method_id] = (module, name, tag)
 
         self.inferencer(warmup_data)
+
+
+    def _unwrap_all_traced_methods(self):
+        """
+        Restore all methods wrapped by _trace_wrapper to their original version.
+        """
+        for method_id, (module, name, _) in self.module_method_map.items():
+            original = getattr(module, f"_original_{name}", None)
+            if original is not None:
+                setattr(module, name, original)
+            else:
+                print('UNWRAP FAILED')
         
 
     def filter_nested_ranges(self, model, tolerance_ms=0.5):
@@ -203,6 +215,7 @@ class pPerf:
         }
 
         self.filter_nested_ranges(self.inferencer.model)
+        self._unwrap_all_traced_methods()
         self.wrap_filtered_methods_with_nvtx()
         print("MAX_DEPTH is: ", max(self.method_depths.values(), default=-1))
     
