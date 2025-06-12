@@ -134,7 +134,6 @@ class lidar_evaluater():
         self.result_path = prediction_json
         self.output_dir = output_dir
         self.index = index
-        self.ap_path = f"{output_dir}/lidar_ap_{index}.csv"
         self.delay_path = f"{output_dir}/delays_{index}.csv"
         self.lidar_classes = lidar_classes
 
@@ -144,6 +143,7 @@ class lidar_evaluater():
                 class_name: str,
                 dist_fcn,
                 dist_th: float,
+                mode: str,
                 verbose: bool = False
                 ):
         pred_boxes_list = [box for box in pred_boxes.all if box.detection_name == class_name]
@@ -160,7 +160,10 @@ class lidar_evaluater():
 
         # Precompute interpolated GTs per sample_data_token
         for token in pred_boxes.sample_tokens:
-            sd_offset = get_offset_sd_token(self.nusc, token, 'lidar', self.delay_path)
+            if mode == 'stream':
+                sd_offset = get_offset_sd_token(self.nusc, token, 'lidar', self.delay_path)
+            else:
+                sd_offset = token
             boxes, instance_tokens = interpolate_gt(self.nusc, token, sd_offset, False, [])
             interpolated_cache[token] = (boxes, instance_tokens)
 
@@ -276,14 +279,14 @@ class lidar_evaluater():
         return boxes_of_split
     
 
-    def evaluate(self, pred_boxes):
+    def evaluate(self, pred_boxes, mode):
         metrics = {}
         metric_data_list = DetectionMetricDataList()
         all_instance_hits = {dist_th: defaultdict(int) for dist_th in dist_ths}
 
         for class_name in self.lidar_classes:
             for dist_th in dist_ths:
-                md, instance_hits = self.accumulate(pred_boxes, class_name, center_distance, dist_th)
+                md, instance_hits = self.accumulate(pred_boxes, class_name, center_distance, dist_th, mode)
                 
                 # Record AP
                 metric_data_list.set(class_name, dist_th, md)
@@ -294,7 +297,8 @@ class lidar_evaluater():
                 for inst_token, count in instance_hits.items():
                     all_instance_hits[dist_th][inst_token] += count
 
-        with open(self.ap_path, 'w', newline='') as csvfile:
+        ap_path = f'{self.output_dir}/lidar_{mode}_ap_{self.index}.csv'
+        with open(ap_path, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['class_name', 'dist_th', 'ap'])  # header
 
@@ -306,7 +310,7 @@ class lidar_evaluater():
             if dist_th != 4:
                 continue
             print(f"\n[Threshold {dist_th}] Unique instances matched: {len(hits_dict)}")
-            file_path = f"{self.output_dir}/instance_{self.index}_{dist_th}.json"
+            file_path = f"{self.output_dir}/instance_{mode}_{self.index}.json"
             with open(file_path, 'w') as json_file:
                 json.dump(hits_dict, json_file, indent=4)
 

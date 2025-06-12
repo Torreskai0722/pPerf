@@ -1,0 +1,78 @@
+{
+    "ENVIRONMENT": {
+        "Crowded city": [
+            {
+                "scene_id": 429,
+                "token": "2f0e54af35964a3fb347359836bec035"
+            },
+            {
+                "scene_id": 27,
+                "token": "3a1850241080418b88dcee97c7d17ed7"
+            }
+        ],
+        "Highspeed highway": [
+            {
+                "scene_id": 194,
+                "token": "bcb05cffb5814973a6cff4fbdca2b99b"
+            },
+            {
+                "scene_id": 612,
+                "token": "74d03e3b673f4a72a3f76e1b0c7840bd"
+            }
+        ],
+        "Surburban": [
+            {
+                "scene_id": 709,
+                "token": "32185f91e68f4069ab3cdd2f4f1a4ff1"
+            },
+            {
+                "scene_id": 143,
+                "token": "93032908bafd484ea10a39b0d5d3fff6"
+            }
+        ]
+    },
+    "WEATHER": {
+        "Clear": [
+            {
+                "scene_id": 201,
+                "token": "7ca5e90766dc4b7bb6a9b3b0d95c99da"
+            },
+            {
+                "scene_id": 97,
+                "token": "bed8426a524d45afab05b19cf02386b2"
+            }
+        ],
+        "Rainy": [
+            {
+                "scene_id": 389,
+                "token": "5fc7c5dfc56b4971b14005bc53f69908"
+            },
+            {
+                "scene_id": 364,
+                "token": "0ced08ea43754420a23b2fbec667a763"
+            }
+        ]
+    },
+    "LIGHTING": {
+        "Day": [
+            {
+                "scene_id": 314,
+                "token": "b519ec833e23450a8bd3340b67f2516b"
+            },
+            {
+                "scene_id": 37,
+                "token": "8edbc31083ab4fb187626e5b3c0411f7"
+            }
+        ],
+        "Night": [
+            {
+                "scene_id": 784,
+                "token": "f634de95cc7043b8b38ceaac67d472cf"
+            },
+            {
+                "scene_id": 768,
+                "token": "b2119bd765a94b0cb705424800307bbf"
+            }
+        ]
+    }
+}

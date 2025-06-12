@@ -7,6 +7,8 @@ from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2, CompressedImage
 import sensor_msgs_py.point_cloud2 as pc2
 import csv
+from message_filters import Subscriber, ApproximateTimeSynchronizer
+import time
 
 import numpy as np
 import torch
@@ -21,16 +23,29 @@ import json
 import cv2
 import mmengine
 
+
 from p_perf.pPerf import pPerf
 from p_perf.post_process.lidar_eval import lidar_nusc_box_to_global, lidar_output_to_nusc_box
 from p_perf.post_process.image_eval import image_output_to_coco, generate_coco_gt, change_pred_imageid
-from p_perf.config.constant import nus_lidar_classes, nusc, kitti_lidar_classes
+from p_perf.config.constant import nus_lidar_classes, kitti_lidar_classes
+from p_perf.BEVInferencer import BEVFormerInferencer
+from p_perf.utils import get_closest_token_from_timestamp, build_channel_timestamp_token_map
 
 
 warnings.filterwarnings("ignore")
 
 WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151603597909.pcd.bin'
 WARM_IMAGE = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603612404.jpg'
+
+
+from nuscenes.nuscenes import NuScenes
+DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
+nusc = NuScenes(
+    version='v1.0-mini',
+    dataroot=DATA_ROOT,
+    verbose=True
+)
+
 
 
 class InferenceNode(Node):
@@ -41,11 +56,12 @@ class InferenceNode(Node):
         self.declare_parameter('input_type', 'publisher')
         self.declare_parameter('lidar_model_mode', 'nus')
         self.declare_parameter('lidar_model_thresh', 0.2)
+        self.declare_parameter('scene', '')
 
         self.input_type = self.get_parameter('input_type').value  
         self.lidar_model_mode = self.get_parameter('lidar_model_mode').value  
         self.lidar_model_thresh = self.get_parameter('lidar_model_thresh').value 
-
+        self.scene = self.get_parameter('scene').value
 
         # MODEL RELATED PARAMETERS
         self.declare_parameter('mode', 'lidar')
@@ -88,12 +104,8 @@ class InferenceNode(Node):
         )
 
         # INTIALIZATION OF LOCAL DATA
-        self.latest_data = None
-        self.latest_token = ''
         self.sub_lidar_count = 0
         self.sub_image_count = 0
-        self.token_sent_time = {}
-        self.token_recv_time = {}
 
         self.dets = []
         self.lidar_pred_json = os.path.join(self.data_dir, f"lidar_pred_{self.index}.json")
@@ -104,7 +116,7 @@ class InferenceNode(Node):
 
         with open(self.delay_csv, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['input_token', 'sensor_type', 'comm_delay', 'decode_delay', 'process_delay', 'process_time'])
+            writer.writerow(['time_stamp', 'input_token', 'sensor_type', 'comm_delay', 'decode_delay', 'inference_delay', 'e2e_delay'])
 
         # INIT OF MODELS BASED ON MODE
         self.ready_publisher = self.create_publisher(String, 'inferencer_ready', 10)
@@ -112,25 +124,68 @@ class InferenceNode(Node):
         if self.mode == 'lidar':
             self.subscriber = self.create_subscription(PointCloud2, 'lidar_data', self.lidar_callback, lidar_qos)
             self.inferencer = LidarDet3DInferencer(self.model_name)
-        else:
-            self.subscriber = self.create_subscription(CompressedImage, 'image_data', self.image_callback, image_qos)
+        elif self.mode == 'image':
+            self.subscriber = self.create_subscription(CompressedImage, 'image_data/CAM_FRONT', self.image_callback, image_qos)
             self.inferencer = DetInferencer(self.model_name)
-        self.inferencer.show_progress = False
+        elif self.mode == 'multi-modal':
+            self.cam_keys = [
+                    'CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT',
+                    'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
+                ]
 
-        # CALLBACK TO PROCESS LATEST DAATA
-        self.timer = self.create_timer(1.0 / self.sample_freq, self.process_latest_data)
+            self.image_subscribers = {
+                cam: Subscriber(self, CompressedImage, f'image_data/{cam}', qos_profile=image_qos)
+                for cam in self.cam_keys
+            }
+
+            self.lidar_subscriber = Subscriber(self, PointCloud2, 'lidar_data', qos_profile=lidar_qos)
+
+            self.ts = ApproximateTimeSynchronizer(
+                [self.lidar_subscriber] + list(self.image_subscribers.values()),
+                queue_size=10,
+                slop=0.1  # 50ms tolerance
+            )
+            self.ts.registerCallback(self.synced_callback)
+
+            # Preload cam_sweeps externally and assign to self.cam_sweeps
+            config = '/mmdetection3d/projects/BEVFusion/configs/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d.py'
+            chkpt = '/mmdetection3d_ros2/perf_ws/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d-5239b1af.pth'
+
+            self.inferencer = BEVFormerInferencer(config, chkpt)
+            self.cam_sweeps = self.inferencer.load_all_camera_sweeps(self.scene)
+
+            self.scene = nusc.get('scene', self.scene)
+
+            sample_token = self.scene['first_sample_token']
+            sample = nusc.get('sample', sample_token)
+
+            warm_lidar_token = sample['data']['LIDAR_TOP']
+            warm_cam_tokens = {
+                cam: sample['data'][cam]
+                for cam in [
+                    'CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT',
+                    'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
+                ]
+            }
+
 
         # Subscribe to termination signal
         self.create_subscription(String, 'terminate_inferencers', self._terminate_callback, 10)
 
         # WARMUP
-        self.profiler = pPerf(self.model_name, self.inferencer, self.depth)
+        self.profiler = pPerf(self.model_name, self.inferencer, self.depth, self.mode)
         if self.mode == 'lidar':
             warm_data = dict(points=WARM_PCD)
-        else:
+        elif self.mode == 'image':
             warm_data = WARM_IMAGE
-        self.profiler.warm_up(warm_data)
-        self.profiler.register_hooks(warm_data)
+
+        if self.mode == 'multi-modal':
+            warm_data = (warm_lidar_token, warm_cam_tokens, self.cam_sweeps)
+            self.profiler.warm_up(warm_data)
+            self.profiler.register_hooks(warm_data)
+        else: 
+            self.profiler.warm_up(warm_data)
+            self.profiler.register_hooks(warm_data)
 
         # INFERENCER READY MSG FOR SENSOR PUBLISHER
         self.get_logger().info(f"{self.mode.capitalize()} model '{self.model_name}' is ready.")
@@ -140,104 +195,148 @@ class InferenceNode(Node):
 
 
     def lidar_callback(self, msg):
+        recv_time_sim = self.get_clock().now().nanoseconds / 1e9
+        recv_time = time.time()
         frame_id = msg.header.frame_id
-        input_name = frame_id if self.input_type == "publisher" else msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
-        recv_time = self.get_clock().now().nanoseconds / 1e9
-
-        self.latest_token = input_name
-        self.latest_data = msg  # Store PointCloud2 message
+        token = frame_id if self.input_type == "publisher" else msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
+        sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         self.sub_lidar_count += 1
 
-        sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
-        self.token_sent_time[input_name] = sent_time
-        self.token_recv_time[input_name] = recv_time
-                
+        # Decode
+        torch.cuda.nvtx.range_push(f"{frame_id}.{self.model_name}.lidar_decode")
+        input_data = self._decode_lidar(msg, self.lidar_model_mode)
+        torch.cuda.nvtx.range_pop()
+
+        decode_time = time.time()
+
+        # Inference
+        process_start = time.time()
+        det = self.profiler.run_inference(input_data, token)
+        process_end = time.time()
+
+        # Process delay logging
+        comm_delay = recv_time_sim - sent_time
+        decode_delay = decode_time - recv_time
+        inference_delay = process_end - process_start
+
+        e2e_delay = inference_delay + decode_delay
+
+
+        self._log_delay(sent_time, token, comm_delay, decode_delay, e2e_delay, inference_delay)
+        self.dets.append((token, det['predictions'][0].pred_instances_3d))
+
 
     def image_callback(self, msg):
+        recv_time_sim = self.get_clock().now().nanoseconds / 1e9
+        recv_time = time.time()
         frame_id = msg.header.frame_id
-        input_name = frame_id if self.input_type == "publisher" else msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
-        recv_time = self.get_clock().now().nanoseconds / 1e9
-
-        self.latest_token = input_name
-        self.latest_data = msg.data  # Store raw compressed data
+        token = frame_id if self.input_type == "publisher" else msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
+        sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         self.sub_image_count += 1
 
-        sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
-        self.token_sent_time[input_name] = sent_time
-        self.token_recv_time[input_name] = recv_time
-
-
-    def process_latest_data(self):
-        if self.latest_data is None:
+        # Decode
+        torch.cuda.nvtx.range_push(f"{frame_id}.{self.model_name}.image_decode")
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        if img is None:
+            self.get_logger().error("Error decoding image during processing")
             return
+        input_data = img
+        torch.cuda.nvtx.range_pop()
 
-        # DECODE BEFORE INFERENCE
-        if self.mode == 'lidar':
-            points = []
-            raw_points = pc2.read_points(self.latest_data, field_names=['x', 'y', 'z', 'intensity', 'ring'], skip_nans=True)
-            if self.lidar_model_mode == 'nus':
-                for p in raw_points:
-                    points.append([p[0], p[1], p[2], p[3], p[4]])
-            elif 'kitti' in self.lidar_model_mode:
-                for p in raw_points:
-                    points.append([p[0], p[1], p[2], p[3]])
-            input_data = dict(points=np.array(points, dtype=np.float32))
-        else:
-            np_arr = np.frombuffer(self.latest_data, np.uint8)
-            img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-            if img is None:
-                self.get_logger().error("Error decoding image during processing")
-                self.latest_data = None
-                self.latest_token = ''
-                return
-            input_data = img
-        
-        # COMM + DECODE DELAY LOGGING
-        decode_time = self.get_clock().now().nanoseconds / 1e9
-        self._log_delay(decode_time)
+        decode_time = time.time()
 
-        # INFERENCE
-        start_time = self.get_clock().now().nanoseconds / 1e9
-        det = self.profiler.run_inference(input_data, self.latest_token)     
-        end_time = self.get_clock().now().nanoseconds / 1e9
+        # Inference
+        process_start = time.time()
+        det = self.profiler.run_inference(input_data, token)
+        process_end = time.time()
 
-        # PROCESS DELAY LOGGING
-        sent_time = self.token_sent_time.get(self.latest_token)
-        if sent_time is not None:
-            process_delay = end_time - sent_time
-            self.delay_log.append({
-                'input_token': self.latest_token,
-                'sensor_type': self.mode,
-                'process_delay': process_delay,
-                'process_time': end_time - start_time
-            })
+        # Process delay logging
+        comm_delay = recv_time_sim - sent_time
+        decode_delay = decode_time - recv_time
+        inference_delay = process_end - process_start
 
-        if self.mode == 'lidar':
-            self.dets.append((self.latest_token, det['predictions'][0].pred_instances_3d))
-        else:
-            self.dets.append((self.latest_token, det['predictions'][0].pred_instances))
+        e2e_delay = inference_delay + decode_delay
 
-        # RESET
-        self.latest_data = None
-        self.latest_token = ''
+        self._log_delay(sent_time, token, comm_delay, decode_delay, e2e_delay, inference_delay)
+        self.dets.append((token, det['predictions'][0].pred_instances))
+
+    def synced_callback(self, lidar_msg, *cam_msgs):
+        recv_time_sim = self.get_clock().now().nanoseconds / 1e9
+        lidar_token = lidar_msg.header.frame_id if self.input_type == "publisher" else lidar_msg.header.stamp.sec + lidar_msg.header.stamp.nanosec / 1e9
+        cam_tokens = {
+            cam: msg.header.frame_id
+            for cam, msg in zip(self.cam_keys, cam_msgs)
+        }
 
 
-    def _log_delay(self, decode_time):
-        sent_time = self.token_sent_time.get(self.latest_token)
-        recv_time = self.token_recv_time.get(self.latest_token)
+        # Run inference
+        process_start = time.time()
+        data = (lidar_token, cam_tokens, self.cam_sweeps)
+        det = self.profiler.run_inference(data, lidar_token)
+        process_end = time.time()
 
+        # LOGGING
+        sent_time = lidar_msg.header.stamp.sec + lidar_msg.header.stamp.nanosec / 1e9
+        comm_delay = recv_time_sim - sent_time
+        inference_delay = process_end - process_start
+
+        e2e_delay = inference_delay + comm_delay
+
+        self._log_delay(sent_time, lidar_token, comm_delay, 0, e2e_delay, inference_delay)
+        self.dets.append((lidar_token, det.pred_instances_3d))
+
+
+    def _log_delay(self, sent_time, token, comm_delay, decode_delay, e2e_delay, inference_delay):
         self.delay_log.append({
-            'input_token': self.latest_token,
+            'time_stamp': sent_time,
+            'input_token': token,
             'sensor_type': self.mode,
-            'comm_delay': recv_time - sent_time,
-            'decode_delay': decode_time - recv_time
+            'comm_delay': comm_delay,
+            'decode_delay': decode_delay,
+            'inference_delay': inference_delay,
+            'e2e_delay': e2e_delay
         })
 
 
-    def _save_lidar_detections(self):
+    def _decode_lidar(self, msg, mode='nus'):
+        # Each point consists of 5 float32 values: x, y, z, intensity, ring
+        dtype = np.dtype([
+            ('x', np.float32),
+            ('y', np.float32),
+            ('z', np.float32),
+            ('intensity', np.float32),
+            ('ring', np.float32)
+        ])
+
+        # Read binary buffer
+        points_array = np.frombuffer(msg.data, dtype=dtype)
+
+        if mode == 'nus':
+            points = np.stack(
+                [points_array['x'], points_array['y'], points_array['z'],
+                points_array['intensity'], points_array['ring']],
+                axis=-1
+            )
+        elif 'kitti' in mode:
+            points = np.stack(
+                [points_array['x'], points_array['y'], points_array['z'],
+                points_array['intensity']],
+                axis=-1
+            )
+        else:
+            raise ValueError(f"Unsupported lidar model mode: {mode}")
+
+        return dict(points=points.astype(np.float32))
+    
+
+    def _save_3d_detections(self):
         nusc_annos = {}
+        token_mapping = build_channel_timestamp_token_map(nusc, self.scene, "LIDAR_TOP")
         for det in self.dets:
             token = det[0]
+            if self.mode != "publisher":
+                token = get_closest_token_from_timestamp(token, token_mapping)
             boxes = lidar_output_to_nusc_box(det[1], token, self.lidar_model_thresh, self.lidar_model_mode)
             boxes = lidar_nusc_box_to_global(nusc, token, boxes)
 
@@ -292,8 +391,8 @@ class InferenceNode(Node):
             print(f'sub image count: {self.sub_image_count}')
 
             # save lidar detections
-            if self.mode == 'lidar':
-                self._save_lidar_detections()
+            if self.mode == 'lidar' or self.mode == 'multi-modal':
+                self._save_3d_detections()
             else:
                 self._save_image_detections()
 
@@ -303,19 +402,11 @@ class InferenceNode(Node):
             # Append mode with locking
             with FileLock(lock_path):
                 delay_df = pd.DataFrame(self.delay_log)
-                delay_df = delay_df.groupby(['input_token', 'sensor_type'], as_index=False).agg({
-                    'comm_delay': 'first',
-                    'decode_delay': 'first',
-                    'process_delay': 'first',
-                    'process_time': 'first'
-                })
-
                 if os.path.exists(self.delay_csv):
                     delay_df.to_csv(self.delay_csv, mode='a', header=False, index=False)
 
             self.get_logger().info(f"Appended communication delays to {self.delay_csv}")
 
-            self.destroy_timer(self.timer)
             self.destroy_node()
             raise SystemExit
     

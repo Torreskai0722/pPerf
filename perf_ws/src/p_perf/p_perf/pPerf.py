@@ -12,16 +12,18 @@ import torch
 import functools
 import inspect
 import time
-from collections import deque
+import psutil, os
 
 class pPerf:
-    def __init__(self, model_name, inferencer, depth, monitor_interval=0.1):
+    def __init__(self, model_name, inferencer, depth, mode='lidar', monitor_interval=0.1, GPU_monitoring=True, CPU_monitoring=True):
         self.model_name = model_name
         self.method_timings = {}  # {method_id: (start, end, tag)}
         self.filtered_methods = []  # methods selected after filtering
         self.module_method_map = {}  # for looking up method handles
         self.method_called = set() 
         self.target_depth = depth
+        self.mode = mode.lower()
+
 
         # Model inferencing
         self.inferencer = inferencer
@@ -29,7 +31,12 @@ class pPerf:
         # GPU monitoring
         self.gpu_stats = []
         self.gpu_monitor_thread = None
-        self.monitoring = False
+        self.GPU_monitoring = GPU_monitoring
+
+        self.cpu_stats = []
+        self.cpu_monitor_thread = None
+        self.CPU_monitoring = CPU_monitoring
+
         self.monitor_interval = monitor_interval  # seconds
         self.warming = False
 
@@ -73,7 +80,11 @@ class pPerf:
                     setattr(module, name, wrapped)
                     self.module_method_map[method_id] = (module, name, tag)
 
-        self.inferencer(warmup_data)
+        # Inference run for tracing
+        if self.mode == 'multi-modal':
+            self.inferencer(*warmup_data)
+        else:
+            self.inferencer(warmup_data)
 
 
     def _unwrap_all_traced_methods(self):
@@ -195,7 +206,10 @@ class pPerf:
     
     def warm_up(self, warm_data, num_warmups=10):
         for _ in range(num_warmups):
-            self.inferencer(warm_data)
+            if self.mode == 'multi-modal':
+                self.inferencer(*warm_data)
+            else:
+                self.inferencer(warm_data)
 
     def register_hooks(self, warm_data):
         self.trace_and_record_times(warm_data)
@@ -221,20 +235,26 @@ class pPerf:
     
     def run_inference(self, data, input_name):
         torch.cuda.nvtx.range_push(f'{input_name}.{self.model_name}.e2e')
-        result = self.inferencer(data, return_datasamples=True)
+        
+        if self.mode == 'multi-modal':
+            assert isinstance(data, tuple), "Expected (lidar_token, cam_tokens, cam_sweeps) for multi-modal input"
+            result = self.inferencer(*data)
+        else:
+            result = self.inferencer(data, return_datasamples=True)
+        
         torch.cuda.nvtx.range_pop()
         return result
     
     # GPU Profiling
     def start_gpu_monitoring(self):
         # If self monitoring is false, skip both start and stop
-        if self.monitoring == False:
+        if self.GPU_monitoring == False:
             return
         nvmlInit()
         handle = nvmlDeviceGetHandleByIndex(0)
 
         def monitor():
-            while self.monitoring:
+            while self.GPU_monitoring:
                 util = nvmlDeviceGetUtilizationRates(handle)
                 mem = nvmlDeviceGetMemoryInfo(handle)
                 power = nvmlDeviceGetPowerUsage(handle) / 1000.0
@@ -248,14 +268,50 @@ class pPerf:
                 })
                 time.sleep(self.monitor_interval)
 
-        self.monitoring = True
+        self.GPU_monitoring = True
         self.gpu_monitor_thread = threading.Thread(target=monitor, daemon=True)
         self.gpu_monitor_thread.start()
 
     def stop_gpu_monitoring(self):
-        if self.monitoring == False:
+        if self.GPU_monitoring == False:
             return
-        self.monitoring = False
+        self.GPU_monitoring = False
         if self.gpu_monitor_thread is not None:
             self.gpu_monitor_thread.join()
         nvmlShutdown()
+
+
+    # Inside your class
+    def start_cpu_ram_monitoring(self):
+        if not self.CPU_monitoring:
+            return
+
+        self.proc = psutil.Process(os.getpid())  # or pass PID explicitly
+        self.cpu_stats = []
+
+        def monitor():
+            while self.CPU_monitoring:
+                try:
+                    cpu = self.proc.cpu_percent(interval=None)  # non-blocking
+                    mem = self.proc.memory_info().rss / (1024 ** 2)  # MB
+                    power = None  # placeholder; psutil doesn't directly expose power
+
+                    self.cpu_stats.append({
+                        'time': time.time(),
+                        'cpu_percent': cpu,
+                        'ram_used_MB': mem,
+                        'power_W': power  # set to None unless you're integrating a power API
+                    })
+                except psutil.NoSuchProcess:
+                    break
+                time.sleep(self.monitor_interval)
+
+        self.cpu_monitor_thread = threading.Thread(target=monitor, daemon=True)
+        self.cpu_monitor_thread.start()
+
+    def stop_cpu_ram_monitoring(self):
+        if not self.CPU_monitoring:
+            return
+        self.CPU_monitoring = False
+        if hasattr(self, 'cpu_monitor_thread') and self.cpu_monitor_thread is not None:
+            self.cpu_monitor_thread.join()

@@ -11,11 +11,9 @@ def generate_launch_description():
         DeclareLaunchArgument("input_type", default_value="publisher"),
         DeclareLaunchArgument("bag_dir", default_value="/mmdetection3d_ros2/data/bag"),
 
-        DeclareLaunchArgument("image_sample_freq", default_value="10"),
         DeclareLaunchArgument("image_model_name", default_value="yolov3_d53_320_273e_coco"),
         DeclareLaunchArgument("image_depth", default_value="0"),
 
-        DeclareLaunchArgument("lidar_sample_freq", default_value="10"),
         DeclareLaunchArgument("lidar_model_name", default_value="pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d"),
         DeclareLaunchArgument("lidar_depth", default_value="0"),
 
@@ -43,7 +41,7 @@ def generate_launch_description():
             output="screen",
             parameters=[{
                 'use_sim_time': True,
-                "sample_freq": LaunchConfiguration("image_sample_freq"),
+                "scene": LaunchConfiguration("scene"),
                 "depth": LaunchConfiguration("image_depth"),
                 "model_name": LaunchConfiguration("image_model_name"),
                 "mode": "image",
@@ -60,7 +58,7 @@ def generate_launch_description():
             output="screen",
             parameters=[{
                 'use_sim_time': True,
-                "sample_freq": LaunchConfiguration("lidar_sample_freq"),
+                "scene": LaunchConfiguration("scene"),
                 "depth": LaunchConfiguration("lidar_depth"),
                 "model_name": LaunchConfiguration("lidar_model_name"),
                 "mode": "lidar",

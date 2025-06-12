@@ -213,7 +213,7 @@ def get_offset_sd_token(nusc, start_token: str, sensor_type: str, delay_csv_path
         raise ValueError(f"No matching row for token {start_token} and sensor type {sensor_type}")
 
     # Extract process_time in seconds
-    process_time = float(row['process_time'].values[0])
+    process_time = float(row['e2e_delay'].values[0])
 
     # Determine frame interval
     freq = 12 if sensor_type == 'image' else 20
@@ -455,3 +455,54 @@ def visualize_lidar_predictions(nusc, token, interpolate, pred_json_path, delay_
 
     vis.run()
     vis.destroy_window()
+
+
+def build_channel_timestamp_token_map(nusc, scene_token: str, sensor_channel: str) -> dict:
+    """
+    Build a dictionary mapping timestamp (in seconds) to sample_data tokens for a given sensor channel.
+
+    Args:
+        nusc (NuScenes): Initialized NuScenes instance.
+        scene_token (str): Token of the scene.
+        sensor_channel (str): e.g., 'CAM_FRONT', 'LIDAR_TOP'
+
+    Returns:
+        dict: {timestamp_sec: sample_data_token}
+    """
+    ts_token_map = {}
+
+    scene = nusc.get('scene', scene_token)
+    first_sample_token = scene['first_sample_token']
+    first_sample = nusc.get('sample', first_sample_token)
+
+    current_sd_token = first_sample['data'].get(sensor_channel)
+    if current_sd_token is None:
+        raise ValueError(f"No sample_data found for channel '{sensor_channel}' in first sample")
+
+    # Traverse the sample_data chain and build the dictionary
+    while current_sd_token:
+        sd = nusc.get('sample_data', current_sd_token)
+        if sd['channel'] == sensor_channel:
+            timestamp_sec = sd['timestamp'] / 1e6  # microseconds to seconds
+            ts_token_map[timestamp_sec] = current_sd_token
+        current_sd_token = sd['next']
+
+    return ts_token_map
+
+
+
+def get_closest_token_from_timestamp(timestamp: float, ts_token_map: dict) -> str:
+    """
+    Given a timestamp (in seconds) and a timestamp→token map, return the closest sample_data token.
+
+    Args:
+        timestamp (float): Input timestamp (e.g. ROS message time).
+        ts_token_map (dict): Dictionary from build_timestamp_token_map().
+
+    Returns:
+        str: Closest matching sample_data token.
+    """
+    closest_ts = min(ts_token_map.keys(), key=lambda t: abs(t - timestamp))
+    return ts_token_map[closest_ts]
+
+    

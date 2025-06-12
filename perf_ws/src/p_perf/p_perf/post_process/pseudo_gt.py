@@ -9,10 +9,6 @@ from p_perf.utils import load_sweep_sd, get_offset_sd_token
 import dino_package.datasets.transforms as T
 from dino_package.util.slconfig import SLConfig
 from dino_package.models.registry import MODULE_BUILD_FUNCS
-# from detectron2.engine import DefaultPredictor
-# from detectron2.config import get_cfg
-# from detectron2.data import MetadataCatalog
-# from detectron2 import model_zoo
 import cv2
 
 import warnings
@@ -26,31 +22,6 @@ TRANSFORM = T.Compose([
 ])
 
 IMAGE_CLASSES = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'person']
-
-# class Pseudo_Detectron2Detector:
-#     def __init__(self):
-#         self.cfg = get_cfg()
-#         self.cfg.merge_from_file(model_zoo.get_config_file('COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml'))
-#         self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url('COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml')
-
-#         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
-#         self.cfg.MODEL.DEVICE = 'cuda'
-
-#         self.predictor = DefaultPredictor(self.cfg)
-
-#     def inference(self, image_path):
-#         print(self.cfg.dump())
-#         input = cv2.imread(image_path)
-#         pred = self.predictor(input)
-#         boxes = pred['instances'].pred_boxes
-#         labels = pred['instances'].pred_classes
-
-#         meta = MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
-#         class_names = meta.get("thing_classes")
-#         labels = [class_names[i] for i in labels]
-
-#         return boxes, labels
-
 
 
 def load_model(config_path, ckpt_path, device='cuda'):
@@ -162,7 +133,7 @@ def visualization(image, boxes, labels, scores, save_path=None):
 
 
 def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2name, delay_csv_path, json_path: str, 
-                            image_size=(1600, 900), threshold=0.5):
+                            image_size=(1600, 900), threshold=0.5, streaming=True):
     """
     Generate COCO-format ground truth using model predictions (pseudo-GT) from NuScenes sample_data_tokens.
 
@@ -176,6 +147,7 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
         nusc: NuScenes instance
         image_size: expected image size (default for CAM_FRONT: 1600x900)
         threshold: confidence threshold for filtering predictions
+        streaming: decide whether to use streaming mAP
     """
     coco = {
         "images": [],
@@ -200,12 +172,15 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
         sd_rec = nusc.get('sample_data', token)
         sd_offset_token = get_offset_sd_token(nusc, token, 'image', delay_csv_path)
         sd_offset = nusc.get('sample_data', sd_offset_token)
-        img_path = os.path.join(nusc.dataroot, sd_offset['filename'])
+        if streaming:
+            img_path = os.path.join(nusc.dataroot, sd_offset['filename'])
+        else:
+            img_path = os.path.join(nusc.dataroot, sd_rec['filename'])
 
         # Register the image in COCO
         coco["images"].append({
             "id": image_id,
-            "file_name": sd_offset["filename"],
+            "file_name": sd_offset["filename"] if streaming else sd_rec["filename"],
             "width": image_size[0],
             "height": image_size[1],
             "token": token,
@@ -249,7 +224,7 @@ if __name__ == '__main__':
     torch.cuda.reset_peak_memory_stats()
 
     config_dir = '/mmdetection3d_ros2/DINO/dino_package/config'
-    data_dir = '/mmdetection3d_ros2/data/nuscenes/sweeps/CAM_FRONT'
+    data_dir = '/mmdetection3d_ros2/data/Nuscenes/sweeps/CAM_FRONT'
     config_path = f'{config_dir}/DINO/DINO_4scale_swin.py'
     ckpt_path = f'{config_dir}/ckpts/checkpoint0029_4scale_swin.pth'
     id2name_path = '/mmdetection3d_ros2/DINO/dino_package/util/coco_id2name.json'
@@ -257,7 +232,7 @@ if __name__ == '__main__':
     with open(id2name_path) as f:
         id2name = {int(k): v for k, v in json.load(f).items()}
     
-    DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
+    DATA_ROOT = '/mmdetection3d_ros2/data/Nuscenes'
     nusc = NuScenes(
                 version='v1.0-mini',
                 dataroot=DATA_ROOT 

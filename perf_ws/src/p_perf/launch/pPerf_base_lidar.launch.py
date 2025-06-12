@@ -11,11 +11,9 @@ def generate_launch_description():
         DeclareLaunchArgument("sensor_expected_models", default_value="1"),
         DeclareLaunchArgument("idx", default_value="0"),
 
-        DeclareLaunchArgument("image_sample_freq", default_value="10"),
         DeclareLaunchArgument("image_model_name", default_value="yolov3_d53_320_273e_coco"),
         DeclareLaunchArgument("image_depth", default_value="0"),
 
-        DeclareLaunchArgument("lidar_sample_freq", default_value="10"),
         DeclareLaunchArgument("lidar_model_name", default_value="pv_rcnn_8xb2-80e_kitti-3d-3class"),
         DeclareLaunchArgument("lidar_model_mode", default_value="nus"),
         DeclareLaunchArgument("lidar_model_thresh", default_value="0.2"),
@@ -25,19 +23,19 @@ def generate_launch_description():
 
         Node(
             package="p_perf",
-            executable="sensor_publish_node",
+            executable="sensor_replay_node",
             name="sensor_publisher",
             output="screen",
             parameters=[{
-                "publish_freq_lidar": LaunchConfiguration("sensor_publish_freq_lidar"),
-                "publish_freq_image": LaunchConfiguration("sensor_publish_freq_image"),
+                'use_sim_time': True,
                 "scene": LaunchConfiguration("scene"),
                 "expected_models": LaunchConfiguration("sensor_expected_models"),
                 "index": LaunchConfiguration("idx"),
+                "bag_dir": LaunchConfiguration("bag_dir"),
                 "data_dir": LaunchConfiguration("data_dir"),
-                "lidar_model_mode": LaunchConfiguration("lidar_model_mode")
             }]
         ),
+
 
 
         Node(
@@ -46,15 +44,14 @@ def generate_launch_description():
             name="lidar_inference_node",
             output="screen",
             parameters=[{
-                "sample_freq": LaunchConfiguration("lidar_sample_freq"),
+                'use_sim_time': True,
+                "scene": LaunchConfiguration("scene"),
                 "depth": LaunchConfiguration("lidar_depth"),
                 "model_name": LaunchConfiguration("lidar_model_name"),
                 "mode": "lidar",
                 "data_dir": LaunchConfiguration("data_dir"),
                 "index": LaunchConfiguration("idx"),
-                "input_type": "publisher",
-                "lidar_model_mode": LaunchConfiguration("lidar_model_mode"),
-                "lidar_model_thresh": LaunchConfiguration("lidar_model_thresh") 
+                "input_type": "bag"
             }]
         ),
 
