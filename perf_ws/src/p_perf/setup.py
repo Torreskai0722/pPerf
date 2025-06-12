@@ -26,7 +26,8 @@ setup(
         'console_scripts': [
             f'sensor_publish_node = {package_name}.sensor_publisher:main',
             f'inference_node = {package_name}.inferencer:main',
-            f"sensor_replay_node = {package_name}.sensor_replayer:main"
+            f"sensor_replay_node = {package_name}.sensor_replayer:main",
+            f'inferencer_ms_node = {package_name}.inferencer_ms:main',
         ],
     },
 )

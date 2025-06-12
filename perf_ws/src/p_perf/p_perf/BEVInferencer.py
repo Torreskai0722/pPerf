@@ -366,6 +366,7 @@ class BEVFormerInferencer:
 
         return cam_sweeps
 
+
     def infer_single_sample(self, lidar_token: str, cam_tokens: dict, cam_sweeps):
         """
         Run inference using a LiDAR sample_data token and 6 image sample_data tokens.
@@ -437,57 +438,28 @@ class BEVFormerInferencer:
 
 
 
+if __name__ == '__main__':
+    config = '/mmdetection3d/projects/BEVFusion/configs/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d.py'
+    chkpt = '/mmdetection3d_ros2/perf_ws/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d-5239b1af.pth'
 
-config = '/mmdetection3d/projects/BEVFusion/configs/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d.py'
-chkpt = '/mmdetection3d_ros2/perf_ws/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d-5239b1af.pth'
+    inferencer = BEVFormerInferencer(config, chkpt)
+    cam_sweeps = inferencer.load_all_camera_sweeps('c5224b9b454b4ded9b5d2d2634bbda8a')
 
-inferencer = BEVFormerInferencer(config, chkpt)
-cam_sweeps = inferencer.load_all_camera_sweeps('c5224b9b454b4ded9b5d2d2634bbda8a')
+    scene_token = 'c5224b9b454b4ded9b5d2d2634bbda8a'
+    scene = inferencer.nusc.get('scene', scene_token)
+    first_sample_token = scene['first_sample_token']
+    sample = inferencer.nusc.get('sample', first_sample_token)
 
-scene_token = 'c5224b9b454b4ded9b5d2d2634bbda8a'
-scene = inferencer.nusc.get('scene', scene_token)
-first_sample_token = scene['first_sample_token']
-sample = inferencer.nusc.get('sample', first_sample_token)
+    # Step 2: Get camera and LiDAR sample_data tokens
+    cam_keys = ['CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT',
+                'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT']
 
-# Step 2: Get camera and LiDAR sample_data tokens
-cam_keys = ['CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT',
-            'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT']
+    cam_tokens = {cam: sample['data'][cam] for cam in cam_keys}
+    lidar_token = sample['data']['LIDAR_TOP']
 
-cam_tokens = {cam: sample['data'][cam] for cam in cam_keys}
-lidar_token = sample['data']['LIDAR_TOP']
+    result = inferencer(lidar_token, cam_tokens, cam_sweeps)
 
-result = inferencer(lidar_token, cam_tokens, cam_sweeps)
+    print(result.pred_instances_3d)
 
-print(result.pred_instances_3d)
-
-# profiler = pPerf('bev_former', inferencer, 0)
-# profiler.register_hooks()
-
-
-from nuscenes.nuscenes import NuScenes
-
-
-DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
-SCENE_TOKEN = 'cc8c0bf57f984915a77078b10eb33198'  # replace if needed
-
-nusc = NuScenes(version='v1.0-mini', dataroot=DATA_ROOT, verbose=False)
-
-# 1. Load scene
-scene = nusc.get('scene', SCENE_TOKEN)
-
-# 2. Get first sample token
-sample_token = scene['first_sample_token']
-sample = nusc.get('sample', sample_token)
-
-# 3. Get sample_data tokens
-lidar_token = sample['data']['LIDAR_TOP']
-cam_tokens = {
-    cam: sample['data'][cam]
-    for cam in [
-        'CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT',
-        'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
-    ]
-}
-
-print(lidar_token)
-print(cam_tokens)
+    # profiler = pPerf('bev_former', inferencer, 0)
+    # profiler.register_hooks()

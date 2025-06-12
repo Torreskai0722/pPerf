@@ -9,7 +9,7 @@ from nuscenes.utils.geometry_utils import view_points
 from nuscenes.utils.data_classes import Box
 
 from p_perf.utils import interpolate_gt, get_offset_sd_token
-from p_perf.config.constant import image_classes, nusc
+from p_perf.config.constant import image_classes
 
 from typing import List, Tuple, Union
 from collections import defaultdict
@@ -307,15 +307,17 @@ class image_evaluater():
         '''
         self.nusc = nusc
         self.pred_json = pred_json
-        self.gt_json = gt_json
         self.output_dir = output_dir
         self.index = index
         self.instance_path = f"{output_dir}/image_instance_{index}.csv"
-        self.mAP_path = f"{output_dir}/image_mAP_{index}.csv"
     
-    def mAP_evaluate(self):
+    def mAP_evaluate(self, mode):
         # Load GT and predictions
-        coco_gt = COCO(self.gt_json)
+        if mode == 'still':
+            gt_json = f'{self.output_dir}/image_still_gt_{self.index}.json'
+        else:
+            gt_json = f'{self.output_dir}/image_stream_gt_{self.index}.json'
+        coco_gt = COCO(gt_json)
         coco_dt = coco_gt.loadRes(self.pred_json)
 
         # Initialize evaluation
@@ -336,7 +338,8 @@ class image_evaluater():
         values = coco_eval.stats[:6]
 
         # Save to CSV
-        with open(self.mAP_path, mode='w', newline='') as csv_file:
+        mAP_path = f"{self.output_dir}/image_mAP_{mode}_{self.index}.csv"
+        with open(mAP_path, mode='w', newline='') as csv_file:
             writer = csv.writer(csv_file)
             writer.writerow(["Metric", "Value"])
             for label, val in zip(labels, values):
