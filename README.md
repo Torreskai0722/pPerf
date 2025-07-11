@@ -44,29 +44,40 @@ Check out the [Demos & Example Scripts](#demos--example-scripts) below to get st
 
 ---
 
-## Prerequisites
+## Installation
 
-- **Software:**
-  - ROS2 (Humble or later)
-  - Python 3.8+
-  - PyTorch, MMDetection3D, OpenCV, NumPy, pandas, etc.
-  - NVIDIA GPU (for CUDA profiling and inference)
-  - NuScenes dataset (mini or full)
+The easiest way to get started with perf_ws is using Docker. We provide a pre-configured Docker environment with all dependencies installed.
 
-- **NVIDIA GPU drivers and CUDA Toolkit:**
-  - CUDA 12.5 requires 525.60.13 and higher.
-  - Ensure that CUPTI is available on your path:
-    ```bash
-    $ /sbin/ldconfig -N -v $(sed 's/:/ /g' <<< $LD_LIBRARY_PATH) | grep libcupti
-    ```
-    If you don't see the correct `libcupti.so`, prepend its installation directory to your `LD_LIBRARY_PATH`:
-    ```bash
-    $ export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
-    ```
-    If this doesn't work, try:
-    ```bash
-    $ sudo apt-get install libcupti-dev
-    ```
+### Using Docker
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t perf_ws -f Docker/pPerf.Dockerfile .
+   ```
+
+2. **Run the container:**
+   ```bash
+   docker run -it \
+    --gpus all \
+    --privileged \
+    --cap-add=SYS_ADMIN \
+    --security-opt seccomp=unconfined \
+    --network=host \
+    -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e NVIDIA_DRIVER_CAPABILITIES=all \
+    -v ~/pdnn/pPerf:/mmdetection3d_ros2 \
+    -v /mnt/nas/Nuscenes:/mnt/nas/Nuscenes \
+    --name pPerf-1 \
+    pdnn-1:latest bash
+
+   ```
+
+3. **Inside the container, build the ROS2 workspace:**
+   ```bash
+   cd /workspace/perf_ws
+   colcon build
+   source install/setup.bash
 
 ---
 
@@ -186,18 +197,11 @@ perf_ws/
     image_pred_*.json
     delays_*.csv
     ...
-  analysis_outputs/
-    # Plots, figures, and processed analysis results
-    *.png
-    *.txt
-    ...
 ```
 
 - Place the NuScenes dataset under `data/nuscenes/` (with its standard structure).
 - Place ROS2 bag files for replay and benchmarking under `data/bag/`.
 - All experiment outputs, logs, and profiling results will be saved under `outputs/`.
-- Post-processed figures and analysis results are typically saved in `analysis_outputs/`.
-
 ---
 
 ## Notes
@@ -205,6 +209,27 @@ perf_ws/
 - All nodes are modular and can be extended for new models or data sources.
 - Profiling outputs are saved in the specified data directory for further analysis.
 - See the code and comments in each file for more details on configuration and extension.
+
+---
+
+Let us know if you have questions or want to contribute!
+
+---
+## Acknowledgments
+
+perf_ws builds upon and integrates with several external tools and datasets:
+
+- **LISA**: Atmospheric simulation and weather effects for autonomous driving scenarios (https://github.com/velatkilic/LISA)
+- **nuscenes_to_rosbag**: Tools for converting NuScenes dataset to ROS2 bag format (https://github.com/WATonomous/nuscenes_to_ros2bag/blob/main/convert_to_ros2bag.sh)
+- **NuScenes**: The 3D object detection dataset used for benchmarking and evaluation
+
+We thank the respective authors and contributors for making these resources available to the community.
+
+---
+
+## TODO
+
+- [ ] Fix the multi-modal profiling pipeline
 
 ---
 
