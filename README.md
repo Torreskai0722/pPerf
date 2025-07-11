@@ -80,22 +80,24 @@ Check out the [Demos & Example Scripts](#demos--example-scripts) below to get st
 
 3. **Launch the pipeline**
 
-   - **Start the data publisher:**
+   - **Start the data publisher (reading from file directly):**
      ```bash
      ros2 run p_perf sensor_publisher.py
-     ```
-
-   - **Start the inference node (single or multi-model):**
-     ```bash
-     ros2 run p_perf inferencer.py
-     # or
-     ros2 run p_perf inferencer_ms.py
      ```
 
    - **(Optional) Replay a bag file:**
      ```bash
      ros2 run p_perf sensor_replayer.py
      ```
+
+   - **Start the inference node (launch from single or multi-process):**
+     ```bash
+     ros2 run p_perf inferencer.py
+     # or
+     ros2 run p_perf inferencer_ms.py
+     ```
+
+
 
 4. **View results**  
    - Profiling outputs (timing, GPU/CPU stats) are saved in your specified data directory.
@@ -115,14 +117,14 @@ The `experiment_scripts/` directory contains ready-to-run scripts for common exp
 
 To run a demo, simply execute the desired script, e.g.:
 ```bash
-python experiment_scripts/bag_test.py
+python3 experiment_scripts/bag_test.py
 ```
 
 ---
 
 ## Post-Processing & Analysis
 
-The `post_processing/` directory provides a suite of tools for in-depth analysis of your experiments, including:
+The `tools/` directory provides a suite of tools for in-depth analysis of your experiments, including:
 
 - **Layer-wise and kernel-level analysis** (e.g., `analyze_e2e_kernels.py`, `analyze_memcpy_kernels.py`)
 - **Performance and sensitivity analysis** (e.g., `performance_analysis.py`, `dnn_sensitivity_analysis.py`)
@@ -139,7 +141,7 @@ These tools help you interpret the results, identify bottlenecks, and optimize y
   Profiling and performance monitoring utility for DNN inference.
 
 - **inferencer.py**  
-  Single-model inference node (LiDAR, image, or multi-modal).
+  Multi-model, multi-process inference node (LiDAR, image, or multi-modal).
 
 - **inferencer_ms.py**  
   Multi-model, multi-threaded inference node.
@@ -147,31 +149,11 @@ These tools help you interpret the results, identify bottlenecks, and optimize y
 - **sensor_publisher.py**  
   Publishes preloaded NuScenes data as ROS2 messages.
 
-- **sensor_replayer.py**  
+- **sensor_replayer.py (recommended)**  
   Replays recorded ROS2 bag files for offline benchmarking.
 
 - **BEVInferencer.py**  
   Multi-modal (BEVFusion) inference utility.
-
----
-
-## Directory Structure
-
-```
-perf_ws/
-  experiment_scripts/    # Demos and example experiments
-  post_processing/       # Analysis tools for layers, kernels, performance, and visualization
-  src/p_perf/p_perf/     # Core pipeline, profiling, and inference nodes
-    pPerf.py
-    inferencer.py
-    inferencer_ms.py
-    sensor_publisher.py
-    sensor_replayer.py
-    BEVInferencer.py
-    post_process/
-    pre_process/
-    config/
-```
 
 ---
 
