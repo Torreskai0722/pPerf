@@ -6,7 +6,7 @@ pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model
 
 ## Features
 
-perf_ws offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
+pPerf offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
 
 ADD A GRAPH (FROM PAPER)
 
