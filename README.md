@@ -127,7 +127,6 @@ perf_ws/
 - Place the NuScenes dataset under `data/nuscenes/` (with its standard structure).
 - Place ROS2 bag files for replay and benchmarking under `data/bag/`.
 - All experiment outputs, logs, and profiling results will be saved under `outputs/`.
----
 
 4. **Launch the pipeline**
 
