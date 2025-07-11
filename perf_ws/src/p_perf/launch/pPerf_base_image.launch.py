@@ -5,39 +5,33 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument("sensor_publish_freq_lidar", default_value="20"),
-        DeclareLaunchArgument("sensor_publish_freq_image", default_value="12"),
-        DeclareLaunchArgument("scene", default_value="None"),
-        DeclareLaunchArgument("sensor_expected_models", default_value="1"),
+        DeclareLaunchArgument("scene", default_value="1"),
+        DeclareLaunchArgument("sensor_expected_models", default_value="2"),
         DeclareLaunchArgument("idx", default_value="0"),
+        DeclareLaunchArgument("input_type", default_value="publisher"),
+        DeclareLaunchArgument("bag_dir", default_value="/mmdetection3d_ros2/data/bag"),
+        DeclareLaunchArgument("data_dir", default_value="0"),
 
-        DeclareLaunchArgument("image_sample_freq", default_value="10"),
         DeclareLaunchArgument("image_model_name", default_value="yolov3_d53_320_273e_coco"),
         DeclareLaunchArgument("image_depth", default_value="0"),
 
-        DeclareLaunchArgument("lidar_sample_freq", default_value="10"),
-        DeclareLaunchArgument("lidar_model_name", default_value="pv_rcnn_8xb2-80e_kitti-3d-3class"),
-        DeclareLaunchArgument("lidar_model_mode", default_value="nus"),
-        DeclareLaunchArgument("lidar_model_thresh", default_value="0.2"),
-        DeclareLaunchArgument("lidar_depth", default_value="0"),
-
-        DeclareLaunchArgument("data_dir", default_value="0"),
+        
 
         Node(
             package="p_perf",
-            executable="sensor_publish_node",
+            executable="sensor_replay_node",
             name="sensor_publisher",
             output="screen",
             parameters=[{
-                "publish_freq_lidar": LaunchConfiguration("sensor_publish_freq_lidar"),
-                "publish_freq_image": LaunchConfiguration("sensor_publish_freq_image"),
+                'use_sim_time': True,
                 "scene": LaunchConfiguration("scene"),
                 "expected_models": LaunchConfiguration("sensor_expected_models"),
                 "index": LaunchConfiguration("idx"),
+                "bag_dir": LaunchConfiguration("bag_dir"),
                 "data_dir": LaunchConfiguration("data_dir"),
-                "lidar_model_mode": LaunchConfiguration("lidar_model_mode")
             }]
         ),
+
 
         Node(
             package="p_perf",
@@ -45,13 +39,14 @@ def generate_launch_description():
             name="image_inference_node",
             output="screen",
             parameters=[{
-                "sample_freq": LaunchConfiguration("image_sample_freq"),
+                'use_sim_time': True,
+                "scene": LaunchConfiguration("scene"),
                 "depth": LaunchConfiguration("image_depth"),
                 "model_name": LaunchConfiguration("image_model_name"),
                 "mode": "image",
                 "data_dir": LaunchConfiguration("data_dir"),
                 "index": LaunchConfiguration("idx"),
-                "input_type": "publisher"              
+                "input_type": "bag"
             }]
         ),
 

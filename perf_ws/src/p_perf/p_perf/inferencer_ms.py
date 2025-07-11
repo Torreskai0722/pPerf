@@ -19,7 +19,7 @@ import torch
 import cv2
 import mmengine
 import warnings
-from queue import Queue
+from queue import Queue, Empty, Full
 import concurrent.futures
 
 from mmdet3d.apis import LidarDet3DInferencer
@@ -32,24 +32,26 @@ from p_perf.config.constant import nus_lidar_classes, kitti_lidar_classes
 from p_perf.post_process.lidar_eval import lidar_output_to_nusc_box, lidar_nusc_box_to_global
 from p_perf.post_process.image_eval import image_output_to_coco
 from filelock import FileLock
-from nuscenes.nuscenes import NuScenes
+from p_perf.nuscenes_instance import get_nuscenes_instance
 
 warnings.filterwarnings("ignore")
 
 WARM_PCD = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151603597909.pcd.bin'
 WARM_IMAGE = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603612404.jpg'
 
-DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
-nusc = NuScenes(version='v1.0-mini', dataroot=DATA_ROOT, verbose=True)
-
 
 class ModelRunner:
-    def __init__(self, name, inferencer, mode, stream, depth):
+    def __init__(self, name, inferencer, mode, stream, depth, thread_id):
         self.name = name
         self.inferencer = inferencer
         self.mode = mode
         self.stream = stream
-        self.profiler = pPerf(name, inferencer, depth, mode)
+        self.profiler = pPerf(name, inferencer, depth, mode, ms_sync=True)
+        self.thread_id = thread_id
+        self.thread = None
+        self.running = False
+        self.queue = Queue(maxsize=1)
+        self.parent = None
         self._warm_up()
 
     def _warm_up(self):
@@ -63,14 +65,70 @@ class ModelRunner:
             self.profiler.warm_up(warm_data)
             self.profiler.register_hooks(warm_data)
 
-    def run(self, data, token):
-        with torch.cuda.stream(self.stream):
-            return self.profiler.run_inference(data, token)
+    def start(self):
+        self.running = True
+        self.thread = threading.Thread(target=self._run_loop, name=f"model_{self.name}")
+        # Set thread affinity to a specific CPU core
+        os.system(f"taskset -p -c {self.thread_id} {os.getpid()}")
+        self.thread.start()
+
+    def stop(self):
+        self.running = False
+        if self.thread:
+            self.thread.join()
+
+    def _run_loop(self):
+        while self.running:
+            try:
+                data, token, timing_info = self.queue.get(timeout=0.1)
+                inference_start = time.time()
+                with torch.cuda.stream(self.stream):
+                    det = self.profiler.run_inference(data, token)
+                inference_end = time.time()
+                
+                # Calculate delays
+                inference_delay = inference_end - inference_start
+                e2e_delay = timing_info['comm_delay'] + timing_info['decode_delay'] + inference_delay
+                
+                # Log the complete timing information
+                self.parent._log_delay(
+                    timing_info['sent_time'],
+                    token,
+                    timing_info['comm_delay'],
+                    timing_info['decode_delay'],
+                    inference_delay,
+                    e2e_delay,
+                    self.name,
+                    self.mode
+                )
+                
+                if self.mode == 'lidar':
+                    self.parent.lidar_dets.append((token, det['predictions'][0].pred_instances_3d))
+                else:
+                    self.parent.image_dets.append((token, det['predictions'][0].pred_instances))
+            except Empty:
+                continue
+            except Exception as e:
+                pass
+
+    def run(self, data, token, timing_info):
+        try:
+            self.queue.put_nowait((data, token, timing_info))
+        except Full:
+            # If queue is full, get the old item and put the new one
+            try:
+                self.queue.get_nowait()
+                self.queue.put_nowait((data, token, timing_info))
+            except (Empty, Full):
+                pass  # Ignore any errors in this cleanup
 
 
 class InferenceNode(Node):
     def __init__(self):
         super().__init__('inference_node')
+
+        # Lazy load NuScenes instance
+        self._nusc = None
 
         # PARAMETERS
         self.declare_parameter('lidar_models_str', '')
@@ -85,6 +143,8 @@ class InferenceNode(Node):
         self.declare_parameter('input_type', 'publisher')
         self.declare_parameter('lidar_model_mode', 'nus')
         self.declare_parameter('lidar_model_thresh', 0.5)
+        self.declare_parameter('lidar_stream_priority', 0)
+        self.declare_parameter('image_stream_priority', 0)
 
         # Get parameters
         lidar_models_str = self.get_parameter('lidar_models_str').value
@@ -101,16 +161,11 @@ class InferenceNode(Node):
         self.input_type = self.get_parameter('input_type').value
         self.lidar_model_mode = self.get_parameter('lidar_model_mode').value
         self.lidar_model_thresh = self.get_parameter('lidar_model_thresh').value
+        self.lidar_stream_priority = self.get_parameter('lidar_stream_priority').value
+        self.image_stream_priority = self.get_parameter('image_stream_priority').value
 
-        # Create thread pool
-        self.thread_pool = concurrent.futures.ThreadPoolExecutor(
-            max_workers=len(self.lidar_models) + len(self.image_models) + (1 if self.mm_model == 'bevfusion' else 0)
-        )
-
-        # Track active futures for each model
-        self.active_futures = {model: None for model in self.lidar_models + self.image_models}
-        if self.mm_model == 'bevfusion':
-            self.active_futures[self.mm_model] = None
+        self.get_logger().info(f"Initializing with lidar models: {self.lidar_models}")
+        self.get_logger().info(f"Initializing with image models: {self.image_models}")
 
         # Initialize data structures
         self.runners = {}
@@ -131,7 +186,7 @@ class InferenceNode(Node):
 
         with open(self.delay_csv, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['time_stamp', 'input_token', 'comm_delay', 'decode_delay', 'inference_delay', 'e2e_delay', 'model_name'])
+            writer.writerow(['time_stamp', 'input_token', 'comm_delay', 'decode_delay', 'inference_delay', 'e2e_delay', 'model_name', 'model_type'])
 
         # Define QoS profiles
         lidar_qos = QoSProfile(
@@ -149,11 +204,43 @@ class InferenceNode(Node):
         )
 
         # Initialize scene and camera sweeps
-        self.scene = nusc.get('scene', self.scene_token)
         self.cam_sweeps = None
 
-        # Initialize model runners
-        self._init_model_runners()
+        # Initialize model runners with dedicated threads
+        self.runners = {}
+        thread_id = 0
+        for name in self.lidar_models:
+            self.get_logger().info(f"Loading lidar model: {name}")
+            model = LidarDet3DInferencer(name)
+            model.show_progress = False
+            stream = torch.cuda.Stream(priority=self.lidar_stream_priority)
+            self.runners[name] = ModelRunner(name, model, 'lidar', stream, self.depth, thread_id)
+            self.runners[name].parent = self
+            thread_id += 1
+
+        for name in self.image_models:
+            self.get_logger().info(f"Loading image model: {name}")
+            model = DetInferencer(name)
+            model.show_progress = False
+            stream = torch.cuda.Stream(priority=self.image_stream_priority)
+            self.runners[name] = ModelRunner(name, model, 'image', stream, self.depth, thread_id)
+            self.runners[name].parent = self
+            thread_id += 1
+
+        if self.mm_model and self.mm_model == 'bevfusion':
+            self.get_logger().info(f"Loading multi-modal model: {self.mm_model}")
+            config = '/mmdetection3d/projects/BEVFusion/configs/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d.py'
+            ckpt = '/mmdetection3d_ros2/perf_ws/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d-5239b1af.pth'
+            model = BEVFormerInferencer(config, ckpt)
+            stream = torch.cuda.Stream(priority=self.lidar_stream_priority)
+            self.cam_sweeps = model.load_all_camera_sweeps(self.scene_token)
+            self.runners[self.mm_model] = ModelRunner(self.mm_model, model, 'multi-modal', stream, self.depth, thread_id)
+            self.runners[self.mm_model].parent = self
+
+        # Start all model threads
+        for runner in self.runners.values():
+            self.get_logger().info(f"Starting model thread: {runner.name}")
+            runner.start()
 
         # Setup subscriptions
         self._setup_subscriptions(lidar_qos, image_qos)
@@ -163,46 +250,17 @@ class InferenceNode(Node):
         msg = String()
         msg.data = "1"
         self.ready_publisher.publish(msg)
+        self.get_logger().info("Published ready message")
 
         # Setup terminate subscription
         self.terminate_sub = self.create_subscription(String, 'terminate_inferencers', self._terminate_callback, 10)
 
-    def _init_model_runners(self):
-        # Initialize lidar models
-        for name in self.lidar_models:
-            model = LidarDet3DInferencer(name)
-            model.show_progress = False
-            stream = torch.cuda.Stream()
-            self.runners[name] = ModelRunner(name, model, 'lidar', stream, self.depth)
-
-        # Initialize image models
-        for name in self.image_models:
-            model = DetInferencer(name)
-            model.show_progress = False
-            stream = torch.cuda.Stream()
-            self.runners[name] = ModelRunner(name, model, 'image', stream, self.depth)
-
-        # Initialize multi-modal model only if specified
-        if self.mm_model and self.mm_model == 'bevfusion':
-            config = '/mmdetection3d/projects/BEVFusion/configs/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d.py'
-            ckpt = '/mmdetection3d_ros2/perf_ws/bevfusion_lidar-cam_voxel0075_second_secfpn_8xb4-cyclic-20e_nus-3d-5239b1af.pth'
-            model = BEVFormerInferencer(config, ckpt)
-            stream = torch.cuda.Stream()
-            self.cam_sweeps = model.load_all_camera_sweeps(self.scene_token)
-            self.runners[self.mm_model] = ModelRunner(self.mm_model, model, 'multi-modal', stream, self.depth)
-
-            # Warm up multi-modal model
-            sample_token = self.scene['first_sample_token']
-            sample = nusc.get('sample', sample_token)
-            warm_lidar_token = sample['data']['LIDAR_TOP']
-            warm_cam_tokens = {
-                cam: sample['data'][cam]
-                for cam in ['CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT',
-                           'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT']
-            }
-            warm_data = (warm_lidar_token, warm_cam_tokens, self.cam_sweeps)
-            self.runners[self.mm_model].profiler.warm_up(warm_data)
-            self.runners[self.mm_model].profiler.register_hooks(warm_data)
+    @property
+    def nusc(self):
+        """Lazy load NuScenes instance only when needed"""
+        if self._nusc is None:
+            self._nusc = get_nuscenes_instance()
+        return self._nusc
 
     def _setup_subscriptions(self, lidar_qos, image_qos):
         # Setup lidar subscription
@@ -235,6 +293,7 @@ class InferenceNode(Node):
             self.ts.registerCallback(self.synced_callback)
 
     def lidar_callback(self, msg):
+        recv_time_sim = self.get_clock().now().nanoseconds / 1e9
         recv_time = time.time()
         frame_id = msg.header.frame_id
         token = frame_id if self.input_type == "publisher" else msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
@@ -247,51 +306,21 @@ class InferenceNode(Node):
         torch.cuda.nvtx.range_pop()
         decode_time = time.time()
 
-        # Run inference on all lidar models concurrently using thread pool
-        for model_name in self.lidar_models:
-            runner = self.runners[model_name]
-            # Check if model is still processing previous frame
-            if self.active_futures[model_name] is not None:
-                if not self.active_futures[model_name].done():
-                    self.get_logger().warn(f"Model {model_name} still processing previous frame, skipping current frame")
-                    continue
-                # Clean up completed future
-                self.active_futures[model_name] = None
-            
-            # Submit new task
-            future = self.thread_pool.submit(self._run_lidar_inference, runner, input_data, token)
-            self.active_futures[model_name] = future
-
-        # Store communication and decode delays for this token
-        self.token_delays[token] = {
-            'comm_delay': recv_time - sent_time,
-            'decode_delay': decode_time - recv_time
+        # Prepare timing information
+        timing_info = {
+            'comm_delay': recv_time_sim - sent_time,
+            'decode_delay': decode_time - recv_time,
+            'sent_time': recv_time - recv_time_sim + sent_time
         }
 
-    def _run_lidar_inference(self, runner, input_data, token):
-        process_start = time.time()
-        det = runner.run(input_data, token)
-        process_end = time.time()
-        inference_delay = process_end - process_start
-        
-        # Get communication and decode delays for this token
-        token_delays = self.token_delays.get(token, {'comm_delay': 0, 'decode_delay': 0})
-        
-        # Log delays for this specific model
-        self._log_delay(
-            time.time(),
-            token,
-            token_delays['comm_delay'],
-            token_delays['decode_delay'],
-            inference_delay + token_delays['decode_delay'],  # e2e includes decode
-            inference_delay,
-            runner.name
-        )
-        
-        self.lidar_dets.append((token, det['predictions'][0].pred_instances_3d))
+        # Run inference on all lidar models
+        for model_name in self.lidar_models:
+            runner = self.runners[model_name]
+            runner.run(input_data, token, timing_info)
 
     def image_callback(self, msg):
         recv_time = time.time()
+        recv_time_sim = self.get_clock().now().nanoseconds / 1e9
         frame_id = msg.header.frame_id
         token = frame_id if self.input_type == "publisher" else msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         sent_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
@@ -302,53 +331,21 @@ class InferenceNode(Node):
         np_arr = np.frombuffer(msg.data, np.uint8)
         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         if img is None:
-            self.get_logger().error("Error decoding image during processing")
             return
         torch.cuda.nvtx.range_pop()
         decode_time = time.time()
 
-        # Run inference on all image models concurrently using thread pool
-        for model_name in self.image_models:
-            runner = self.runners[model_name]
-            # Check if model is still processing previous frame
-            if self.active_futures[model_name] is not None:
-                if not self.active_futures[model_name].done():
-                    self.get_logger().warn(f"Model {model_name} still processing previous frame, skipping current frame")
-                    continue
-                # Clean up completed future
-                self.active_futures[model_name] = None
-            
-            # Submit new task
-            future = self.thread_pool.submit(self._run_image_inference, runner, img, token)
-            self.active_futures[model_name] = future
-
-        # Store communication and decode delays for this token
-        self.token_delays[token] = {
-            'comm_delay': recv_time - sent_time,
-            'decode_delay': decode_time - recv_time
+        # Prepare timing information
+        timing_info = {
+            'comm_delay': recv_time_sim - sent_time,
+            'decode_delay': decode_time - recv_time,
+            'sent_time': recv_time - recv_time_sim + sent_time
         }
 
-    def _run_image_inference(self, runner, img, token):
-        process_start = time.time()
-        det = runner.run(img, token)
-        process_end = time.time()
-        inference_delay = process_end - process_start
-        
-        # Get communication and decode delays for this token
-        token_delays = self.token_delays.get(token, {'comm_delay': 0, 'decode_delay': 0})
-        
-        # Log delays for this specific model
-        self._log_delay(
-            time.time(),
-            token,
-            token_delays['comm_delay'],
-            token_delays['decode_delay'],
-            inference_delay + token_delays['decode_delay'],  # e2e includes decode
-            inference_delay,
-            runner.name
-        )
-        
-        self.image_dets.append((token, det['predictions'][0].pred_instances))
+        # Run inference on all image models
+        for model_name in self.image_models:
+            runner = self.runners[model_name]
+            runner.run(img, token, timing_info)
 
     def synced_callback(self, lidar_msg, *cam_msgs):
         recv_time_sim = self.get_clock().now().nanoseconds / 1e9
@@ -363,7 +360,7 @@ class InferenceNode(Node):
         # Run inference on multi-modal model
         process_start = time.time()
         data = (lidar_token, cam_tokens, self.cam_sweeps)
-        det = self.runners[self.mm_model].run(data, lidar_token)
+        self.runners[self.mm_model].run(data, lidar_token, timing_info)
         process_end = time.time()
 
         # Log delays
@@ -386,7 +383,7 @@ class InferenceNode(Node):
         ], axis=-1)
         return dict(points=points.astype(np.float32))
 
-    def _log_delay(self, sent_time, token, comm_delay, decode_delay, e2e_delay, inference_delay, model_name):
+    def _log_delay(self, sent_time, token, comm_delay, decode_delay, e2e_delay, inference_delay, model_name, model_type):
         self.delay_log.append({
             'time_stamp': sent_time,
             'input_token': token,
@@ -394,18 +391,20 @@ class InferenceNode(Node):
             'decode_delay': decode_delay,
             'inference_delay': inference_delay,
             'e2e_delay': e2e_delay,
-            'model_name': model_name
+            'model_name': model_name,
+            'model_type': model_type
         })
 
     def _save_3d_detections(self):
         nusc_annos = {}
-        token_mapping = build_channel_timestamp_token_map(nusc, self.scene, "LIDAR_TOP")
-        for det in self.lidar_dets:
-            token = det[0]
+        token_mapping = build_channel_timestamp_token_map(self.nusc, self.scene_token, "LIDAR_TOP")
+
+        for token, det in self.lidar_dets:
             if self.input_type != "publisher":
                 token = get_closest_token_from_timestamp(token, token_mapping)
-            boxes = lidar_output_to_nusc_box(det[1], token, self.lidar_model_thresh, self.lidar_model_mode)
-            boxes = lidar_nusc_box_to_global(nusc, token, boxes)
+            
+            boxes = lidar_output_to_nusc_box(det, token, self.lidar_model_thresh, self.lidar_model_mode)
+            boxes = lidar_nusc_box_to_global(self.nusc, token, boxes)
 
             annos = []
             for box in boxes:
@@ -434,36 +433,47 @@ class InferenceNode(Node):
         }
         
         mmengine.dump(nusc_submission, self.lidar_pred_json)
-        print(f"Results written to {self.lidar_pred_json}")
+        self.get_logger().info(f"Results written to {self.lidar_pred_json}")
 
     def _save_image_detections(self):
         coco_predictions = []
-        token_mapping = build_channel_timestamp_token_map(nusc, self.scene, "CAM_FRONT")
-        for det in self.image_dets:
-            token = det[0]
+        token_mapping = build_channel_timestamp_token_map(self.nusc, self.scene_token, "CAM_FRONT")
+        
+        for token, det in self.image_dets:
             if self.input_type != "publisher":
                 token = get_closest_token_from_timestamp(token, token_mapping)
-            coco_pred = image_output_to_coco(det[1], token)
+            
+            coco_pred = image_output_to_coco(det, token)
             coco_predictions.extend(coco_pred)
         
         with open(self.image_pred_json, 'w') as f:
             json.dump(coco_predictions, f, indent=2)
+        self.get_logger().info(f"Results written to {self.image_pred_json}")
 
     def _terminate_callback(self, msg):
         if msg.data.strip() == "TERMINATE":
             self.get_logger().info("Inferencer shutting down...")
-            
-            # Shutdown thread pool
-            self.thread_pool.shutdown(wait=True)
+
+            # Stop all model threads
+            for runner in self.runners.values():
+                runner.stop()
 
             self.get_logger().info(f'sub lidar count: {self.sub_lidar_count}')
             self.get_logger().info(f'sub image count: {self.sub_image_count}')
 
-            # Save detections
-            # if self.lidar_models or self.mm_model == 'bevfusion':
-            #     self._save_3d_detections()
-            # if self.image_models:
-            #     self._save_image_detections()
+            self._save_3d_detections()
+            self._save_image_detections()
+
+            # Convert timestamps to tokens in delay log
+            if self.input_type != "publisher":
+                lidar_token_mapping = build_channel_timestamp_token_map(self.nusc, self.scene_token, "LIDAR_TOP")
+                image_token_mapping = build_channel_timestamp_token_map(self.nusc, self.scene_token, "CAM_FRONT")
+                
+                for delay in self.delay_log:
+                    if delay['model_type'] == 'lidar':
+                        delay['input_token'] = get_closest_token_from_timestamp(delay['input_token'], lidar_token_mapping)
+                    elif delay['model_type'] == 'image':
+                        delay['input_token'] = get_closest_token_from_timestamp(delay['input_token'], image_token_mapping)
 
             # Save delays
             lock_path = self.delay_csv + ".lock"
@@ -482,10 +492,8 @@ class InferenceNode(Node):
             # Destroy the node
             self.destroy_node()
             
-            # Shutdown ROS 2
-            rclpy.shutdown()
-            
-            raise SystemExit
+            # Exit the process
+            os._exit(0)
 
 
 def main(args=None):
@@ -497,8 +505,9 @@ def main(args=None):
         executor.add_node(node)
         executor.spin()
     except SystemExit:
-        rclpy.logging.get_logger("Quitting").info('Done')
-    rclpy.shutdown()
+        pass
+    finally:
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':

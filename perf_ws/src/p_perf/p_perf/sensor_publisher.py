@@ -15,7 +15,7 @@ import pandas as pd
 import json
 
 from p_perf.pPerf import pPerf
-from p_perf.utils import load_sweep_sd, get_paths_from_sd
+from p_perf.utils import load_sweep_sd, get_paths_from_sd, convert_to_kitti
 
 from nuscenes.nuscenes import NuScenes
 DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
@@ -129,31 +129,6 @@ class SensorPublisherNode(Node):
         self.preloading_done = False
         self.preload_all_data()
 
-    def convert_to_kitti(self, nusc, lidar_token):
-        # Load metadata
-        lidar_data = nusc.get('sample_data', lidar_token)
-        lidar_path = os.path.join(nusc.dataroot, lidar_data["filename"])
-        scan = np.fromfile(lidar_path, dtype=np.float32).reshape((-1, 5))[:, :4]  # [x, y, z, intensity]
-        
-        # Normalize intensity
-        scan[:, 3] = (scan[:, 3] - scan[:, 3].min()) / max(1e-5, scan[:, 3].ptp())
-        
-        # Transform from nuScenes to KITTI
-        x_nusc = scan[:, 0]
-        y_nusc = scan[:, 1]
-        z_nusc = scan[:, 2]
-        intensity = scan[:, 3]
-
-        x_kitti = y_nusc
-        y_kitti = -x_nusc
-        z_kitti = z_nusc
-
-        scan_kitti = np.stack((x_kitti, y_kitti, z_kitti, intensity), axis=1)
-
-        # KITTI format uses an extra dummy column (e.g., reflectivity or ring index)
-        zeros_col = np.zeros((scan_kitti.shape[0], 1), dtype=np.float32)
-        scan_kitti = np.hstack((scan_kitti, zeros_col))
-        return scan_kitti
     
     def preload_all_data(self):
         for i in range(self.len_lidar_msgs):

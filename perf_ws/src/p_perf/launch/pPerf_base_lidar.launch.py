@@ -48,6 +48,8 @@ def generate_launch_description():
                 "scene": LaunchConfiguration("scene"),
                 "depth": LaunchConfiguration("lidar_depth"),
                 "model_name": LaunchConfiguration("lidar_model_name"),
+                "lidar_model_thresh": LaunchConfiguration("lidar_model_thresh"),
+                "lidar_model_mode": LaunchConfiguration("lidar_model_mode"),    
                 "mode": "lidar",
                 "data_dir": LaunchConfiguration("data_dir"),
                 "index": LaunchConfiguration("idx"),

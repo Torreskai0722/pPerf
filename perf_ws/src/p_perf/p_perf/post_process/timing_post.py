@@ -1,14 +1,22 @@
 import json
 import pandas as pd
 import os
+from tqdm import tqdm
+from p_perf.utils import get_closest_token_from_timestamp, build_channel_timestamp_token_map
+from p_perf.nuscenes_instance import get_nuscenes_instance
+from p_perf.config.constant import image_models, lidar_models
+
 
 class timing_processor:
     COPYKIND_MAPPING = {1: "host2device", 8: "device2device", 2: "device2host"}
 
-    def __init__(self, raw_json, output_dir, index):
+    def __init__(self, nusc, raw_json, output_dir, index, scene, mode=None, publish_mode="bag"):
         self.raw_json = raw_json
         self.output_dir = output_dir
         self.index = index
+        self.mode = mode
+        self.publish_mode = publish_mode
+        self.scene_token = scene
 
         self.nvtx_events = []
         self.cuda_events = []
@@ -17,6 +25,13 @@ class timing_processor:
         self.trace_process_events = {}
         self.nvtx_df = None
         self.cuda_df = None
+
+        # Initialize token maps for bag mode
+        if self.publish_mode == "bag":
+            self.lidar_token_map = build_channel_timestamp_token_map(nusc, self.scene_token, "LIDAR_TOP")
+            self.image_token_map = build_channel_timestamp_token_map(nusc, self.scene_token, "CAM_FRONT")
+        
+        self.lidar_model_names = [model[0] for model in lidar_models]
 
     @staticmethod
     def decode_globalid(global_id):
@@ -28,24 +43,47 @@ class timing_processor:
         nvtx = entry["NvtxEvent"]
         parts = nvtx["Text"].split('.')
         if parts[-1] == 'e2e':
-            input_name, model_name, *layer = parts
+            if self.publish_mode == "bag":
+                model_name = parts[2]
+                input_name = '.'.join(parts[:2])  # Join first two parts for input name
+                sec = float(input_name)  # Convert input name to timestamp
+                if model_name in self.lidar_model_names:
+                    input_name = get_closest_token_from_timestamp(sec, self.lidar_token_map)
+                elif model_name in image_models:
+                    input_name = get_closest_token_from_timestamp(sec, self.image_token_map)
+                layer = parts[3:]
+            else:
+                input_name, model_name, *layer = parts
+        elif 'decode' in parts[-1]:
+            layer = parts[-1]
+            input_name = '.'.join(parts[:2])  # Join first two parts for input name
+            sec = float(input_name)  # Convert input name to timestamp
+            model_name = "pending"
+            if "lidar" in layer:
+                input_name = get_closest_token_from_timestamp(sec, self.lidar_token_map)
+            elif "image" in layer:
+                input_name = get_closest_token_from_timestamp(sec, self.image_token_map)
         else:
             model_name, *layer = parts
             input_name = "pending"
 
-        pid, _ = self.decode_globalid(int(nvtx["GlobalTid"]))
+        pid, tid = self.decode_globalid(int(nvtx["GlobalTid"]))
+        id_to_use = tid if self.mode == 'ms' else pid
         start, end = int(nvtx["Timestamp"]), int(nvtx["EndTimestamp"])
         
         self.nvtx_events.append({
             "Model Name": model_name,
             "Input": input_name,
-            "Layer": '.'.join(layer),
+            "Layer": layer if isinstance(layer, str) else '.'.join(layer),
             "StartTimestamp": start,
             "EndTimestamp": end,
             "Elapsed": (end - start) * 1e-6,
-            "PID": pid
+            "PID": id_to_use,
+            "OriginalPID": pid,
+            "OriginalTID": tid
         })
-        self.pid_map.setdefault(pid, set()).add(model_name)
+        self.pid_map.setdefault(id_to_use, set()).add(model_name)
+        
 
     def fill_pending_inputs(self):
         input_events = [e for e in self.nvtx_events if e["Input"] != "pending"]
@@ -66,7 +104,8 @@ class timing_processor:
     def process_cuda_event(self, entry):
         cuda = entry["CudaEvent"]
         eventClass = cuda.get("eventClass")
-        pid, _ = self.decode_globalid(int(cuda["globalPid"]))
+        pid, tid = self.decode_globalid(int(cuda["globalPid"]))
+        id_to_use = tid if self.mode == 'ms' else pid
         memcpy_size = 0
 
         if eventClass == 3:  # Kernel
@@ -86,13 +125,16 @@ class timing_processor:
             "Kernel Elapsed": (int(cuda.get("endNs", 0)) - int(cuda.get("startNs", 0))) * 1e-6,
             "Memcpy Size": memcpy_size,
             "CorrelationId": cuda.get("correlationId"),
-            "PID": pid
+            "PID": id_to_use,
+            "OriginalPID": pid,
+            "OriginalTID": tid
         })
 
     def process_trace_event(self, entry):
         trace = entry["TraceProcessEvent"]
-        pid, _ = self.decode_globalid(int(trace["globalTid"]))
-        self.trace_process_events[trace["correlationId"]] = (int(trace["startNs"]), pid)
+        pid, tid = self.decode_globalid(int(trace["globalTid"]))
+        id_to_use = tid if self.mode == 'ms' else pid
+        self.trace_process_events[trace["correlationId"]] = (int(trace["startNs"]), id_to_use)
 
     def parse_json(self):
         with open(self.raw_json, "r") as file:
@@ -134,20 +176,25 @@ class timing_processor:
         layer_records = []
         kernel_records = []
 
-        for _, nvtx in self.nvtx_df.iterrows():
+        for _, nvtx in tqdm(self.nvtx_df.iterrows(), desc="Processing NVTX events"):
             pid = nvtx["PID"]
             start = nvtx["StartTimestamp"]
             end = nvtx["EndTimestamp"]
+            
+            # Try correlation through TraceProcessEvents
+            # Find TraceProcessEvents that occur within the NVTX time range and belong to the same PID
             trace_candidates = {
                 cid: ts for cid, (ts, p) in self.trace_process_events.items()
                 if start <= ts <= end and p == pid
             }
 
+            # Find CUDA kernels that have matching correlation IDs
+            # Note: We don't require PID matching between CUDA and NVTX events
+            # Correlation works through correlation IDs, not PID matching
             candidate_kernels = self.cuda_df[
-                (self.cuda_df["CorrelationId"].isin(trace_candidates.keys())) &
-                (self.cuda_df["PID"] == pid)
+                self.cuda_df["CorrelationId"].isin(trace_candidates.keys())
             ]
-
+            
             layer_gpu_turnaround = (candidate_kernels["Kernel End"].max() - candidate_kernels["Kernel Start"].min()) * 1e-6 if not candidate_kernels.empty else 0
             gpu_active_time = self.compute_gpu_time(candidate_kernels)
             layer_gpu_waittime = layer_gpu_turnaround - gpu_active_time

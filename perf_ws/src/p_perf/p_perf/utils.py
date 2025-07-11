@@ -188,7 +188,7 @@ def interpolate_gt(nusc, sd_token: str, sd_offset_token: str, visibility: bool, 
 
 
 
-def get_offset_sd_token(nusc, start_token: str, sensor_type: str, delay_csv_path: str) -> str:
+def get_offset_sd_token(nusc, start_token: str, model_name: str, model_type: str, delay_csv_path: str) -> str:
     """
     Given a sample_data token, sensor type, and delay CSV, compute the nearest sample token
     based on the processing time from the CSV.
@@ -202,21 +202,20 @@ def get_offset_sd_token(nusc, start_token: str, sensor_type: str, delay_csv_path
     Returns:
         A future sample_data token that is closest to when processing finishes
     """
-    assert sensor_type in ['image', 'lidar'], "sensor_type must be 'image' or 'lidar'"
 
     # Load delay CSV
     df = pd.read_csv(delay_csv_path)
 
     # Find the matching row
-    row = df[(df['input_token'] == start_token) & (df['sensor_type'] == sensor_type)]
+    row = df[(df['input_token'] == start_token) & (df['model_name'] == model_name)]
     if row.empty:
-        raise ValueError(f"No matching row for token {start_token} and sensor type {sensor_type}")
+        raise ValueError(f"No matching row for token {start_token} and sensor type {model_name}")
 
     # Extract process_time in seconds
     process_time = float(row['e2e_delay'].values[0])
 
     # Determine frame interval
-    freq = 12 if sensor_type == 'image' else 20
+    freq = 12 if model_type == 'image' else 20
     frame_interval = 1.0 / freq
 
     # Compute how many frames ahead
@@ -280,6 +279,66 @@ def get_paths_from_sd(nusc, sd_tokens):
         filenames.append(os.path.join(nusc.dataroot, sd['filename']))
     return filenames
 
+
+def convert_to_kitti_ros(points_array):
+    """
+    Convert points from nuScenes format to KITTI format.
+    
+    Args:
+        points_array: numpy structured array with fields (x, y, z, intensity, ring)
+        
+    Returns:
+        numpy structured array in KITTI format with 4 channels (x, y, z, intensity)
+    """
+    # Create output array directly with transformed coordinates
+    dtype = np.dtype([
+        ('x', np.float32),
+        ('y', np.float32),
+        ('z', np.float32),
+        ('intensity', np.float32)
+    ])
+    
+    kitti_points = np.empty(len(points_array), dtype=dtype)
+    
+    # Transform coordinates and normalize intensity in one go
+    kitti_points['x'] = points_array['y']  # y_nusc -> x_kitti
+    kitti_points['y'] = -points_array['x']  # -x_nusc -> y_kitti
+    kitti_points['z'] = points_array['z']  # z_nusc -> z_kitti
+    
+    # Normalize intensity
+    intensity = points_array['intensity']
+    intensity_min = intensity.min()
+    intensity_range = max(1e-5, intensity.ptp())
+    kitti_points['intensity'] = (intensity - intensity_min) / intensity_range
+    
+    return kitti_points
+
+
+def convert_to_kitti(nusc, lidar_token):
+    # Load metadata
+    lidar_data = nusc.get('sample_data', lidar_token)
+    lidar_path = os.path.join(nusc.dataroot, lidar_data["filename"])
+    scan = np.fromfile(lidar_path, dtype=np.float32).reshape((-1, 5))[:, :4]  # [x, y, z, intensity]
+    
+    # Normalize intensity
+    scan[:, 3] = (scan[:, 3] - scan[:, 3].min()) / max(1e-5, scan[:, 3].ptp())
+    
+    # Transform from nuScenes to KITTI
+    x_nusc = scan[:, 0]
+    y_nusc = scan[:, 1]
+    z_nusc = scan[:, 2]
+    intensity = scan[:, 3]
+
+    x_kitti = y_nusc
+    y_kitti = -x_nusc
+    z_kitti = z_nusc
+
+    scan_kitti = np.stack((x_kitti, y_kitti, z_kitti, intensity), axis=1)
+
+    # KITTI format uses an extra dummy column (e.g., reflectivity or ring index)
+    zeros_col = np.zeros((scan_kitti.shape[0], 1), dtype=np.float32)
+    scan_kitti = np.hstack((scan_kitti, zeros_col))
+    return scan_kitti
 
 
 import json

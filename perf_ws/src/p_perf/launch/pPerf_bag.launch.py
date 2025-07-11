@@ -10,6 +10,7 @@ def generate_launch_description():
         DeclareLaunchArgument("idx", default_value="0"),
         DeclareLaunchArgument("input_type", default_value="publisher"),
         DeclareLaunchArgument("bag_dir", default_value="/mmdetection3d_ros2/data/bag"),
+        DeclareLaunchArgument("publishing_rate", default_value="10"),
 
         DeclareLaunchArgument("image_model_name", default_value="yolov3_d53_320_273e_coco"),
         DeclareLaunchArgument("image_depth", default_value="0"),
@@ -31,6 +32,7 @@ def generate_launch_description():
                 "index": LaunchConfiguration("idx"),
                 "bag_dir": LaunchConfiguration("bag_dir"),
                 "data_dir": LaunchConfiguration("data_dir"),
+                "publishing_rate": LaunchConfiguration("publishing_rate"),
             }]
         ),
 
@@ -61,6 +63,8 @@ def generate_launch_description():
                 "scene": LaunchConfiguration("scene"),
                 "depth": LaunchConfiguration("lidar_depth"),
                 "model_name": LaunchConfiguration("lidar_model_name"),
+                "lidar_model_thresh": LaunchConfiguration("lidar_model_thresh"),
+                "lidar_model_mode": LaunchConfiguration("lidar_model_mode"),    
                 "mode": "lidar",
                 "data_dir": LaunchConfiguration("data_dir"),
                 "index": LaunchConfiguration("idx"),
