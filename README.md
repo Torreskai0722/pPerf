@@ -10,6 +10,8 @@ perf_ws is a suite of tools for profiling, benchmarking, and analyzing multi-mod
 
 perf_ws offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
 
+ADD A GRAPH (FROM PAPER)
+
 - **Profiling & Monitoring:**  
   - Fine-grained timing and call-depth profiling of DNN models (`pPerf.py`)
   - GPU and CPU utilization monitoring (NVML, psutil)
