@@ -48,7 +48,9 @@ Check out the [Demos & Example Scripts](#demos--example-scripts) below to get st
 
 ## Installation
 
-The easiest way to get started with perf_ws is using Docker. We provide a pre-configured Docker environment with all dependencies installed.
+The easiest way to get started with perf_ws is using Docker. We provide a pre-configured Docker environment with all dependencies installed. Our perf is tested on the following version ....
+
+ADD IMPORTANT LIBRARY VERSIONS (CUDA Driver, Torch, etc.)
 
 ### Using Docker
 
