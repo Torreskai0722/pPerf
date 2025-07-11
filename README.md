@@ -75,7 +75,7 @@ The easiest way to get started with perf_ws is using Docker. We provide a pre-co
 
 3. **Inside the container, build the ROS2 workspace:**
    ```bash
-   cd /workspace/perf_ws
+   cd /mmdetection3d_ros2/perf_ws
    colcon build
    source install/setup.bash
 
