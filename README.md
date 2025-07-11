@@ -93,7 +93,43 @@ ADD IMPORTANT LIBRARY VERSIONS (CUDA Driver, Torch, etc.)
 2. **Prepare your data**  
    Download and extract the NuScenes dataset. Update paths in your config if needed.
 
-3. **Launch the pipeline**
+### Data Directory Structure
+
+perf_ws expects your data and outputs to be organized as follows:
+
+```
+perf_ws/
+  data/
+    nuscenes/
+      samples/
+        CAM_FRONT/
+        CAM_BACK/
+        LIDAR_TOP/
+        ...
+      sweeps/
+        CAM_FRONT/
+        LIDAR_TOP/
+        ...
+      maps/
+      ...
+    bag/
+      # ROS2 bag files for replay and benchmarking
+      *.mcap
+      ...
+  outputs/
+    # Inference results, logs, and profiling outputs
+    lidar_pred_*.json
+    image_pred_*.json
+    delays_*.csv
+    ...
+```
+
+- Place the NuScenes dataset under `data/nuscenes/` (with its standard structure).
+- Place ROS2 bag files for replay and benchmarking under `data/bag/`.
+- All experiment outputs, logs, and profiling results will be saved under `outputs/`.
+---
+
+4. **Launch the pipeline**
 
    - **Start the data publisher (reading from file directly):**
      ```bash
@@ -114,7 +150,7 @@ ADD IMPORTANT LIBRARY VERSIONS (CUDA Driver, Torch, etc.)
 
 
 
-4. **View results**  
+5. **View results**  
    - Profiling outputs (timing, GPU/CPU stats) are saved in your specified data directory.
    - Analyze logs and outputs for performance, accuracy, and resource usage.
 
@@ -172,53 +208,10 @@ These tools help you interpret the results, identify bottlenecks, and optimize y
 
 ---
 
-## Data Directory Structure
+## TODO
 
-perf_ws expects your data and outputs to be organized as follows:
+- [ ] Fix the multi-modal profiling pipeline
 
-```
-perf_ws/
-  data/
-    nuscenes/
-      samples/
-        CAM_FRONT/
-        CAM_BACK/
-        LIDAR_TOP/
-        ...
-      sweeps/
-        CAM_FRONT/
-        LIDAR_TOP/
-        ...
-      maps/
-      ...
-    bag/
-      # ROS2 bag files for replay and benchmarking
-      *.mcap
-      ...
-  outputs/
-    # Inference results, logs, and profiling outputs
-    lidar_pred_*.json
-    image_pred_*.json
-    delays_*.csv
-    ...
-```
-
-- Place the NuScenes dataset under `data/nuscenes/` (with its standard structure).
-- Place ROS2 bag files for replay and benchmarking under `data/bag/`.
-- All experiment outputs, logs, and profiling results will be saved under `outputs/`.
----
-
-## Notes
-
-- All nodes are modular and can be extended for new models or data sources.
-- Profiling outputs are saved in the specified data directory for further analysis.
-- See the code and comments in each file for more details on configuration and extension.
-
----
-
-Let us know if you have questions or want to contribute!
-
----
 ## Acknowledgments
 
 perf_ws builds upon and integrates with several external tools and datasets:
@@ -229,16 +222,5 @@ perf_ws builds upon and integrates with several external tools and datasets:
 
 We thank the respective authors and contributors for making these resources available to the community.
 
----
-
-## TODO
-
-- [ ] Fix the multi-modal profiling pipeline
-
----
-
-Let us know if you have questions or want to contribute!
-
----
 
 **Happy profiling! 🚗📊**
