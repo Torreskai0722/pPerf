@@ -15,7 +15,7 @@ import time
 import psutil, os
 
 class pPerf:
-    def __init__(self, model_name, inferencer, depth, mode='lidar', monitor_interval=0.1, GPU_monitoring=True, CPU_monitoring=True):
+    def __init__(self, model_name, inferencer, depth, mode='lidar', monitor_interval=0.1, GPU_monitoring=True, CPU_monitoring=True, ms_sync=False):
         self.model_name = model_name
         self.method_timings = {}  # {method_id: (start, end, tag)}
         self.filtered_methods = []  # methods selected after filtering
@@ -23,7 +23,7 @@ class pPerf:
         self.method_called = set() 
         self.target_depth = depth
         self.mode = mode.lower()
-
+        self.ms_sync = ms_sync  # Whether to use millisecond-level stream synchronization
 
         # Model inferencing
         self.inferencer = inferencer
@@ -44,10 +44,19 @@ class pPerf:
         @functools.wraps(fn)
         def wrapped(*args, **kwargs):
             self.method_called.add(method_id)  # Track this method was used
-            torch.cuda.synchronize()
+            if self.ms_sync:
+                # Get current stream and synchronize only that stream
+                current_stream = torch.cuda.current_stream()
+                current_stream.synchronize()
+            else:
+                torch.cuda.synchronize()
             start = time.time()
             result = fn(*args, **kwargs)
-            torch.cuda.synchronize()
+            if self.ms_sync:
+                current_stream = torch.cuda.current_stream()
+                current_stream.synchronize()
+            else:
+                torch.cuda.synchronize()
             end = time.time()
             self.method_timings[method_id] = (start, end, tag)
             return result
@@ -168,10 +177,18 @@ class pPerf:
     def _nvtx_wrapper(self, fn, tag):
         @functools.wraps(fn)
         def wrapped(*args, **kwargs):
-            torch.cuda.synchronize()
+            if self.ms_sync:
+                current_stream = torch.cuda.current_stream()
+                current_stream.synchronize()
+            else:
+                torch.cuda.synchronize()
             torch.cuda.nvtx.range_push(tag)
             result = fn(*args, **kwargs)
-            torch.cuda.synchronize()
+            if self.ms_sync:
+                current_stream = torch.cuda.current_stream()
+                current_stream.synchronize()
+            else:
+                torch.cuda.synchronize()
             torch.cuda.nvtx.range_pop()
             return result
         return wrapped

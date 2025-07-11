@@ -133,7 +133,7 @@ def visualization(image, boxes, labels, scores, save_path=None):
 
 
 def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2name, delay_csv_path, json_path: str, 
-                            image_size=(1600, 900), threshold=0.5, streaming=True):
+                            image_size=(1600, 900), threshold=0.5, streaming=True, model_name='image_model'):
     """
     Generate COCO-format ground truth using model predictions (pseudo-GT) from NuScenes sample_data_tokens.
 
@@ -170,7 +170,7 @@ def generate_pseudo_coco_gt(nusc, sample_data_tokens, model, postprocessors, id2
     for image_id, token in enumerate(sample_data_tokens):
         # Get file path from NuScenes
         sd_rec = nusc.get('sample_data', token)
-        sd_offset_token = get_offset_sd_token(nusc, token, 'image', delay_csv_path)
+        sd_offset_token = get_offset_sd_token(nusc, token, model_name, 'image', delay_csv_path)
         sd_offset = nusc.get('sample_data', sd_offset_token)
         if streaming:
             img_path = os.path.join(nusc.dataroot, sd_offset['filename'])

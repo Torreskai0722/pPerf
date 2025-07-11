@@ -126,7 +126,7 @@ def lidar_nusc_box_to_global(
 
 
 class lidar_evaluater():
-    def __init__(self, prediction_json, nusc, output_dir, index, lidar_classes):
+    def __init__(self, prediction_json, nusc, output_dir, index, lidar_classes, model_name):
         '''        
         :param result_path: Path to the .json result file provided by the user.
         '''
@@ -136,6 +136,7 @@ class lidar_evaluater():
         self.index = index
         self.delay_path = f"{output_dir}/delays_{index}.csv"
         self.lidar_classes = lidar_classes
+        self.model_name = model_name
 
 
     def accumulate(self,
@@ -161,7 +162,7 @@ class lidar_evaluater():
         # Precompute interpolated GTs per sample_data_token
         for token in pred_boxes.sample_tokens:
             if mode == 'stream':
-                sd_offset = get_offset_sd_token(self.nusc, token, 'lidar', self.delay_path)
+                sd_offset = get_offset_sd_token(self.nusc, token, self.model_name, 'lidar', self.delay_path)
             else:
                 sd_offset = token
             boxes, instance_tokens = interpolate_gt(self.nusc, token, sd_offset, False, [])

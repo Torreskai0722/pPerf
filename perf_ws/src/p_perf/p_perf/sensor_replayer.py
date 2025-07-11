@@ -9,14 +9,18 @@ import os
 from glob import glob
 from p_perf.pPerf import pPerf
 import time
+from rclpy.parameter import ParameterType
+import json
 
-from nuscenes.nuscenes import NuScenes
-DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'
-nusc = NuScenes(
-    version='v1.0-mini',
-    dataroot=DATA_ROOT,
-    verbose=True
-)
+def get_scene_name(scene_token):
+    """Get scene name from scene token without loading entire NuScenes dataset"""
+    scene_file = '/mnt/nas/Nuscenes/v1.0-trainval-rain/scene.json'
+    with open(scene_file, 'r') as f:
+        scenes = json.load(f)
+        for scene in scenes:
+            if scene['token'] == scene_token:
+                return scene['name']
+    raise ValueError(f"Scene token {scene_token} not found")
 
 class SensorReplayer(Node):
     def __init__(self):
@@ -30,6 +34,7 @@ class SensorReplayer(Node):
         self.declare_parameter('data_dir', '')
         self.declare_parameter('scene', '')
         self.declare_parameter('is_ms_mode', False)    
+        self.declare_parameter('publishing_rate', 10)
 
         self.expected_models = self.get_parameter('expected_models').value
         self.data_dir = self.get_parameter('data_dir').value
@@ -37,19 +42,27 @@ class SensorReplayer(Node):
         self.gpu_duration = self.get_parameter('gpu_duration').value
         self.bag_dir = self.get_parameter('bag_dir').value
         self.is_ms_mode = self.get_parameter('is_ms_mode').value
+        self.publishing_rate = self.get_parameter('publishing_rate').value / 10
         print(self.bag_dir)
 
         scene_token = self.get_parameter('scene').value
-        self.scene = nusc.get('scene', scene_token)['name']
-
+        self.scene = get_scene_name(scene_token)
         print(self.scene)
         
         # Discover .mcap files
         all_bags = glob(os.path.join(self.bag_dir, '**', "*.mcap"), recursive=True)
-        print(all_bags)
-        self.bag_file = sorted([f for f in all_bags if self.scene in os.path.basename(f)])
-        if not self.bag_file:
+        print(f"Found {len(all_bags)} total .mcap files in {self.bag_dir}")
+        matching_bags = sorted([f for f in all_bags if self.scene in os.path.basename(f)])
+        print(f"Found {len(matching_bags)} matching bags for scene '{self.scene}':")
+        for bag in matching_bags:
+            print(f"  - {os.path.basename(bag)}")
+        if not matching_bags:
             raise RuntimeError(f"No .mcap files found for {self.scene}")
+        # Use only the first matching bag file
+        self.bag_file = [bag for bag in matching_bags if '-'.join(bag.split('-')[-2:]).split('.')[0] == f"{self.scene}"]
+        # self.bag_file = ['-'.join(bag.split('-')[-2:]).split('.')[0] for bag in matching_bags] 
+        self.get_logger().info(f"Using bag file: {(self.bag_file)}")
+        self.get_logger().info(f"Using scene: {self.scene}")
 
         self.models_ready_count = 0
         self.replay_started = False
@@ -78,6 +91,7 @@ class SensorReplayer(Node):
         for bag_path in self.bag_file:
             cmd = [
                 "ros2", "bag", "play", bag_path, "--clock", 
+                f"--rate={self.publishing_rate}",
                 "--remap", 
                 "/LIDAR_TOP:=/lidar_data", 
                 "/CAM_FRONT/image_rect_compressed:=/image_data/CAM_FRONT",

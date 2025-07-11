@@ -22,6 +22,8 @@ def generate_launch_description():
         DeclareLaunchArgument("lidar_model_thresh", default_value="0.5"),
         DeclareLaunchArgument("mm_model", default_value=""),
         DeclareLaunchArgument("delay_csv", default_value="delay_log.csv"),
+        DeclareLaunchArgument("lidar_stream_priority", default_value="0"),
+        DeclareLaunchArgument("image_stream_priority", default_value="0"),
 
         # Sensor replayer node
         Node(
@@ -56,7 +58,9 @@ def generate_launch_description():
                 "lidar_model_thresh": LaunchConfiguration("lidar_model_thresh"),
                 "depth": LaunchConfiguration("image_depth"),
                 "data_dir": LaunchConfiguration("data_dir"),
-                "index": LaunchConfiguration("idx")
+                "index": LaunchConfiguration("idx"),
+                "lidar_stream_priority": LaunchConfiguration("lidar_stream_priority"),
+                "image_stream_priority": LaunchConfiguration("image_stream_priority")
             }]
         ),
     ]) 
