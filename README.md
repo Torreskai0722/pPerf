@@ -179,36 +179,6 @@ These tools help you interpret the results, identify bottlenecks, and optimize y
 
 ---
 
-## Key Tools
-
-- **pPerf.py**  
-  Profiling and performance monitoring utility for DNN inference.
-
-- **inferencer.py**  
-  Single-model inference node (LiDAR, image, or multi-modal).
-
-- **inferencer_ms.py**  
-  Multi-model, multi-threaded inference node.
-
-- **sensor_publisher.py**  
-  Publishes preloaded NuScenes data as ROS2 messages.
-
-- **sensor_replayer.py**  
-  Replays recorded ROS2 bag files for offline benchmarking.
-
-- **BEVInferencer.py**  
-  Multi-modal (BEVFusion) inference utility.
-
----
-
-## Notes
-
-- All nodes are modular and can be extended for new models or data sources.
-- Profiling outputs are saved in the specified data directory for further analysis.
-- See the code and comments in each file for more details on configuration and extension.
-
----
-
 ## Acknowledgments
 
 perf_ws builds upon and integrates with several external tools and datasets:
@@ -216,6 +186,7 @@ perf_ws builds upon and integrates with several external tools and datasets:
 - **LISA**: Atmospheric simulation and weather effects for autonomous driving scenarios
 - **nuscenes_to_rosbag**: Tools for converting NuScenes dataset to ROS2 bag format
 - **NuScenes**: The 3D object detection dataset used for benchmarking and evaluation
+- **DINO**: Vision transformer model for self-supervised learning and object detection
 
 We thank the respective authors and contributors for making these resources available to the community.
 
