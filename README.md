@@ -6,6 +6,12 @@ perf_ws is a suite of tools for profiling, benchmarking, and analyzing multi-mod
 
 ---
 
+## TODO
+
+- [ ] Fix the multi-modal profiling pipeline
+
+---
+
 ## Features
 
 perf_ws offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
@@ -44,7 +50,32 @@ Check out the [Demos & Example Scripts](#demos--example-scripts) below to get st
 
 ---
 
-## Prerequisites
+## Installation
+
+The easiest way to get started with perf_ws is using Docker. We provide a pre-configured Docker environment with all dependencies installed.
+
+### Using Docker
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t perf_ws -f Docker/pPerf.Dockerfile .
+   ```
+
+2. **Run the container:**
+   ```bash
+   docker run -it --gpus all -v $(pwd):/workspace perf_ws
+   ```
+
+3. **Inside the container, build the ROS2 workspace:**
+   ```bash
+   cd /workspace/perf_ws
+   colcon build
+   source install/setup.bash
+   ```
+
+### Manual Installation (Advanced)
+
+If you prefer to install dependencies manually, you'll need:
 
 - **Software:**
   - ROS2 (Humble or later)
@@ -52,6 +83,13 @@ Check out the [Demos & Example Scripts](#demos--example-scripts) below to get st
   - PyTorch, MMDetection3D, OpenCV, NumPy, pandas, etc.
   - NVIDIA GPU (for CUDA profiling and inference)
   - NuScenes dataset (mini or full)
+
+- **Important Library Versions:**
+  - CUDA Driver: 525.60.13 or higher
+  - CUDA Toolkit: 12.5
+  - PyTorch: 2.0+ (with CUDA support)
+  - MMDetection3D: Latest stable release
+  - ROS2: Humble or later
 
 - **NVIDIA GPU drivers and CUDA Toolkit:**
   - CUDA 12.5 requires 525.60.13 and higher.
@@ -112,6 +150,8 @@ The `experiment_scripts/` directory contains ready-to-run scripts for common exp
 - Model complexity analysis
 - LiDAR and image base experiments
 - Multi-modal fusion experiments
+
+For detailed documentation on the experiment scripts, see [experiment_scripts/README.md](experiment_scripts/README.md).
 
 To run a demo, simply execute the desired script, e.g.:
 ```bash
@@ -175,46 +215,9 @@ perf_ws/
 
 ---
 
-## Data Directory Structure
+## Data Setup
 
-perf_ws expects your data and outputs to be organized as follows:
-
-```
-perf_ws/
-  data/
-    nuscenes/
-      samples/
-        CAM_FRONT/
-        CAM_BACK/
-        LIDAR_TOP/
-        ...
-      sweeps/
-        CAM_FRONT/
-        LIDAR_TOP/
-        ...
-      maps/
-      ...
-    bag/
-      # ROS2 bag files for replay and benchmarking
-      *.mcap
-      ...
-  outputs/
-    # Inference results, logs, and profiling outputs
-    lidar_pred_*.json
-    image_pred_*.json
-    delays_*.csv
-    ...
-  analysis_outputs/
-    # Plots, figures, and processed analysis results
-    *.png
-    *.txt
-    ...
-```
-
-- Place the NuScenes dataset under `data/nuscenes/` (with its standard structure).
-- Place ROS2 bag files for replay and benchmarking under `data/bag/`.
-- All experiment outputs, logs, and profiling results will be saved under `outputs/`.
-- Post-processed figures and analysis results are typically saved in `analysis_outputs/`.
+For detailed information about data organization, directory structure, and setup instructions, see [data/README.md](DATA.md).
 
 ---
 
@@ -223,6 +226,18 @@ perf_ws/
 - All nodes are modular and can be extended for new models or data sources.
 - Profiling outputs are saved in the specified data directory for further analysis.
 - See the code and comments in each file for more details on configuration and extension.
+
+---
+
+## Acknowledgments
+
+perf_ws builds upon and integrates with several external tools and datasets:
+
+- **LISA**: Atmospheric simulation and weather effects for autonomous driving scenarios
+- **nuscenes_to_rosbag**: Tools for converting NuScenes dataset to ROS2 bag format
+- **NuScenes**: The 3D object detection dataset used for benchmarking and evaluation
+
+We thank the respective authors and contributors for making these resources available to the community.
 
 ---
 
