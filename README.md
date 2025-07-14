@@ -50,6 +50,12 @@ Check out the [Demos & Example Scripts](#demos--example-scripts) below to get st
 
 ---
 
+## Data Setup
+
+For detailed information about data organization, directory structure, and setup instructions, see [DATA.md](DATA.md).
+
+---
+
 ## Installation
 
 The easiest way to get started with perf_ws is using Docker. We provide a pre-configured Docker environment with all dependencies installed.
@@ -138,12 +144,6 @@ If you prefer to install dependencies manually, you'll need:
 4. **View results**  
    - Profiling outputs (timing, GPU/CPU stats) are saved in your specified data directory.
    - Analyze logs and outputs for performance, accuracy, and resource usage.
-
----
-
-## Data Setup
-
-For detailed information about data organization, directory structure, and setup instructions, see [DATA.md](DATA.md).
 
 ---
 
