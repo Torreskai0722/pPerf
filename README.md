@@ -141,6 +141,12 @@ If you prefer to install dependencies manually, you'll need:
 
 ---
 
+## Data Setup
+
+For detailed information about data organization, directory structure, and setup instructions, see [DATA.md](DATA.md).
+
+---
+
 ## Demos & Example Scripts
 
 The `experiment_scripts/` directory contains ready-to-run scripts for common experiments, benchmarking, and ablation studies. These scripts demonstrate how to use the core pipeline for different scenarios, including:
@@ -162,7 +168,7 @@ python experiment_scripts/bag_test.py
 
 ## Post-Processing & Analysis
 
-The `post_processing/` directory provides a suite of tools for in-depth analysis of your experiments, including:
+The `tools/` directory provides a suite of tools for in-depth analysis of your experiments, including:
 
 - **Layer-wise and kernel-level analysis** (e.g., `analyze_e2e_kernels.py`, `analyze_memcpy_kernels.py`)
 - **Performance and sensitivity analysis** (e.g., `performance_analysis.py`, `dnn_sensitivity_analysis.py`)
@@ -192,32 +198,6 @@ These tools help you interpret the results, identify bottlenecks, and optimize y
 
 - **BEVInferencer.py**  
   Multi-modal (BEVFusion) inference utility.
-
----
-
-## Directory Structure
-
-```
-perf_ws/
-  experiment_scripts/    # Demos and example experiments
-  post_processing/       # Analysis tools for layers, kernels, performance, and visualization
-  src/p_perf/p_perf/     # Core pipeline, profiling, and inference nodes
-    pPerf.py
-    inferencer.py
-    inferencer_ms.py
-    sensor_publisher.py
-    sensor_replayer.py
-    BEVInferencer.py
-    post_process/
-    pre_process/
-    config/
-```
-
----
-
-## Data Setup
-
-For detailed information about data organization, directory structure, and setup instructions, see [data/README.md](DATA.md).
 
 ---
 
