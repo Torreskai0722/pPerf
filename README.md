@@ -1,0 +1,228 @@
+# perf_ws
+
+**Multi-Tenant DNN Inference Profiling for Autonomous Driving**
+
+perf_ws is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. It supports both LiDAR and camera (image) modalities, and is designed for use with the NuScenes dataset. perf_ws helps you understand, debug, and optimize inference pipelines running on CPUs and GPUs.
+
+---
+
+## TODO
+
+- [ ] Fix the multi-modal profiling pipeline
+
+---
+
+## Features
+
+perf_ws offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
+
+- **Profiling & Monitoring:**  
+  - Fine-grained timing and call-depth profiling of DNN models (`pPerf.py`)
+  - GPU and CPU utilization monitoring (NVML, psutil)
+  - NVTX marker insertion for CUDA profiling
+
+- **Flexible Inference Pipelines:**  
+  - Single-model and multi-model (multi-threaded) inference nodes
+  - Support for LiDAR, image, and multi-modal (BEVFusion) models
+  - Real-time ROS2-based streaming and offline bag replay
+
+- **Data Publishing & Replay:**  
+  - Publish preloaded NuScenes data as ROS2 messages (`sensor_publisher.py`)
+  - Replay recorded ROS2 bag files for offline benchmarking (`sensor_replayer.py`)
+
+- **Comprehensive Logging:**  
+  - Detailed timing logs (communication, decode, inference, end-to-end)
+  - Output predictions and resource usage to JSON/CSV
+
+- **Demos & Example Scripts:**
+  - Ready-to-run experiment scripts for common scenarios and benchmarking (`experiment_scripts/`)
+
+- **Post-Processing & Analysis:**
+  - Tools for analyzing layer-wise, kernel-level, and end-to-end performance (`post_processing/`)
+  - Visualization and reporting utilities for in-depth analysis
+
+---
+
+## Demo
+
+**First time user?**  
+Check out the [Demos & Example Scripts](#demos--example-scripts) below to get started quickly.
+
+---
+
+## Installation
+
+The easiest way to get started with perf_ws is using Docker. We provide a pre-configured Docker environment with all dependencies installed.
+
+### Using Docker
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t perf_ws -f Docker/pPerf.Dockerfile .
+   ```
+
+2. **Run the container:**
+   ```bash
+   docker run -it --gpus all -v $(pwd):/workspace perf_ws
+   ```
+
+3. **Inside the container, build the ROS2 workspace:**
+   ```bash
+   cd /workspace/perf_ws
+   colcon build
+   source install/setup.bash
+   ```
+
+### Manual Installation (Advanced)
+
+If you prefer to install dependencies manually, you'll need:
+
+- **Software:**
+  - ROS2 (Humble or later)
+  - Python 3.8+
+  - PyTorch, MMDetection3D, OpenCV, NumPy, pandas, etc.
+  - NVIDIA GPU (for CUDA profiling and inference)
+  - NuScenes dataset (mini or full)
+
+- **Important Library Versions:**
+  - CUDA Driver: 525.60.13 or higher
+  - CUDA Toolkit: 12.5
+  - PyTorch: 2.0+ (with CUDA support)
+  - MMDetection3D: Latest stable release
+  - ROS2: Humble or later
+
+- **NVIDIA GPU drivers and CUDA Toolkit:**
+  - CUDA 12.5 requires 525.60.13 and higher.
+  - Ensure that CUPTI is available on your path:
+    ```bash
+    $ /sbin/ldconfig -N -v $(sed 's/:/ /g' <<< $LD_LIBRARY_PATH) | grep libcupti
+    ```
+    If you don't see the correct `libcupti.so`, prepend its installation directory to your `LD_LIBRARY_PATH`:
+    ```bash
+    $ export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
+    ```
+    If this doesn't work, try:
+    ```bash
+    $ sudo apt-get install libcupti-dev
+    ```
+
+---
+
+## Quick Start
+
+1. **Install dependencies**  
+   Make sure you have all prerequisites installed (see above).
+
+2. **Prepare your data**  
+   Download and extract the NuScenes dataset. Update paths in your config if needed.
+
+3. **Launch the pipeline**
+
+   - **Start the data publisher:**
+     ```bash
+     ros2 run p_perf sensor_publisher.py
+     ```
+
+   - **Start the inference node (single or multi-model):**
+     ```bash
+     ros2 run p_perf inferencer.py
+     # or
+     ros2 run p_perf inferencer_ms.py
+     ```
+
+   - **(Optional) Replay a bag file:**
+     ```bash
+     ros2 run p_perf sensor_replayer.py
+     ```
+
+4. **View results**  
+   - Profiling outputs (timing, GPU/CPU stats) are saved in your specified data directory.
+   - Analyze logs and outputs for performance, accuracy, and resource usage.
+
+---
+
+## Data Setup
+
+For detailed information about data organization, directory structure, and setup instructions, see [DATA.md](DATA.md).
+
+---
+
+## Demos & Example Scripts
+
+The `experiment_scripts/` directory contains ready-to-run scripts for common experiments, benchmarking, and ablation studies. These scripts demonstrate how to use the core pipeline for different scenarios, including:
+
+- Multi-model scheduling and resource sharing
+- Priority-based and round-robin inference
+- Model complexity analysis
+- LiDAR and image base experiments
+- Multi-modal fusion experiments
+
+For detailed documentation on the experiment scripts, see [experiment_scripts/README.md](experiment_scripts/README.md).
+
+To run a demo, simply execute the desired script, e.g.:
+```bash
+python experiment_scripts/bag_test.py
+```
+
+---
+
+## Post-Processing & Analysis
+
+The `tools/` directory provides a suite of tools for in-depth analysis of your experiments, including:
+
+- **Layer-wise and kernel-level analysis** (e.g., `analyze_e2e_kernels.py`, `analyze_memcpy_kernels.py`)
+- **Performance and sensitivity analysis** (e.g., `performance_analysis.py`, `dnn_sensitivity_analysis.py`)
+- **Visualization and reporting** (e.g., `visualize_lidar_scene.py`, `priority_bar_plots.py`)
+- **Scene and model variation analysis**
+
+These tools help you interpret the results, identify bottlenecks, and optimize your models and pipelines.
+
+---
+
+## Key Tools
+
+- **pPerf.py**  
+  Profiling and performance monitoring utility for DNN inference.
+
+- **inferencer.py**  
+  Single-model inference node (LiDAR, image, or multi-modal).
+
+- **inferencer_ms.py**  
+  Multi-model, multi-threaded inference node.
+
+- **sensor_publisher.py**  
+  Publishes preloaded NuScenes data as ROS2 messages.
+
+- **sensor_replayer.py**  
+  Replays recorded ROS2 bag files for offline benchmarking.
+
+- **BEVInferencer.py**  
+  Multi-modal (BEVFusion) inference utility.
+
+---
+
+## Notes
+
+- All nodes are modular and can be extended for new models or data sources.
+- Profiling outputs are saved in the specified data directory for further analysis.
+- See the code and comments in each file for more details on configuration and extension.
+
+---
+
+## Acknowledgments
+
+perf_ws builds upon and integrates with several external tools and datasets:
+
+- **LISA**: Atmospheric simulation and weather effects for autonomous driving scenarios
+- **nuscenes_to_rosbag**: Tools for converting NuScenes dataset to ROS2 bag format
+- **NuScenes**: The 3D object detection dataset used for benchmarking and evaluation
+
+We thank the respective authors and contributors for making these resources available to the community.
+
+---
+
+Let us know if you have questions or want to contribute!
+
+---
+
+**Happy profiling! 🚗📊**
