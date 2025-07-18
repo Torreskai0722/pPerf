@@ -1,35 +1,6 @@
 # pPerf: Multi-Tenant DNN Inference Predictability Profiler
 
-pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. It supports both LiDAR and camera (image) modalities, and is designed for use with the NuScenes dataset. perf_ws helps you understand, debug, and optimize inference pipelines running on CPUs and GPUs.
-
-## Features
-
-perf_ws offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
-
-- **Profiling & Monitoring:**  
-  - Fine-grained timing and call-depth profiling of DNN models (`pPerf.py`)
-  - GPU and CPU utilization monitoring (NVML, psutil)
-  - NVTX marker insertion for CUDA profiling
-
-- **Flexible Inference Pipelines:**  
-  - Single-model and multi-model (multi-threaded) inference nodes
-  - Support for LiDAR, image, and multi-modal (BEVFusion) models
-  - Real-time ROS2-based streaming and offline bag replay
-
-- **Data Publishing & Replay:**  
-  - Publish preloaded NuScenes data as ROS2 messages (`sensor_publisher.py`)
-  - Replay recorded ROS2 bag files for offline benchmarking (`sensor_replayer.py`)
-
-- **Comprehensive Logging:**  
-  - Detailed timing logs (communication, decode, inference, end-to-end)
-  - Output predictions and resource usage to JSON/CSV
-
-- **Demos & Example Scripts:**
-  - Ready-to-run experiment scripts for common scenarios and benchmarking (`experiment_scripts/`)
-
-- **Post-Processing & Analysis:**
-  - Tools for analyzing layer-wise, kernel-level, and end-to-end performance (`post_processing/`)
-  - Visualization and reporting utilities for in-depth analysis
+pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. The toolkit supports single- and multi-model inference with LiDAR, image, and multi-modal (BEVFusion) models using ROS 2 for real-time and offline replay. It includes profiling tools for timing, GPU/CPU usage, and NVTX-based CUDA tracing. Data can be published from NuScenes or replayed from ROS 2 bags. Logs include timing, predictions, and resource usage in JSON/CSV. Post-processing tools provide kernel, layer, and system-level analysis, with scripts for running standard benchmarks.
 
 ## Quick Start
 
@@ -62,16 +33,8 @@ perf_ws offers a number of tools to analyze and visualize the performance of you
    - Profiling outputs (timing, GPU/CPU stats) are saved in your specified data directory.
    - Analyze logs and outputs for performance, accuracy, and resource usage.
 
+
 ## Demos
-
-The `experiment_scripts/` directory contains ready-to-run scripts for common experiments, benchmarking, and ablation studies. These scripts demonstrate how to use the core pipeline for different scenarios, including:
-
-- Multi-model scheduling and resource sharing
-- Priority-based and round-robin inference
-- Model complexity analysis
-- LiDAR and image base experiments
-- Multi-modal fusion experiments
-
 For detailed documentation on the experiment scripts, see [experiment_scripts/README.md](experiment_scripts/README.md).
 
 To run a demo, simply execute the desired script, e.g.:
