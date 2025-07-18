@@ -2,8 +2,6 @@
 
 pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. It supports both LiDAR and camera (image) modalities, and is designed for use with the NuScenes dataset. perf_ws helps you understand, debug, and optimize inference pipelines running on CPUs and GPUs.
 
-
-
 ## Features
 
 perf_ws offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
@@ -32,15 +30,6 @@ perf_ws offers a number of tools to analyze and visualize the performance of you
 - **Post-Processing & Analysis:**
   - Tools for analyzing layer-wise, kernel-level, and end-to-end performance (`post_processing/`)
   - Visualization and reporting utilities for in-depth analysis
-
----
-
-## Demo
-
-**First time user?**  
-Check out the [Demos & Example Scripts](#demos--example-scripts) below to get started quickly.
-
----
 
 ## Data Setup
 
@@ -77,9 +66,7 @@ For detailed information about data organization, directory structure, and setup
    - Profiling outputs (timing, GPU/CPU stats) are saved in your specified data directory.
    - Analyze logs and outputs for performance, accuracy, and resource usage.
 
----
-
-## Demos & Example Scripts
+## Demos
 
 The `experiment_scripts/` directory contains ready-to-run scripts for common experiments, benchmarking, and ablation studies. These scripts demonstrate how to use the core pipeline for different scenarios, including:
 
@@ -95,8 +82,6 @@ To run a demo, simply execute the desired script, e.g.:
 ```bash
 python experiment_scripts/bag_test.py
 ```
-
----
 
 ## Post-Processing & Analysis
 
@@ -115,13 +100,6 @@ These tools help you interpret the results, identify bottlenecks, and optimize y
 
 ## Acknowledgments
 
-pPerf builds upon and integrates with several external tools and datasets:
-
-- **LISA**: Atmospheric simulation and weather effects for autonomous driving scenarios
-- **nuscenes_to_rosbag**: Tools for converting NuScenes dataset to ROS2 bag format
-- **NuScenes**: The 3D object detection dataset used for benchmarking and evaluation
-- **DINO**: Vision transformer model for self-supervised learning and object detection
-
-We thank the respective authors and contributors for making these resources available to the community.
+pPerf builds upon and integrates atop: **LISA**, **nuscenes_to_rosbag**, **NuScenes**, **DINO**.
 
 **Happy profiling! 🚗📊**
