@@ -2,13 +2,7 @@
 
 pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. It supports both LiDAR and camera (image) modalities, and is designed for use with the NuScenes dataset. perf_ws helps you understand, debug, and optimize inference pipelines running on CPUs and GPUs.
 
----
 
-## TODO
-
-- [ ] Fix the multi-modal profiling pipeline
-
----
 
 ## Features
 
@@ -175,11 +169,13 @@ The `tools/` directory provides a suite of tools for in-depth analysis of your e
 
 These tools help you interpret the results, identify bottlenecks, and optimize your models and pipelines.
 
----
+## TODO
+
+- [ ] Fix the multi-modal profiling pipeline
 
 ## Acknowledgments
 
-perf_ws builds upon and integrates with several external tools and datasets:
+pPerf builds upon and integrates with several external tools and datasets:
 
 - **LISA**: Atmospheric simulation and weather effects for autonomous driving scenarios
 - **nuscenes_to_rosbag**: Tools for converting NuScenes dataset to ROS2 bag format
@@ -187,11 +183,5 @@ perf_ws builds upon and integrates with several external tools and datasets:
 - **DINO**: Vision transformer model for self-supervised learning and object detection
 
 We thank the respective authors and contributors for making these resources available to the community.
-
----
-
-Let us know if you have questions or want to contribute!
-
----
 
 **Happy profiling! 🚗📊**
