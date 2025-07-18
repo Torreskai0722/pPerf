@@ -96,6 +96,7 @@ These tools help you interpret the results, identify bottlenecks, and optimize y
 
 ## Acknowledgments
 
-pPerf builds upon and integrates atop: **LISA**, **nuscenes_to_rosbag**, **NuScenes**, **DINO**.
+pPerf builds upon and integrates atop: [LISA](https://github.com/mit-acl/lisa), [nuscenes_to_rosbag](https://github.com/xlzhuo/nuscenes_to_rosbag), [NuScenes](https://www.nuscenes.org/), [DINO](https://github.com/facebookresearch/dino).
+
 
 **Happy profiling! 🚗📊**
