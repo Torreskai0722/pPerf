@@ -31,17 +31,13 @@ perf_ws offers a number of tools to analyze and visualize the performance of you
   - Tools for analyzing layer-wise, kernel-level, and end-to-end performance (`post_processing/`)
   - Visualization and reporting utilities for in-depth analysis
 
-## Data Setup
-
-For detailed information about data organization, directory structure, and setup instructions, see [DATA.md](DATA.md).
-
 ## Quick Start
 
-1. **Install dependencies**  
-   Make sure you have all prerequisites installed (see above).
+1. **Install**  
+   Follow this to setup: [INSTALL.md](doc/INSTALL.md).
 
 2. **Prepare your data**  
-   Download and extract the NuScenes dataset. Update paths in your config if needed.
+   Download and extract the NuScenes dataset. Update paths in your config if needed. See [DATA.md](DATA.md).
 
 3. **Launch the pipeline**
 
