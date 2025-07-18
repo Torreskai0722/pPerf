@@ -1,4 +1,4 @@
-# pPerf: Fine-grained Profiler for Multi-Tenant DNN Inference
+# pPerf: Multi-Tenant DNN Inference Predictability Profiler
 
 pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. It supports both LiDAR and camera (image) modalities, and is designed for use with the NuScenes dataset. perf_ws helps you understand, debug, and optimize inference pipelines running on CPUs and GPUs.
 
