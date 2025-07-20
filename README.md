@@ -2,13 +2,15 @@
 
 pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. The toolkit supports single- and multi-model inference with LiDAR, image, and multi-modal (BEVFusion) models using ROS 2 for real-time and offline replay. It includes profiling tools for timing, GPU/CPU usage, and NVTX-based CUDA tracing. Data can be published from NuScenes or replayed from ROS 2 bags. Logs include timing, predictions, and resource usage in JSON/CSV. Post-processing tools provide kernel, layer, and system-level analysis, with scripts for running standard benchmarks.
 
+![pPerf Design](./assets/pPerf.png "pPerf")
+
 ## Quick Start
 
 1. **Install**  
    Follow this to setup: [INSTALL.md](doc/INSTALL.md).
 
 2. **Prepare your data**  
-   Download and extract the NuScenes dataset. Update paths in your config if needed. See [DATA.md](DATA.md).
+   Download and extract the NuScenes dataset. Update paths in your config if needed. See [DATA.md](doc/DATA.md).
 
 3. **Launch the pipeline**
 
