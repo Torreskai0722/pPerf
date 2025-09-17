@@ -1,0 +1,14 @@
+*.nsys-rep
+data/*
+outputs/*
+perf_ws/install
+perf_ws/log
+perf_ws/build
+DINO/dino_package/config/ckpts
+*.jpg
+detectron2/*
+perf_ws/visulization/*
+*.pth
+nuscenes_to_ros2bag/*
+tools/results/*
+analysis_outputs/*

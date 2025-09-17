@@ -3,8 +3,8 @@ import pandas as pd
 import os
 from tqdm import tqdm
 from p_perf.utils import get_closest_token_from_timestamp, build_channel_timestamp_token_map
-from p_perf.nuscenes_instance import get_nuscenes_instance
 from p_perf.config.constant import image_models, lidar_models
+from collections import Counter
 
 
 class timing_processor:
@@ -17,6 +17,9 @@ class timing_processor:
         self.mode = mode
         self.publish_mode = publish_mode
         self.scene_token = scene
+        
+        # Build reverse mapping from model names to their types
+        self._build_model_type_mapping()
 
         self.nvtx_events = []
         self.cuda_events = []
@@ -26,6 +29,13 @@ class timing_processor:
         self.nvtx_df = None
         self.cuda_df = None
 
+        # For correlation ID uniqueness checking
+        self.correlation_id_counter = Counter()
+        self.trace_correlation_id_counter = Counter()
+        # Track PID/TID and kernel details for each correlation ID
+        self.correlation_id_details = {}  # {correlation_id: [(pid, tid, kernel_name, start, end), ...]}
+        self.trace_correlation_id_details = {}  # {correlation_id: [(pid, tid, start), ...]}
+
         # Initialize token maps for bag mode
         if self.publish_mode == "bag":
             self.lidar_token_map = build_channel_timestamp_token_map(nusc, self.scene_token, "LIDAR_TOP")
@@ -33,11 +43,46 @@ class timing_processor:
         
         self.lidar_model_names = [model[0] for model in lidar_models]
 
+    def _build_model_type_mapping(self):
+        """Build mapping from model names to their types (lidar vs non-lidar)."""
+        self.model_type_mapping = {}
+        
+        # Add lidar models (these are tuples, extract the first element which is the model name)
+        for model_tuple in lidar_models:
+            model_name = model_tuple[0]  # Extract model name from (model_name, dataset, threshold)
+            self.model_type_mapping[model_name] = 'lidar'
+
     @staticmethod
     def decode_globalid(global_id):
         PID = (global_id >> 24) & 0xFFFFFF
         TID = global_id & 0xFFFFFF
         return PID, TID
+
+    def _process_data_preprocessor_layer(self, model_name, layer_parts):
+        """
+        Process individual data_preprocessor layers based on model type.
+        
+        Args:
+            model_name: Name of the model
+            layer_parts: List of layer parts from NVTX text
+            
+        Returns:
+            Combined layer name and whether it should be processed
+        """
+        # Check if this is a data_preprocessor layer
+        if len(layer_parts) >= 2 and layer_parts[0] == 'data_preprocessor':
+            model_type = self.model_type_mapping.get(model_name, 'non-lidar')  # Default to non-lidar
+            
+            if model_type == 'lidar':
+                # For lidar models, only include pipeline_{i} layers
+                if len(layer_parts) >= 2 and 'pipeline_' in layer_parts[1]:
+                    return 'data_preprocessing'
+            else:
+                # For non-lidar models, combine all data_preprocessor layers into one
+                return 'data_preprocessing'
+        
+        # Not a data_preprocessor pipeline for lidar or not a data_preprocessor layer, keep original
+        return '.'.join(layer_parts)
 
     def process_nvtx_event(self, entry):
         nvtx = entry["NvtxEvent"]
@@ -66,6 +111,16 @@ class timing_processor:
         else:
             model_name, *layer = parts
             input_name = "pending"
+
+        # Process data_preprocessor layers
+        if layer and isinstance(layer, list) and len(layer) > 0:
+            combined_layer = self._process_data_preprocessor_layer(model_name, layer)
+            layer = combined_layer
+        elif isinstance(layer, str):
+            # Handle case where layer is already a string
+            layer_parts = layer.split('.')
+            combined_layer = self._process_data_preprocessor_layer(model_name, layer_parts)
+            layer = combined_layer
 
         pid, tid = self.decode_globalid(int(nvtx["GlobalTid"]))
         id_to_use = tid if self.mode == 'ms' else pid
@@ -109,7 +164,7 @@ class timing_processor:
         memcpy_size = 0
 
         if eventClass == 3:  # Kernel
-            kernel_index = int(cuda["kernel"].get("shortName"))
+            kernel_index = int(cuda["kernel"].get("demangledName"))
             kernel_name = self.kernel_name_list[kernel_index]
         elif eventClass == 1:  # Memcpy
             mem_cpy = cuda.get("memcpy")
@@ -118,13 +173,24 @@ class timing_processor:
         else:
             return
 
+        # Count correlation ID for uniqueness check
+        correlation_id = cuda.get("correlationId")
+        if correlation_id is not None:
+            self.correlation_id_counter[correlation_id] += 1
+            # Track PID/TID and kernel details for this correlation ID
+            kernel_start = int(cuda.get("startNs", 0))
+            kernel_end = int(cuda.get("endNs", 0))
+            if correlation_id not in self.correlation_id_details:
+                self.correlation_id_details[correlation_id] = []
+            self.correlation_id_details[correlation_id].append((pid, tid, kernel_name, kernel_start, kernel_end))
+
         self.cuda_events.append({
             "Kernel Name": kernel_name,
             "Kernel Start": int(cuda.get("startNs", 0)),
             "Kernel End": int(cuda.get("endNs", 0)),
             "Kernel Elapsed": (int(cuda.get("endNs", 0)) - int(cuda.get("startNs", 0))) * 1e-6,
             "Memcpy Size": memcpy_size,
-            "CorrelationId": cuda.get("correlationId"),
+            "CorrelationId": correlation_id,
             "PID": id_to_use,
             "OriginalPID": pid,
             "OriginalTID": tid
@@ -134,9 +200,99 @@ class timing_processor:
         trace = entry["TraceProcessEvent"]
         pid, tid = self.decode_globalid(int(trace["globalTid"]))
         id_to_use = tid if self.mode == 'ms' else pid
-        self.trace_process_events[trace["correlationId"]] = (int(trace["startNs"]), id_to_use)
+        correlation_id = trace["correlationId"]
+        self.trace_process_events[correlation_id] = (int(trace["startNs"]), id_to_use)
+        # Count correlation ID for uniqueness check
+        if correlation_id is not None:
+            self.trace_correlation_id_counter[correlation_id] += 1
+            # Track PID/TID and start time for this correlation ID
+            start_time = int(trace["startNs"])
+            if correlation_id not in self.trace_correlation_id_details:
+                self.trace_correlation_id_details[correlation_id] = []
+            self.trace_correlation_id_details[correlation_id].append((pid, tid, start_time))
 
-    def parse_json(self):
+    def check_correlation_id_uniqueness(self):
+        """
+        Checks if correlation IDs are unique within each process for CUDA and TraceProcess events.
+        Only checks PIDs that appear in NVTX events since those are the only ones relevant for correlation.
+        """
+        # Get PIDs that appear in NVTX events - these are the only ones we care about
+        nvtx_pids = set(self.nvtx_df["PID"].unique()) if self.nvtx_df is not None and not self.nvtx_df.empty else set()
+        
+        # Check for duplicates within the same process (only for NVTX PIDs)
+        cuda_process_duplicates = {}
+        trace_process_duplicates = {}
+        
+        # Group CUDA correlation IDs by process (only for NVTX PIDs)
+        cuda_by_process = {}
+        for cid, details in self.correlation_id_details.items():
+            for pid, tid, kernel_name, start, end in details:
+                if pid in nvtx_pids:  # Only check PIDs that appear in NVTX events
+                    if pid not in cuda_by_process:
+                        cuda_by_process[pid] = Counter()
+                    cuda_by_process[pid][cid] += 1
+        
+        # Find duplicates within each process
+        for pid, counter in cuda_by_process.items():
+            duplicates = {cid: count for cid, count in counter.items() if count > 1}
+            if duplicates:
+                cuda_process_duplicates[pid] = duplicates
+        
+        # Get all (correlation_id, pid) pairs that appear in CUDA kernel events
+        cuda_correlation_pid_pairs = set()
+        for cid, details in self.correlation_id_details.items():
+            for pid, tid, kernel_name, start, end in details:
+                cuda_correlation_pid_pairs.add((cid, pid))
+        
+        # Group TraceProcess correlation IDs by process (only for NVTX PIDs and only if they also appear in CUDA kernels from same PID)
+        trace_by_process = {}
+        for cid, details in self.trace_correlation_id_details.items():
+            for pid, tid, start_time in details:
+                if pid in nvtx_pids and (cid, pid) in cuda_correlation_pid_pairs:  # Only count if correlation ID and PID pair appears in CUDA kernels
+                    if pid not in trace_by_process:
+                        trace_by_process[pid] = Counter()
+                    trace_by_process[pid][cid] += 1
+        
+        # Find duplicates within each process
+        for pid, counter in trace_by_process.items():
+            duplicates = {cid: count for cid, count in counter.items() if count > 1}
+            if duplicates:
+                trace_process_duplicates[pid] = duplicates
+        
+        # Report overall statistics
+        total_cuda_duplicates = sum(len(dups) for dups in cuda_process_duplicates.values())
+        total_trace_duplicates = sum(len(dups) for dups in trace_process_duplicates.values())
+        
+        print(f"Correlation ID uniqueness check (for NVTX PIDs: {sorted(nvtx_pids)}):")
+        print(f"  CUDA: {total_cuda_duplicates} duplicate correlation IDs found across {len(cuda_process_duplicates)} processes")
+        print(f"  TraceProcess: {total_trace_duplicates} duplicate correlation IDs found across {len(trace_process_duplicates)} processes")
+        
+                # Report detailed information for processes with duplicate correlation IDs
+        if cuda_process_duplicates:
+            print(f"\nWARNING: Found CUDA correlation ID duplicates within processes:")
+            for pid, duplicates in cuda_process_duplicates.items():
+                print(f"  Process {pid} has duplicate correlation IDs: {duplicates}")
+                for cid in duplicates.keys():
+                    details = [d for d in self.correlation_id_details[cid] if d[0] == pid]
+                    print(f"    Correlation ID {cid}:")
+                    for i, (_, tid, kernel_name, start, end) in enumerate(details):
+                        print(f"      [{i+1}] TID: {tid}, Kernel: {kernel_name}, Start: {start}, End: {end}")
+        else:
+            print("All CUDA correlation IDs are unique within their respective processes.")
+             
+        if trace_process_duplicates:
+            print(f"\nWARNING: Found TraceProcess correlation ID duplicates within processes:")
+            for pid, duplicates in trace_process_duplicates.items():
+                print(f"  Process {pid} has duplicate correlation IDs: {duplicates}")
+                for cid in duplicates.keys():
+                    details = [d for d in self.trace_correlation_id_details[cid] if d[0] == pid]
+                    print(f"    Correlation ID {cid}:")
+                    for i, (_, tid, start_time) in enumerate(details):
+                        print(f"      [{i+1}] TID: {tid}, Start: {start_time}")
+        else:
+            print("All TraceProcess correlation IDs are unique within their respective processes.")
+
+    def parse_json(self, logging=False):
         with open(self.raw_json, "r") as file:
             for i, line in enumerate(file):
                 try:
@@ -155,6 +311,9 @@ class timing_processor:
         self.fill_pending_inputs()
         self.nvtx_df = pd.DataFrame(self.nvtx_events)
         self.cuda_df = pd.DataFrame(self.cuda_events)
+        # Check correlation ID uniqueness after parsing
+        if logging:
+            self.check_correlation_id_uniqueness()
 
     @staticmethod
     def compute_gpu_time(candidate_kernels):
@@ -172,6 +331,69 @@ class timing_processor:
         total_time += (current_end - current_start)
         return total_time * 1e-6
 
+    def _combine_data_preprocessor_layers(self, layer_records):
+        """
+        Combine data_preprocessor layers that belong to the same e2e layer (same input/model).
+        Replaces original layers with combined ones.
+        
+        Args:
+            layer_records: List of layer records
+            kernel_records: List of kernel records (not used in combining)
+            
+        Returns:
+            Tuple of (combined layer records, original kernel records)
+        """
+        combined_layer_records = []
+        
+        # Group data_preprocessing events by input and model
+        data_preprocessing_groups = {}
+        other_events = []
+        
+        for record in layer_records:
+            if record["Layer"] == "data_preprocessing":
+                # Group by input and model combination
+                key = (record["Input"], record["Model"])
+                if key not in data_preprocessing_groups:
+                    data_preprocessing_groups[key] = []
+                data_preprocessing_groups[key].append(record)
+            else:
+                other_events.append(record)
+        
+        # Add all non-data_preprocessing events
+        combined_layer_records.extend(other_events)
+        
+        # Add combined data_preprocessing records for each group
+        for (input_name, model_name), events in data_preprocessing_groups.items():
+            # Find the overall time range
+            all_starts = [event["Start Timestamp"] for event in events]
+            all_ends = [event["End Timestamp"] for event in events]
+            
+            combined_start = min(all_starts)
+            combined_end = max(all_ends)
+            
+            # Sum up elapsed time only
+            total_elapsed = sum(event["Elapsed Time"] for event in events)
+            
+            # Create combined record with only essential fields
+            combined_layer_record = {
+                "Input": input_name,
+                "Model": model_name,
+                "Layer": "data_preprocessing",
+                "Start Timestamp": combined_start,
+                "End Timestamp": combined_end,
+                "Elapsed Time": total_elapsed,
+                "GPU Turnaround Time": 0,
+                "GPU Computation Time": 0,
+                "GPU Wait Time": 0,
+                "Internal Memcpy Size": 0,
+                "External Memcpy Size": 0
+            }
+            
+            combined_layer_records.append(combined_layer_record)
+        
+        # Return original kernel records unchanged (they won't match the combined layers anyway)
+        return combined_layer_records
+
     def generate_mapping(self, saving=True):
         layer_records = []
         kernel_records = []
@@ -188,11 +410,13 @@ class timing_processor:
                 if start <= ts <= end and p == pid
             }
 
-            # Find CUDA kernels that have matching correlation IDs
-            # Note: We don't require PID matching between CUDA and NVTX events
-            # Correlation works through correlation IDs, not PID matching
+            # Find CUDA kernels that have matching correlation IDs AND belong to the same PID AND occur within the layer's time range
+            # This ensures proper correlation - kernels must be from same process and happen during the layer execution
             candidate_kernels = self.cuda_df[
-                self.cuda_df["CorrelationId"].isin(trace_candidates.keys())
+                (self.cuda_df["CorrelationId"].isin(trace_candidates.keys())) &
+                (self.cuda_df["PID"] == pid) &
+                (self.cuda_df["Kernel Start"] >= start) &
+                (self.cuda_df["Kernel End"] <= end)
             ]
             
             layer_gpu_turnaround = (candidate_kernels["Kernel End"].max() - candidate_kernels["Kernel Start"].min()) * 1e-6 if not candidate_kernels.empty else 0
@@ -235,6 +459,9 @@ class timing_processor:
                 "External Memcpy Size": external_memcpy
             })
 
+        # Combine data_preprocessor layers
+        layer_records = self._combine_data_preprocessor_layers(layer_records)
+
         if saving:
             self.save_results(layer_records, kernel_records, self.output_dir)
         return layer_records, kernel_records
@@ -243,3 +470,22 @@ class timing_processor:
         os.makedirs(output_dir, exist_ok=True)
         pd.DataFrame(layer_records).to_csv(os.path.join(output_dir, f"layer_timings_{self.index}.csv"), index=False)
         pd.DataFrame(kernel_records).to_csv(os.path.join(output_dir, f"kernel_timings_{self.index}.csv"), index=False)
+
+    def cleanup(self):
+        """Release memory after processing is complete."""
+        self.nvtx_events.clear()
+        self.cuda_events.clear()
+        self.kernel_name_list.clear()
+        self.pid_map.clear()
+        self.trace_process_events.clear()
+        self.model_type_mapping.clear()
+        self.correlation_id_counter.clear()
+        self.trace_correlation_id_counter.clear()
+        self.correlation_id_details.clear()
+        self.trace_correlation_id_details.clear()
+        
+        # Clear DataFrames
+        if hasattr(self, 'nvtx_df'):
+            del self.nvtx_df
+        if hasattr(self, 'cuda_df'):
+            del self.cuda_df

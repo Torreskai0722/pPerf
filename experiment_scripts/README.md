@@ -133,3 +133,41 @@ cd post_processing/
 python performance_analysis.py --input_dir ../outputs/experiment_name/
 python analyze_e2e_kernels.py --input_dir ../outputs/experiment_name/
 ```
+
+### Benefits
+
+- **Time Saving**: No need to re-run experiments that completed successfully
+- **Fault Tolerance**: Can resume after system crashes or interruptions
+- **Flexibility**: Add new parameter combinations without losing previous work
+- **Resource Efficiency**: Only use compute resources for new/failed experiments
+
+## Status System
+
+The experiment scripts use a two-stage status system to distinguish between experiment execution and post-processing:
+
+### Status Values
+
+- **`pending`**: Experiment has not been run yet
+- **`run_success`**: Experiment execution completed successfully, but post-processing (timing analysis) hasn't been done yet
+- **`success`**: Both experiment execution AND post-processing completed successfully
+- **`timeout`**: Experiment timed out during execution
+- **`error`**: Experiment failed with an error
+- **`config_error`**: Failed to configure the experiment
+
+### Execution Phases
+
+1. **Experiment Execution Phase**: 
+   - Skips experiments with status `run_success` or `success`
+   - Sets status to `run_success` when experiment completes successfully
+
+2. **Post-Processing Phase**:
+   - Only processes experiments with status `run_success` 
+   - Performs timing analysis using `timing_processor`
+   - Sets status to `success` when post-processing completes
+
+### Continue Mode Benefits
+
+When using `CONTINUE = True`:
+- **Execution Phase**: Skips all completed runs (`run_success` and `success`)
+- **Post-Processing Phase**: Only processes runs that need timing analysis (`run_success`)
+- **No Redundant Work**: Never re-runs experiments or re-processes timing data unnecessarily

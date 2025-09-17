@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """
-Script to analyze the size of LIDAR_TOP data under a scene in nuScenes dataset.
-This script provides comprehensive statistics about point cloud data including:
-- Number of points per frame
-- File sizes
+Script to analyze the density of LIDAR_TOP data under a scene in nuScenes dataset.
+This script provides density statistics about point cloud data including:
 - Point density statistics
-- Temporal analysis
+- Distance and intensity analysis
+- Global and per-frame density characteristics
 
 CONFIGURATION:
 Edit the parameters below to customize the analysis:
@@ -21,14 +20,12 @@ os.environ['MPLBACKEND'] = 'Agg'
 
 import numpy as np
 import pandas as pd
+import csv
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend to avoid displaying plots
-import matplotlib.pyplot as plt
-import seaborn as sns
 from collections import defaultdict
 from nuscenes import NuScenes
+from scipy.spatial import cKDTree
 
 
 def load_sweep_sd(nusc, scene, sensor_channel='CAM_FRONT'):
@@ -79,18 +76,26 @@ def load_sweep_sd(nusc, scene, sensor_channel='CAM_FRONT'):
 # CONFIGURATION - Edit these parameters as needed
 # =============================================================================
 
-# Scene to analyze (required)
+# Point cloud range filter [x_min, y_min, z_min, x_max, y_max, z_max]
+POINT_CLOUD_RANGE = [-50, -50, -5, 50, 50, 3]
+
+# Intensity filter - points with intensity below this threshold will be filtered out
+MIN_INTENSITY_THRESHOLD = 0.0
+
+# Local neighborhood density - radius for counting neighbors around each point
+LOCAL_DENSITY_RADIUS = 0.5  # meters
+
+# Frame limit - maximum number of frames to process per scene (set to None for all frames)
+MAX_FRAMES_PER_SCENE = 30
 
 # Output settings
-
-GENERATE_PLOTS = True  # Set to False to skip plot generation
 SAVE_RESULTS = False  # Set to True to save detailed results to JSON
 
 # =============================================================================
 
 
-class LidarSceneAnalyzer:
-    """Analyzer for LIDAR_TOP data in nuScenes scenes."""
+class LidarRangeAnalyzer:
+    """Analyzer for LIDAR_TOP range-based point counts in nuScenes scenes."""
     
     def __init__(self, nusc, scene_token: str):
         """
@@ -103,137 +108,40 @@ class LidarSceneAnalyzer:
         self.nusc = nusc
         self.scene_token = scene_token
         self.scene = nusc.get('scene', scene_token)
-        self.lidar_tokens = load_sweep_sd(nusc, self.scene, sensor_channel='LIDAR_TOP')
+        all_lidar_tokens = load_sweep_sd(nusc, self.scene, sensor_channel='LIDAR_TOP')
+        
+        # Limit the number of frames if specified
+        if MAX_FRAMES_PER_SCENE is not None:
+            self.lidar_tokens = all_lidar_tokens[:MAX_FRAMES_PER_SCENE]
+            print(f"Processing first {len(self.lidar_tokens)} frames (limited from {len(all_lidar_tokens)} total)")
+        else:
+            self.lidar_tokens = all_lidar_tokens
+            print(f"Processing all {len(self.lidar_tokens)} frames")
+            
         self.analysis_results = {}
         
-    def analyze_point_cloud_sizes(self) -> Dict:
-        """
-        Analyze the number of points in each LIDAR_TOP frame.
-        
-        Returns:
-            Dictionary containing point count statistics
-        """
-        print(f"Analyzing {len(self.lidar_tokens)} LIDAR_TOP frames...")
-        
-        point_counts = []
-        file_sizes = []
-        timestamps = []
-        filenames = []
-        
-        for token in self.lidar_tokens:
-            # Get sample data
-            sd = self.nusc.get('sample_data', token)
-            
-            # Get file path and size
-            file_path = os.path.join(self.nusc.dataroot, sd['filename'])
-            if os.path.exists(file_path):
-                file_size = os.path.getsize(file_path)
-                file_sizes.append(file_size)
-            else:
-                print(f"Warning: File not found: {file_path}")
-                file_sizes.append(0)
-            
-            # Load point cloud data
-            try:
-                points = np.fromfile(file_path, dtype=np.float32)
-                # Reshape to get the correct number of points
-                points_reshaped = points.reshape(-1, 5)  # Each point has 5 values (x, y, z, intensity, ring)
-                num_points = points_reshaped.shape[0]  # Get number of points using shape
-                point_counts.append(num_points)
-                
-                # Debug: Print first few files to see if they're different
-                if len(point_counts) <= 5:
-                    print(f"  Debug: File {len(point_counts)}: {sd['filename']}")
-                    print(f"  Debug: Points: {num_points}, File size: {file_size} bytes")
-                    print(f"  Debug: Raw array shape: {points.shape}, Reshaped: {points_reshaped.shape}")
-                
-                # Store timestamp and filename
-                timestamps.append(sd['timestamp'] / 1e6)  # Convert to seconds
-                filenames.append(sd['filename'])
-                
-            except Exception as e:
-                print(f"Error loading point cloud for token {token}: {e}")
-                point_counts.append(0)
-                timestamps.append(sd['timestamp'] / 1e6)
-                filenames.append(sd['filename'])
-        
-        # Calculate statistics
-        point_counts = np.array(point_counts)
-        file_sizes = np.array(file_sizes)
-        
-        # Debug: Check for duplicate filenames
-        unique_filenames = set(filenames)
-        print(f"  Debug: Total files processed: {len(filenames)}")
-        print(f"  Debug: Unique filenames: {len(unique_filenames)}")
-        if len(filenames) != len(unique_filenames):
-            print(f"  Warning: Found {len(filenames) - len(unique_filenames)} duplicate files!")
-            # Show some duplicates
-            filename_counts = {}
-            for filename in filenames:
-                filename_counts[filename] = filename_counts.get(filename, 0) + 1
-            duplicates = {k: v for k, v in filename_counts.items() if v > 1}
-            print(f"  Debug: Duplicate files: {list(duplicates.keys())[:5]}")  # Show first 5
-        
-        # Debug: Show actual statistics for this scene
-        print(f"  DEBUG SCENE STATS:")
-        print(f"    Scene: {self.scene['name']}")
-        print(f"    Total points: {np.sum(point_counts):,}")
-        print(f"    Mean points: {np.mean(point_counts):.0f}")
-        print(f"    Min points: {np.min(point_counts):,}")
-        print(f"    Max points: {np.max(point_counts):,}")
-        print(f"    Total file size: {np.sum(file_sizes) / (1024*1024):.2f} MB")
-        print(f"    First 5 point counts: {point_counts[:5]}")
-        print(f"    First 5 file sizes (MB): {file_sizes[:5] / (1024*1024)}")
-        
-        # Check if all values are the same (which would indicate a problem)
-        if len(point_counts) > 1:
-            if np.all(point_counts == point_counts[0]):
-                print(f"  WARNING: All point counts are identical ({point_counts[0]}) - this suggests a problem!")
-            if np.all(file_sizes == file_sizes[0]):
-                print(f"  WARNING: All file sizes are identical ({file_sizes[0]}) - this suggests a problem!")
-        
-        stats = {
-            'point_counts': point_counts,
-            'file_sizes': file_sizes,
-            'timestamps': timestamps,
-            'filenames': filenames,
-            'num_frames': len(self.lidar_tokens),
-            'total_points': np.sum(point_counts),
-            'mean_points': np.mean(point_counts),
-            'std_points': np.std(point_counts),
-            'min_points': np.min(point_counts),
-            'max_points': np.max(point_counts),
-            'median_points': np.median(point_counts),
-            'total_file_size_mb': np.sum(file_sizes) / (1024 * 1024),
-            'mean_file_size_mb': np.mean(file_sizes) / (1024 * 1024),
-            'std_file_size_mb': np.std(file_sizes) / (1024 * 1024),
-            'min_file_size_mb': np.min(file_sizes) / (1024 * 1024),
-            'max_file_size_mb': np.max(file_sizes) / (1024 * 1024),
-            'median_file_size_mb': np.median(file_sizes) / (1024 * 1024),
-        }
-        
-        # Calculate percentiles
-        percentiles = [10, 25, 50, 75, 90, 95, 99]
-        for p in percentiles:
-            stats[f'points_p{p}'] = np.percentile(point_counts, p)
-            stats[f'file_size_p{p}_mb'] = np.percentile(file_sizes, p) / (1024 * 1024)
-        
-        self.analysis_results['point_cloud_stats'] = stats
-        return stats
-    
     def analyze_point_density(self) -> Dict:
         """
-        Analyze point density and distribution characteristics.
+        Analyze point counts within specific distance ranges.
+        Applies spatial range filtering and intensity filtering before analysis.
         
         Returns:
-            Dictionary containing density analysis
+            Dictionary containing range-based point count analysis
         """
-        print("Analyzing point density characteristics...")
+        print("Analyzing point counts within distance ranges...")
+        print(f"Applying filters - Spatial: {POINT_CLOUD_RANGE}, Intensity: >= {MIN_INTENSITY_THRESHOLD}")
         
-        density_stats = []
-        intensity_stats = []
+        # Define distance ranges to analyze - these should match the annular ranges
+        distance_ranges = [0.5, 1, 2.5, 5, 10, 25, 50]
+        
+        frame_stats = []
         all_distances = []
         all_intensities = []
+        range_counts_all_frames = {f"range_{r}m": [] for r in distance_ranges}
+        
+        total_original_points = 0
+        total_after_spatial_filter = 0
+        total_after_intensity_filter = 0
         
         for token in self.lidar_tokens:
             sd = self.nusc.get('sample_data', token)
@@ -245,51 +153,92 @@ class LidarSceneAnalyzer:
             try:
                 # Load point cloud data
                 points = np.fromfile(file_path, dtype=np.float32).reshape(-1, 5)
+                original_count = len(points)
+                total_original_points += original_count
+                
+                # Apply point cloud range filter
+                mask = (points[:, 0] >= POINT_CLOUD_RANGE[0]) & (points[:, 0] <= POINT_CLOUD_RANGE[3]) & \
+                       (points[:, 1] >= POINT_CLOUD_RANGE[1]) & (points[:, 1] <= POINT_CLOUD_RANGE[4]) & \
+                       (points[:, 2] >= POINT_CLOUD_RANGE[2]) & (points[:, 2] <= POINT_CLOUD_RANGE[5])
+                points_spatial_filtered = points[mask]
+                spatial_count = len(points_spatial_filtered)
+                total_after_spatial_filter += spatial_count
+                
+                # Apply intensity filter
+                intensity_mask = points_spatial_filtered[:, 3] >= MIN_INTENSITY_THRESHOLD
+                points_filtered = points_spatial_filtered[intensity_mask]
+                final_count = len(points_filtered)
+                total_after_intensity_filter += final_count
+                
+                # Check if any points remain after filtering
+                if final_count == 0:
+                    print(f"Warning: No points remain after spatial and intensity filtering for token {token}")
+                    continue
                 
                 # Calculate distances from origin
-                distances = np.sqrt(points[:, 0]**2 + points[:, 1]**2 + points[:, 2]**2)
+                distances = np.sqrt(points_filtered[:, 0]**2 + points_filtered[:, 1]**2 + points_filtered[:, 2]**2)
                 
-                # Calculate point density (points per unit volume)
-                # Using a simple spherical shell approach
-                max_dist = np.max(distances)
-                if max_dist > 0:
-                    # Approximate density as points per cubic meter
-                    volume = (4/3) * np.pi * max_dist**3
-                    density = len(points) / volume if volume > 0 else 0
-                else:
-                    density = 0
+                # Count points within each distance range
+                range_counts = {}
+                range_percentages = {}
+                total_points = len(points_filtered)
+                
+                for range_limit in distance_ranges:
+                    count = np.sum(distances <= range_limit)
+                    percentage = (count / total_points) * 100 if total_points > 0 else 0
+                    range_counts[f"range_{range_limit}m"] = count
+                    range_percentages[f"range_{range_limit}m_pct"] = percentage
+                    range_counts_all_frames[f"range_{range_limit}m"].append(count)
                 
                 # Intensity statistics
-                intensities = points[:, 3]
+                intensities = points_filtered[:, 3]
+                
+                # Calculate distance-stratified local neighborhood density
+                print(f"  Calculating distance-stratified local density for {final_count} points...")
+                distance_density_stats = self.calculate_distance_stratified_density(points_filtered, distance_ranges)
+                
+                # Calculate global density for all points in this frame
+                print(f"  Calculating global density for all {final_count} points...")
+                global_density_stats = self.calculate_local_density(points_filtered, LOCAL_DENSITY_RADIUS)
+                
+                # Flatten distance density stats for DataFrame storage
+                flattened_density_stats = {}
+                for range_name, density_data in distance_density_stats.items():
+                    for key, value in density_data.items():
+                        if key != 'neighbor_counts':  # Skip the full array
+                            flattened_density_stats[f"{range_name}_{key}"] = value
+                
+                # Add global density stats
+                for key, value in global_density_stats.items():
+                    if key != 'neighbor_counts':  # Skip the full array
+                        flattened_density_stats[f"global_{key}"] = value
                 
                 # Store all distances and intensities for global analysis
                 all_distances.extend(distances.tolist())
                 all_intensities.extend(intensities.tolist())
                 
-                density_stats.append({
+                frame_stats.append({
+                    'num_points': len(points_filtered),
                     'mean_distance': np.mean(distances),
-                    'max_distance': max_dist,
+                    'max_distance': np.max(distances),
                     'min_distance': np.min(distances),
                     'std_distance': np.std(distances),
-                    'density': density,
-                    'num_points': len(points)
-                })
-                
-                intensity_stats.append({
                     'mean_intensity': np.mean(intensities),
                     'std_intensity': np.std(intensities),
                     'min_intensity': np.min(intensities),
                     'max_intensity': np.max(intensities),
-                    'median_intensity': np.median(intensities)
+                    'median_intensity': np.median(intensities),
+                    **range_counts,  # Add range counts to frame stats
+                    **range_percentages,  # Add range percentages to frame stats
+                    **flattened_density_stats # Add distance density stats to frame stats
                 })
                 
             except Exception as e:
-                print(f"Error analyzing density for token {token}: {e}")
+                print(f"Error analyzing points for token {token}: {e}")
         
-        if density_stats:
-            # Aggregate statistics
-            density_df = pd.DataFrame(density_stats)
-            intensity_df = pd.DataFrame(intensity_stats)
+        if frame_stats:
+            # Convert to DataFrame for easier analysis
+            frame_df = pd.DataFrame(frame_stats)
             
             # Convert to numpy arrays for analysis
             all_distances = np.array(all_distances)
@@ -304,35 +253,118 @@ class LidarSceneAnalyzer:
                 distance_percentiles[f'p{p}'] = np.percentile(all_distances, p)
                 intensity_percentiles[f'p{p}'] = np.percentile(all_intensities, p)
             
+            # Calculate statistics for each distance range
+            range_statistics = {}
+            for range_limit in distance_ranges:
+                range_col = f"range_{range_limit}m"
+                range_pct_col = f"range_{range_limit}m_pct"
+                range_statistics[range_col] = {
+                    'mean': frame_df[range_col].mean(),
+                    'std': frame_df[range_col].std(),
+                    'min': frame_df[range_col].min(),
+                    'max': frame_df[range_col].max(),
+                    'median': frame_df[range_col].median(),
+                    'percentiles': {
+                        f'p{p}': np.percentile(frame_df[range_col], p) for p in percentiles
+                    }
+                }
+                
+                # Add percentage statistics
+                range_statistics[range_pct_col] = {
+                    'mean': frame_df[range_pct_col].mean(),
+                    'std': frame_df[range_pct_col].std(),
+                    'min': frame_df[range_pct_col].min(),
+                    'max': frame_df[range_pct_col].max(),
+                    'median': frame_df[range_pct_col].median(),
+                    'percentiles': {
+                        f'p{p}': np.percentile(frame_df[range_pct_col], p) for p in percentiles
+                    }
+                }
+            
+            # Calculate distance-stratified density statistics
+            density_statistics = {}
+            
+            # Define the annular ranges that match our density calculation
+            annular_ranges = [
+                (0, 0.5, 0.25),      # [0, 0.5m] with 0.25m local radius
+                (0.5, 1, 0.25),      # [0.5, 1m] with 0.25m local radius  
+                (1, 2.5, 0.5),       # [1, 2.5m] with 0.5m local radius
+                (2.5, 5, 0.75),      # [2.5, 5m] with 0.75m local radius
+                (5, 10, 1.0),        # [5, 10m] with 1.0m local radius
+                (10, 25, 1.5),       # [10, 25m] with 1.5m local radius
+                (25, 50, 2.0),       # [25, 50m] with 2.0m local radius
+            ]
+            
+            for min_dist, max_dist, local_radius in annular_ranges:
+                # Skip ranges not in our distance_ranges list
+                if max_dist not in distance_ranges:
+                    continue
+                    
+                range_name = f"{min_dist}_to_{max_dist}m"
+                
+                # Check if this density range exists in the frame data
+                mean_col = f"{range_name}_mean_neighbors"
+                if mean_col in frame_df.columns:
+                    density_statistics[range_name] = {
+                        'mean_neighbors_avg': frame_df[mean_col].mean(),
+                        'mean_neighbors_std': frame_df[mean_col].std(),
+                        'mean_neighbors_min': frame_df[mean_col].min(),
+                        'mean_neighbors_max': frame_df[mean_col].max(),
+                        'local_radius': local_radius
+                    }
+            
+            # Calculate global density statistics
+            global_density_statistics = {}
+            if 'global_mean_neighbors' in frame_df.columns:
+                global_density_statistics = {
+                    'mean_neighbors_avg': frame_df['global_mean_neighbors'].mean(),
+                    'mean_neighbors_std': frame_df['global_mean_neighbors'].std(),
+                    'mean_neighbors_min': frame_df['global_mean_neighbors'].min(),
+                    'mean_neighbors_max': frame_df['global_mean_neighbors'].max(),
+                    'local_radius': LOCAL_DENSITY_RADIUS
+                }
+            
             # Calculate frame-level variation statistics
             distance_variation = {
-                'min_mean_distance': density_df['mean_distance'].min(),
-                'max_mean_distance': density_df['mean_distance'].max(),
-                'min_max_distance': density_df['max_distance'].min(),
-                'max_max_distance': density_df['max_distance'].max(),
-                'distance_range_mean': density_df['max_distance'].mean() - density_df['min_distance'].mean(),
-                'distance_range_std': (density_df['max_distance'] - density_df['min_distance']).std(),
+                'min_mean_distance': frame_df['mean_distance'].min(),
+                'max_mean_distance': frame_df['mean_distance'].max(),
+                'min_max_distance': frame_df['max_distance'].min(),
+                'max_max_distance': frame_df['max_distance'].max(),
+                'distance_range_mean': frame_df['max_distance'].mean() - frame_df['min_distance'].mean(),
+                'distance_range_std': (frame_df['max_distance'] - frame_df['min_distance']).std(),
             }
             
             intensity_variation = {
-                'min_mean_intensity': intensity_df['mean_intensity'].min(),
-                'max_mean_intensity': intensity_df['mean_intensity'].max(),
-                'min_max_intensity': intensity_df['max_intensity'].min(),
-                'max_max_intensity': intensity_df['max_intensity'].max(),
-                'intensity_range_mean': intensity_df['max_intensity'].mean() - intensity_df['min_intensity'].mean(),
-                'intensity_range_std': (intensity_df['max_intensity'] - intensity_df['min_intensity']).std(),
+                'min_mean_intensity': frame_df['mean_intensity'].min(),
+                'max_mean_intensity': frame_df['mean_intensity'].max(),
+                'min_max_intensity': frame_df['max_intensity'].min(),
+                'max_max_intensity': frame_df['max_intensity'].max(),
+                'intensity_range_mean': frame_df['max_intensity'].mean() - frame_df['min_intensity'].mean(),
+                'intensity_range_std': (frame_df['max_intensity'] - frame_df['min_intensity']).std(),
             }
             
-            density_analysis = {
-                'mean_density': density_df['density'].mean(),
-                'std_density': density_df['density'].std(),
-                'mean_mean_distance': density_df['mean_distance'].mean(),
-                'std_mean_distance': density_df['mean_distance'].std(),
-                'mean_max_distance': density_df['max_distance'].mean(),
-                'std_max_distance': density_df['max_distance'].std(),
-                'mean_intensity': intensity_df['mean_intensity'].mean(),
-                'std_intensity': intensity_df['std_intensity'].mean(),
-                'intensity_range': intensity_df['max_intensity'].mean() - intensity_df['min_intensity'].mean(),
+            range_analysis = {
+                'num_frames': len(self.lidar_tokens),
+                'total_points': sum(stat['num_points'] for stat in frame_stats),
+                'distance_ranges': distance_ranges,
+                'range_statistics': range_statistics,
+                'density_statistics': density_statistics,
+                'global_density_statistics': global_density_statistics,
+                'filtering_stats': {
+                    'original_points': total_original_points,
+                    'after_spatial_filter': total_after_spatial_filter,
+                    'after_intensity_filter': total_after_intensity_filter,
+                    'spatial_filter_retention': (total_after_spatial_filter / total_original_points * 100) if total_original_points > 0 else 0,
+                    'intensity_filter_retention': (total_after_intensity_filter / total_after_spatial_filter * 100) if total_after_spatial_filter > 0 else 0,
+                    'total_retention': (total_after_intensity_filter / total_original_points * 100) if total_original_points > 0 else 0
+                },
+                'mean_mean_distance': frame_df['mean_distance'].mean(),
+                'std_mean_distance': frame_df['mean_distance'].std(),
+                'mean_max_distance': frame_df['max_distance'].mean(),
+                'std_max_distance': frame_df['max_distance'].std(),
+                'mean_intensity': frame_df['mean_intensity'].mean(),
+                'std_intensity': frame_df['std_intensity'].mean(),
+                'intensity_range': frame_df['max_intensity'].mean() - frame_df['min_intensity'].mean(),
                 
                 # Global statistics across all points
                 'global_distance_stats': {
@@ -357,251 +389,65 @@ class LidarSceneAnalyzer:
                 'intensity_variation': intensity_variation,
                 
                 # Original per-frame data
-                'density_stats': density_stats,
-                'intensity_stats': intensity_stats
+                'frame_stats': frame_stats
             }
         else:
-            density_analysis = {}
+            range_analysis = {}
         
-        self.analysis_results['density_analysis'] = density_analysis
-        return density_analysis
-    
-    def analyze_temporal_patterns(self) -> Dict:
-        """
-        Analyze temporal patterns in the data.
-        
-        Returns:
-            Dictionary containing temporal analysis
-        """
-        print("Analyzing temporal patterns...")
-        
-        if 'point_cloud_stats' not in self.analysis_results:
-            self.analyze_point_cloud_sizes()
-        
-        timestamps = self.analysis_results['point_cloud_stats']['timestamps']
-        point_counts = self.analysis_results['point_cloud_stats']['point_counts']
-        
-        # Calculate time intervals
-        time_intervals = np.diff(timestamps)
-        
-        # Calculate frame rate statistics
-        frame_rates = 1.0 / time_intervals if len(time_intervals) > 0 else []
-        
-        temporal_stats = {
-            'scene_duration_seconds': timestamps[-1] - timestamps[0] if len(timestamps) > 1 else 0,
-            'mean_frame_interval': np.mean(time_intervals) if len(time_intervals) > 0 else 0,
-            'std_frame_interval': np.std(time_intervals) if len(time_intervals) > 0 else 0,
-            'mean_frame_rate': np.mean(frame_rates) if len(frame_rates) > 0 else 0,
-            'std_frame_rate': np.std(frame_rates) if len(frame_rates) > 0 else 0,
-            'min_frame_interval': np.min(time_intervals) if len(time_intervals) > 0 else 0,
-            'max_frame_interval': np.max(time_intervals) if len(time_intervals) > 0 else 0,
-            'total_frames': len(timestamps),
-            'time_intervals': time_intervals.tolist(),
-            'frame_rates': frame_rates,
-            'timestamps': timestamps
-        }
-        
-        # Analyze point count trends over time
-        if len(point_counts) > 1:
-            # Simple linear trend
-            time_normalized = np.array(timestamps) - timestamps[0]
-            coeffs = np.polyfit(time_normalized, point_counts, 1)
-            temporal_stats['point_count_trend_slope'] = coeffs[0]
-            temporal_stats['point_count_trend_intercept'] = coeffs[1]
-            
-            # Correlation between time and point count
-            correlation = np.corrcoef(time_normalized, point_counts)[0, 1]
-            temporal_stats['time_point_count_correlation'] = correlation
-        
-        self.analysis_results['temporal_analysis'] = temporal_stats
-        return temporal_stats
-    
-    def generate_plots(self, output_dir: str = "lidar_analysis_plots"):
-        """
-        Generate visualization plots for the analysis.
-        
-        Args:
-            output_dir: Directory to save the plots
-        """
-        if 'point_cloud_stats' not in self.analysis_results:
-            self.analyze_point_cloud_sizes()
-        
-        os.makedirs(output_dir, exist_ok=True)
-        
-        try:
-            # Set up the plotting style
-            plt.style.use('default')
-            sns.set_palette("husl")
-            
-            # 1. Point count distribution
-            fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-            fig.suptitle(f'LIDAR_TOP Analysis for Scene: {self.scene_token}', fontsize=16)
-            
-            point_counts = self.analysis_results['point_cloud_stats']['point_counts']
-            file_sizes = self.analysis_results['point_cloud_stats']['file_sizes'] / (1024 * 1024)  # Convert to MB
-            
-            # Point count histogram
-            axes[0, 0].hist(point_counts, bins=30, alpha=0.7, edgecolor='black')
-            axes[0, 0].set_xlabel('Number of Points')
-            axes[0, 0].set_ylabel('Frequency')
-            axes[0, 0].set_title('Point Count Distribution')
-            axes[0, 0].grid(True, alpha=0.3)
-            
-            # File size histogram
-            axes[0, 1].hist(file_sizes, bins=30, alpha=0.7, edgecolor='black', color='orange')
-            axes[0, 1].set_xlabel('File Size (MB)')
-            axes[0, 1].set_ylabel('Frequency')
-            axes[0, 1].set_title('File Size Distribution')
-            axes[0, 1].grid(True, alpha=0.3)
-            
-            # Point count over time
-            timestamps = self.analysis_results['point_cloud_stats']['timestamps']
-            axes[1, 0].plot(timestamps, point_counts, 'b-', alpha=0.7, linewidth=1)
-            axes[1, 0].scatter(timestamps, point_counts, c='red', s=20, alpha=0.6)
-            axes[1, 0].set_xlabel('Timestamp (seconds)')
-            axes[1, 0].set_ylabel('Number of Points')
-            axes[1, 0].set_title('Point Count Over Time')
-            axes[1, 0].grid(True, alpha=0.3)
-            
-            # File size vs point count scatter
-            axes[1, 1].scatter(point_counts, file_sizes, alpha=0.6, c='green')
-            axes[1, 1].set_xlabel('Number of Points')
-            axes[1, 1].set_ylabel('File Size (MB)')
-            axes[1, 1].set_title('File Size vs Point Count')
-            axes[1, 1].grid(True, alpha=0.3)
-            
-            plt.tight_layout()
-            plt.savefig(os.path.join(output_dir, 'lidar_analysis_overview.png'), dpi=300, bbox_inches='tight')
-            plt.close()
-            
-            # 2. Temporal analysis plots
-            if 'temporal_analysis' in self.analysis_results:
-                fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-                fig.suptitle(f'Temporal Analysis for Scene: {self.scene_token}', fontsize=16)
-                
-                temporal_stats = self.analysis_results['temporal_analysis']
-                
-                # Frame intervals
-                if temporal_stats['time_intervals']:
-                    axes[0, 0].hist(temporal_stats['time_intervals'], bins=20, alpha=0.7, edgecolor='black')
-                    axes[0, 0].set_xlabel('Frame Interval (seconds)')
-                    axes[0, 0].set_ylabel('Frequency')
-                    axes[0, 0].set_title('Frame Interval Distribution')
-                    axes[0, 0].grid(True, alpha=0.3)
-                
-                # Frame rates
-                if temporal_stats['frame_rates']:
-                    axes[0, 1].hist(temporal_stats['frame_rates'], bins=20, alpha=0.7, edgecolor='black', color='orange')
-                    axes[0, 1].set_xlabel('Frame Rate (Hz)')
-                    axes[0, 1].set_ylabel('Frequency')
-                    axes[0, 1].set_title('Frame Rate Distribution')
-                    axes[0, 1].grid(True, alpha=0.3)
-                
-                # Point count trend
-                if len(point_counts) > 1:
-                    time_normalized = np.array(timestamps) - timestamps[0]
-                    axes[1, 0].scatter(time_normalized, point_counts, alpha=0.6, c='blue')
-                    
-                    # Plot trend line
-                    if 'point_count_trend_slope' in temporal_stats:
-                        trend_line = temporal_stats['point_count_trend_slope'] * time_normalized + temporal_stats['point_count_trend_intercept']
-                        axes[1, 0].plot(time_normalized, trend_line, 'r-', linewidth=2, label=f'Trend (slope: {temporal_stats["point_count_trend_slope"]:.2f})')
-                        axes[1, 0].legend()
-                    
-                    axes[1, 0].set_xlabel('Time (seconds)')
-                    axes[1, 0].set_ylabel('Number of Points')
-                    axes[1, 0].set_title('Point Count Trend Over Time')
-                    axes[1, 0].grid(True, alpha=0.3)
-                
-                # Correlation heatmap
-                if len(point_counts) > 1 and len(file_sizes) > 1:
-                    try:
-                        correlation_data = np.corrcoef([point_counts, file_sizes, time_normalized])[:2, :2]
-                        im = axes[1, 1].imshow(correlation_data, cmap='coolwarm', vmin=-1, vmax=1)
-                        axes[1, 1].set_xticks([0, 1])
-                        axes[1, 1].set_yticks([0, 1])
-                        axes[1, 1].set_xticklabels(['Points', 'File Size'])
-                        axes[1, 1].set_yticklabels(['Points', 'File Size'])
-                        axes[1, 1].set_title('Correlation Matrix')
-                        
-                        # Add correlation values as text
-                        for i in range(2):
-                            for j in range(2):
-                                text = axes[1, 1].text(j, i, f'{correlation_data[i, j]:.3f}',
-                                                     ha="center", va="center", color="black", fontweight='bold')
-                        
-                        plt.colorbar(im, ax=axes[1, 1])
-                    except Exception as e:
-                        print(f"Warning: Could not create correlation heatmap: {e}")
-                        axes[1, 1].text(0.5, 0.5, 'Correlation\nData\nUnavailable', 
-                                       ha='center', va='center', transform=axes[1, 1].transAxes)
-                        axes[1, 1].set_title('Correlation Matrix')
-                
-                plt.tight_layout()
-                plt.savefig(os.path.join(output_dir, 'temporal_analysis.png'), dpi=300, bbox_inches='tight')
-                plt.close()
-            
-            print(f"Plots saved to {output_dir}/")
-            
-        except Exception as e:
-            print(f"Warning: Could not generate plots due to error: {e}")
-            print("Continuing with analysis without plots...")
-            # Continue without plots if there's an error
+        self.analysis_results['range_analysis'] = range_analysis
+        return range_analysis
     
     def print_summary(self, save_to_file=True, output_dir="."):
-        """Print a comprehensive summary of the analysis and optionally save to file."""
-        if 'point_cloud_stats' not in self.analysis_results:
-            self.analyze_point_cloud_sizes()
-        
-        if 'density_analysis' not in self.analysis_results:
+        """Print a comprehensive summary of the range-based point count analysis and optionally save to file."""
+        if 'range_analysis' not in self.analysis_results:
             self.analyze_point_density()
         
-        if 'temporal_analysis' not in self.analysis_results:
-            self.analyze_temporal_patterns()
-        
-        stats = self.analysis_results['point_cloud_stats']
-        density = self.analysis_results['density_analysis']
-        temporal = self.analysis_results['temporal_analysis']
+        analysis = self.analysis_results['range_analysis']
         
         # Prepare summary text
         summary_lines = []
         summary_lines.append("="*80)
-        summary_lines.append(f"LIDAR_TOP ANALYSIS SUMMARY FOR SCENE: {self.scene_token}")
+        summary_lines.append(f"LIDAR_TOP RANGE ANALYSIS SUMMARY FOR SCENE: {self.scene_token}")
         summary_lines.append("="*80)
         
         summary_lines.append(f"\nScene Information:")
         summary_lines.append(f"  Scene Name: {self.scene['name']}")
         summary_lines.append(f"  Description: {self.scene['description']}")
-        summary_lines.append(f"  Number of Frames: {stats['num_frames']}")
-        summary_lines.append(f"  Scene Duration: {temporal['scene_duration_seconds']:.2f} seconds")
+        summary_lines.append(f"  Number of Frames Processed: {analysis['num_frames']}")
+        if MAX_FRAMES_PER_SCENE is not None:
+            summary_lines.append(f"  Frame Limit Applied: First {MAX_FRAMES_PER_SCENE} frames only")
+        summary_lines.append(f"  Total Points (filtered): {analysis['total_points']:,}")
+        summary_lines.append(f"  Point Cloud Range Filter: {POINT_CLOUD_RANGE}")
+        summary_lines.append(f"    X: [{POINT_CLOUD_RANGE[0]}, {POINT_CLOUD_RANGE[3]}] m")
+        summary_lines.append(f"    Y: [{POINT_CLOUD_RANGE[1]}, {POINT_CLOUD_RANGE[4]}] m") 
+        summary_lines.append(f"    Z: [{POINT_CLOUD_RANGE[2]}, {POINT_CLOUD_RANGE[5]}] m")
+        summary_lines.append(f"  Intensity Filter: >= {MIN_INTENSITY_THRESHOLD}")
+        summary_lines.append(f"  Local Density Radius: {LOCAL_DENSITY_RADIUS}m")
         
-        summary_lines.append(f"\nPoint Cloud Statistics:")
-        summary_lines.append(f"  Total Points: {stats['total_points']:,}")
-        summary_lines.append(f"  Mean Points per Frame: {stats['mean_points']:.0f} ± {stats['std_points']:.0f}")
-        summary_lines.append(f"  Median Points per Frame: {stats['median_points']:.0f}")
-        summary_lines.append(f"  Min Points per Frame: {stats['min_points']:,}")
-        summary_lines.append(f"  Max Points per Frame: {stats['max_points']:,}")
-        summary_lines.append(f"  Point Count Range: {stats['max_points'] - stats['min_points']:,}")
-        
-        summary_lines.append(f"\nFile Size Statistics:")
-        summary_lines.append(f"  Total Data Size: {stats['total_file_size_mb']:.2f} MB")
-        summary_lines.append(f"  Mean File Size: {stats['mean_file_size_mb']:.2f} ± {stats['std_file_size_mb']:.2f} MB")
-        summary_lines.append(f"  Median File Size: {stats['median_file_size_mb']:.2f} MB")
-        summary_lines.append(f"  Min File Size: {stats['min_file_size_mb']:.2f} MB")
-        summary_lines.append(f"  Max File Size: {stats['max_file_size_mb']:.2f} MB")
-        
-        # Add density analysis if available
-        if density:
-            summary_lines.append(f"\nPoint Density Statistics:")
-            summary_lines.append(f"  Mean Point Density: {density.get('mean_density', 0):.2f} points/m³")
-            summary_lines.append(f"  Mean Distance: {density.get('mean_mean_distance', 0):.2f} ± {density.get('std_mean_distance', 0):.2f} m")
-            summary_lines.append(f"  Max Distance: {density.get('mean_max_distance', 0):.2f} ± {density.get('std_max_distance', 0):.2f} m")
-            summary_lines.append(f"  Mean Intensity: {density.get('mean_intensity', 0):.2f} ± {density.get('std_intensity', 0):.2f}")
-            summary_lines.append(f"  Intensity Range: {density.get('intensity_range', 0):.2f}")
+        # Add range-based point counts
+        if analysis:
+            summary_lines.append(f"\nPoint Percentages by Distance Range:")
+            for r in analysis['distance_ranges']:
+                range_pct_col = f"range_{r}m_pct"
+                if range_pct_col in analysis['range_statistics']:
+                    range_stats = analysis['range_statistics'][range_pct_col]
+                    summary_lines.append(f"  Points within {r}m:")
+                    summary_lines.append(f"    Mean Percentage: {range_stats['mean']:.2f}%")
+                    summary_lines.append(f"    Std Dev: {range_stats['std']:.2f}%")
+                    summary_lines.append(f"    Min Percentage: {range_stats['min']:.2f}%")
+                    summary_lines.append(f"    Max Percentage: {range_stats['max']:.2f}%")
+                    summary_lines.append(f"    Median Percentage: {range_stats['median']:.2f}%")
+                    summary_lines.append("")
+            
+            summary_lines.append(f"Distance Statistics:")
+            summary_lines.append(f"  Mean Distance: {analysis.get('mean_mean_distance', 0):.2f} ± {analysis.get('std_mean_distance', 0):.2f} m")
+            summary_lines.append(f"  Max Distance: {analysis.get('mean_max_distance', 0):.2f} ± {analysis.get('std_max_distance', 0):.2f} m")
+            summary_lines.append(f"  Mean Intensity: {analysis.get('mean_intensity', 0):.2f} ± {analysis.get('std_intensity', 0):.2f}")
+            summary_lines.append(f"  Intensity Range: {analysis.get('intensity_range', 0):.2f}")
             
             # Add global distance statistics
-            if 'global_distance_stats' in density:
-                global_dist = density['global_distance_stats']
+            if 'global_distance_stats' in analysis:
+                global_dist = analysis['global_distance_stats']
                 summary_lines.append(f"\nGlobal Distance Statistics (All Points):")
                 summary_lines.append(f"  Mean Distance: {global_dist['mean']:.2f} ± {global_dist['std']:.2f} m")
                 summary_lines.append(f"  Min Distance: {global_dist['min']:.2f} m")
@@ -614,8 +460,8 @@ class LidarSceneAnalyzer:
                     summary_lines.append(f"    {p}th percentile: {global_dist['percentiles'][f'p{p}']:.2f} m")
             
             # Add global intensity statistics
-            if 'global_intensity_stats' in density:
-                global_int = density['global_intensity_stats']
+            if 'global_intensity_stats' in analysis:
+                global_int = analysis['global_intensity_stats']
                 summary_lines.append(f"\nGlobal Intensity Statistics (All Points):")
                 summary_lines.append(f"  Mean Intensity: {global_int['mean']:.2f} ± {global_int['std']:.2f}")
                 summary_lines.append(f"  Min Intensity: {global_int['min']:.2f}")
@@ -628,37 +474,51 @@ class LidarSceneAnalyzer:
                     summary_lines.append(f"    {p}th percentile: {global_int['percentiles'][f'p{p}']:.2f}")
             
             # Add frame-level variation statistics
-            if 'distance_variation' in density:
-                dist_var = density['distance_variation']
+            if 'distance_variation' in analysis:
+                dist_var = analysis['distance_variation']
                 summary_lines.append(f"\nDistance Variation Across Frames:")
                 summary_lines.append(f"  Mean Distance Range: {dist_var['min_mean_distance']:.2f} - {dist_var['max_mean_distance']:.2f} m")
                 summary_lines.append(f"  Max Distance Range: {dist_var['min_max_distance']:.2f} - {dist_var['max_max_distance']:.2f} m")
                 summary_lines.append(f"  Distance Range (Mean): {dist_var['distance_range_mean']:.2f} ± {dist_var['distance_range_std']:.2f} m")
             
-            if 'intensity_variation' in density:
-                int_var = density['intensity_variation']
+            if 'intensity_variation' in analysis:
+                int_var = analysis['intensity_variation']
                 summary_lines.append(f"\nIntensity Variation Across Frames:")
                 summary_lines.append(f"  Mean Intensity Range: {int_var['min_mean_intensity']:.2f} - {int_var['max_mean_intensity']:.2f}")
                 summary_lines.append(f"  Max Intensity Range: {int_var['min_max_intensity']:.2f} - {int_var['max_max_intensity']:.2f}")
                 summary_lines.append(f"  Intensity Range (Mean): {int_var['intensity_range_mean']:.2f} ± {int_var['intensity_range_std']:.2f}")
+
+            # Add filtering statistics
+            if 'filtering_stats' in analysis:
+                filtering_stats = analysis['filtering_stats']
+                summary_lines.append(f"\nFiltering Statistics:")
+                summary_lines.append(f"  Original Points: {filtering_stats['original_points']:,}")
+                summary_lines.append(f"  After Spatial Filter: {filtering_stats['after_spatial_filter']:,}")
+                summary_lines.append(f"  After Intensity Filter: {filtering_stats['after_intensity_filter']:,}")
+                summary_lines.append(f"  Spatial Filter Retention: {filtering_stats['spatial_filter_retention']:.2f}%")
+                summary_lines.append(f"  Intensity Filter Retention: {filtering_stats['intensity_filter_retention']:.2f}%")
+                summary_lines.append(f"  Total Retention: {filtering_stats['total_retention']:.2f}%")
         
-        summary_lines.append(f"\nTemporal Statistics:")
-        summary_lines.append(f"  Mean Frame Rate: {temporal['mean_frame_rate']:.2f} ± {temporal['std_frame_rate']:.2f} Hz")
-        summary_lines.append(f"  Mean Frame Interval: {temporal['mean_frame_interval']:.3f} ± {temporal['std_frame_interval']:.3f} seconds")
-        summary_lines.append(f"  Frame Interval Range: {temporal['min_frame_interval']:.3f} - {temporal['max_frame_interval']:.3f} seconds")
-        
-        if 'point_count_trend_slope' in temporal:
-            summary_lines.append(f"  Point Count Trend: {temporal['point_count_trend_slope']:.2f} points/second")
-            summary_lines.append(f"  Time-Point Count Correlation: {temporal['time_point_count_correlation']:.3f}")
-        
-        summary_lines.append(f"\nPercentiles (Point Counts):")
-        percentiles = [10, 25, 50, 75, 90, 95, 99]
-        for p in percentiles:
-            summary_lines.append(f"  {p}th percentile: {stats[f'points_p{p}']:.0f} points")
-        
-        summary_lines.append(f"\nPercentiles (File Sizes):")
-        for p in percentiles:
-            summary_lines.append(f"  {p}th percentile: {stats[f'file_size_p{p}_mb']:.2f} MB")
+            # Add local density statistics
+            if 'density_statistics' in analysis:
+                summary_lines.append(f"\nDistance-Stratified Local Density:")
+                for range_name, density_stats in analysis['density_statistics'].items():
+                    local_radius = density_stats.get('local_radius', 'N/A')
+                    summary_lines.append(f"  {range_name} (radius: {local_radius}m):")
+                    summary_lines.append(f"    Mean Neighbors per Point: {density_stats['mean_neighbors_avg']:.2f}")
+                    summary_lines.append(f"    Std Dev: {density_stats['mean_neighbors_std']:.2f}")
+                    summary_lines.append(f"    Range: {density_stats['mean_neighbors_min']:.2f} - {density_stats['mean_neighbors_max']:.2f}")
+                    summary_lines.append("")
+            
+            # Add global density statistics
+            if 'global_density_statistics' in analysis:
+                global_stats = analysis['global_density_statistics']
+                if global_stats:  # Check if not empty
+                    summary_lines.append(f"\nGlobal Local Density (radius: {global_stats.get('local_radius', LOCAL_DENSITY_RADIUS)}m):")
+                    summary_lines.append(f"  Mean Neighbors per Point: {global_stats['mean_neighbors_avg']:.2f}")
+                    summary_lines.append(f"  Std Dev: {global_stats['mean_neighbors_std']:.2f}")
+                    summary_lines.append(f"  Range: {global_stats['mean_neighbors_min']:.2f} - {global_stats['mean_neighbors_max']:.2f}")
+                    summary_lines.append("")
         
         summary_lines.append("="*80)
         
@@ -670,7 +530,7 @@ class LidarSceneAnalyzer:
         if save_to_file:
             # Create a safe filename from scene token
             safe_scene_name = self.scene_token.replace('/', '_').replace('\\', '_')
-            summary_file = os.path.join(output_dir, f"lidar_summary_{safe_scene_name}.txt")
+            summary_file = os.path.join(output_dir, f"lidar_range_summary_{safe_scene_name}.txt")
             
             with open(summary_file, 'w') as f:
                 f.write(summary_text)
@@ -679,7 +539,7 @@ class LidarSceneAnalyzer:
         
         return summary_text
     
-    def save_results(self, output_file: str = "lidar_analysis_results.json"):
+    def save_results(self, output_file: str = "lidar_range_results.json"):
         """Save analysis results to a JSON file."""
         import json
         
@@ -706,20 +566,185 @@ class LidarSceneAnalyzer:
             json.dump(serializable_results, f, indent=2)
         
         print(f"Results saved to {output_file}")
+    
+    def get_csv_data(self) -> List[Dict]:
+        """
+        Extract CSV-ready data from analysis results.
+        
+        Returns:
+            List of dictionaries with scene_name, distance, mean_percentage, std_dev_percentage, 
+            distance-specific local density metrics, and global density metrics
+        """
+        if 'range_analysis' not in self.analysis_results:
+            self.analyze_point_density()
+        
+        analysis = self.analysis_results['range_analysis']
+        csv_data = []
+        
+        scene_name = self.scene['name']
+        
+        # Get global density stats for the scene
+        global_density_stats = analysis.get('global_density_statistics', {})
+        global_density_avg = global_density_stats.get('mean_neighbors_avg', 0)
+        global_density_std = global_density_stats.get('mean_neighbors_std', 0)
+        
+        for i, distance in enumerate(analysis['distance_ranges']):
+            range_pct_col = f"range_{distance}m_pct"
+            if range_pct_col in analysis['range_statistics']:
+                range_stats = analysis['range_statistics'][range_pct_col]
+                
+                # Define the annular ranges to match our density calculation
+                annular_ranges = [
+                    (0, 0.5), (0.5, 1), (1, 2.5), (2.5, 5), (5, 10), (10, 25), (25, 50)
+                ]
+                
+                # Find the corresponding density range for this distance
+                density_range_name = None
+                for min_dist, max_dist in annular_ranges:
+                    if max_dist == distance:
+                        density_range_name = f"{min_dist}_to_{max_dist}m"
+                        break
+                
+                # Get density stats for this specific distance range
+                density_stats = analysis.get('density_statistics', {}).get(density_range_name, {}) if density_range_name else {}
+                local_density_avg = density_stats.get('mean_neighbors_avg', 0)
+                local_density_std = density_stats.get('mean_neighbors_std', 0)
+                
+                csv_data.append({
+                    'scene_name': scene_name,
+                    'distance': distance,
+                    'mean_percentage': round(range_stats['mean'], 2),
+                    'std_dev_percentage': round(range_stats['std'], 2),
+                    'local_density_avg': round(local_density_avg, 2),
+                    'local_density_std': round(local_density_std, 2),
+                    'global_density_avg': round(global_density_avg, 2),
+                    'global_density_std': round(global_density_std, 2)
+                })
+        
+        return csv_data
+
+    def calculate_local_density(self, points: np.ndarray, radius: float = LOCAL_DENSITY_RADIUS) -> Dict:
+        """
+        Calculate local neighborhood density for each point.
+        
+        Args:
+            points: Point cloud array (N x 5) with [x, y, z, intensity, ring]
+            radius: Radius for neighbor search in meters
+            
+        Returns:
+            Dictionary with local density statistics
+        """
+        if len(points) == 0:
+            return {
+                'mean_neighbors': 0,
+                'std_neighbors': 0,
+                'max_neighbors': 0,
+                'min_neighbors': 0,
+                'median_neighbors': 0,
+                'neighbor_counts': []
+            }
+        
+        # Extract 3D coordinates
+        coords = points[:, :3]  # x, y, z
+        
+        # Build KD-tree for efficient neighbor search
+        tree = cKDTree(coords)
+        
+        # Count neighbors within radius for each point
+        neighbor_counts = []
+        
+        # Use query_ball_tree for efficiency - returns indices within radius
+        neighbor_indices = tree.query_ball_tree(tree, radius)
+        
+        for i, neighbors in enumerate(neighbor_indices):
+            # Subtract 1 to exclude the point itself
+            neighbor_count = len(neighbors) - 1
+            neighbor_counts.append(neighbor_count)
+        
+        neighbor_counts = np.array(neighbor_counts)
+        
+        return {
+            'mean_neighbors': np.mean(neighbor_counts),
+            'std_neighbors': np.std(neighbor_counts),
+            'max_neighbors': np.max(neighbor_counts),
+            'min_neighbors': np.min(neighbor_counts),
+            'median_neighbors': np.median(neighbor_counts),
+            'neighbor_counts': neighbor_counts
+        }
+    
+    def calculate_distance_stratified_density(self, points: np.ndarray, distance_ranges: List[float]) -> Dict:
+        """
+        Calculate local density for points within each distance range.
+        Uses annular regions: [0, 0.5], [0.5, 1], [1, 2.5], [2.5, 5], [5, 10], etc.
+        
+        Args:
+            points: Point cloud array (N x 5) with [x, y, z, intensity, ring]
+            distance_ranges: List of distance thresholds
+            
+        Returns:
+            Dictionary with distance-stratified density statistics
+        """
+        if len(points) == 0:
+            return {}
+        
+        # Calculate distances from origin for all points
+        distances = np.sqrt(points[:, 0]**2 + points[:, 1]**2 + points[:, 2]**2)
+        
+        density_by_range = {}
+        
+        # Define specific annular ranges with appropriate local density radius
+        annular_ranges = [
+            (0, 0.5, 0.25),      # [0, 0.5m] with 0.25m local radius
+            (0.5, 1, 0.25),      # [0.5, 1m] with 0.25m local radius  
+            (1, 2.5, 0.5),       # [1, 2.5m] with 0.5m local radius
+            (2.5, 5, 0.75),      # [2.5, 5m] with 0.75m local radius
+            (5, 10, 1.0),        # [5, 10m] with 1.0m local radius
+            (10, 25, 1.5),       # [10, 25m] with 1.5m local radius
+            (25, 50, 2.0),       # [25, 50m] with 2.0m local radius
+        ]
+        
+        for min_dist, max_dist, local_radius in annular_ranges:
+            # Skip ranges not in our distance_ranges list
+            if max_dist not in distance_ranges:
+                continue
+                
+            # Get points in this annular range
+            mask = (distances >= min_dist) & (distances < max_dist)
+            range_points = points[mask]
+            
+            range_name = f"{min_dist}_to_{max_dist}m"
+            
+            if len(range_points) > 0:
+                # Calculate local density for points in this range with appropriate radius
+                density_stats = self.calculate_local_density(range_points, local_radius)
+                density_by_range[range_name] = density_stats
+                print(f"    {range_name}: {len(range_points)} points, radius={local_radius}m, avg_neighbors={density_stats['mean_neighbors']:.2f}")
+            else:
+                # No points in this range
+                density_by_range[range_name] = {
+                    'mean_neighbors': 0,
+                    'std_neighbors': 0,
+                    'max_neighbors': 0,
+                    'min_neighbors': 0,
+                    'median_neighbors': 0,
+                    'neighbor_counts': []
+                }
+                print(f"    {range_name}: 0 points")
+        
+        return density_by_range
 
 
 def main():
-    """Main function to run the analysis based on configuration parameters."""
-    OUTPUT_DIR = "post_processing/lidar_analysis_output"  # Directory for results and plots
+    """Main function to run the range analysis based on configuration parameters."""
+    OUTPUT_DIR = "post_processing/lidar_analysis_output"  # Directory for results
     # Create output directory
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     scenes = ['2f0e54af35964a3fb347359836bec035', 
-              '2f0e54af35964a3fb347359836bec035_rainrate25',
-              '2f0e54af35964a3fb347359836bec035_rainrate50',
-              '2f0e54af35964a3fb347359836bec035_rainrate100',
-              'bcb05cffb5814973a6cff4fbdca2b99b', # Highway
-              '32185f91e68f4069ab3cdd2f4f1a4ff1',]
+              '2f0e54af35964a3fb347359836bec035_rainrate25',]
+    
+    # Collect CSV data from all scenes
+    all_csv_data = []
     
     try:
         # Initialize nuScenes
@@ -749,28 +774,25 @@ def main():
             
             try:
                 # Create analyzer
-                analyzer = LidarSceneAnalyzer(nusc, scene_token)
+                analyzer = LidarRangeAnalyzer(nusc, scene_token)
                 
-                # Run analysis
-                print(f"Starting analysis for scene: {scene_token}")
-                
-                # Point cloud size analysis
-                point_stats = analyzer.analyze_point_cloud_sizes()
-                
-                # Density analysis
-                density_stats = analyzer.analyze_point_density()
-                
-                # Temporal analysis
-                temporal_stats = analyzer.analyze_temporal_patterns()
+                # Run range analysis
+                print(f"Starting range analysis for scene: {scene_token}")
+                range_stats = analyzer.analyze_point_density()
                 
                 # Print summary and save to file
                 analyzer.print_summary(save_to_file=True, output_dir=scene_output_dir)
                 
-                # Generate plots
-                if GENERATE_PLOTS:
-                    analyzer.generate_plots(scene_output_dir)
+                # Collect CSV data for this scene
+                scene_csv_data = analyzer.get_csv_data()
+                all_csv_data.extend(scene_csv_data)
                 
-                print(f"Analysis complete for scene: {scene_token}")
+                # Save detailed results if requested
+                if SAVE_RESULTS:
+                    result_file = os.path.join(scene_output_dir, f"range_results_{safe_scene_name}.json")
+                    analyzer.save_results(result_file)
+                
+                print(f"Range analysis complete for scene: {scene_token}")
                 print(f"Results saved to: {scene_output_dir}")
                 
             except Exception as e:
@@ -779,8 +801,29 @@ def main():
                 traceback.print_exc()
                 continue
         
+        # Generate consolidated CSV file
+        if all_csv_data:
+            csv_file_path = os.path.join(OUTPUT_DIR, "distance_analysis.csv")
+            
+            with open(csv_file_path, 'w', newline='') as csvfile:
+                fieldnames = ['scene_name', 'distance', 'mean_percentage', 'std_dev_percentage', 'local_density_avg', 'local_density_std', 'global_density_avg', 'global_density_std']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                
+                # Write header
+                writer.writeheader()
+                
+                # Write data
+                for row in all_csv_data:
+                    writer.writerow(row)
+            
+            print(f"\n{'='*60}")
+            print(f"CSV file generated: {csv_file_path}")
+            print(f"Total rows: {len(all_csv_data)} (excluding header)")
+            print(f"Scenes processed: {len(set(row['scene_name'] for row in all_csv_data))}")
+            print(f"{'='*60}")
+        
         print(f"\n{'='*60}")
-        print("All scene analysis complete!")
+        print("All scene range analysis complete!")
         print(f"Results saved to: {OUTPUT_DIR}")
         print(f"{'='*60}")
         

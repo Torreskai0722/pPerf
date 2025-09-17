@@ -6,14 +6,106 @@ from nuscenes.nuscenes import NuScenes
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 import ast
+from typing import List, Dict, Optional, Union, Tuple
 
 
-# Set up NuScenes
-BASE = '/home/mg/pdnn/pPerf'
-# BASE = '/mmdetection3d_ros2'
-nusc = NuScenes(version='v1.0-mini', dataroot=f'{BASE}/data/nuscenes', verbose=False)
+# # # Set up NuScenes
+# BASE = '/home/mg/pdnn/pPerf'
+# # # BASE = '/mmdetection3d_ros2'
+# # nusc = NuScenes(version='v1.0-mini', dataroot=f'{BASE}/data/nuscenes', verbose=False)
 
-DELAY_DIR = f'{BASE}/outputs/nusc_scene0'  # Folder containing delay_{run_index}.csv
+# DELAY_DIR = f'{BASE}/outputs/nusc_scene0'  # Folder containing delay_{run_index}.csv
+
+def get_run_indices_by_models(mapping_file: str, 
+                            image_model: Optional[str] = None,
+                            lidar_model: Optional[Union[str, Tuple[str, str]]] = None,
+                            seg_model: Optional[Union[str, Tuple[str, str]]] = None,
+                            scene: Optional[str] = None,
+                            status_filter: str = 'success') -> List[int]:
+    """
+    Get run indices from a mapping CSV file based on model combinations.
+    
+    Args:
+        mapping_file: Path to the mapping CSV file
+        image_model: Image model name to filter by
+        lidar_model: LiDAR model name (can be string or tuple) to filter by
+        seg_model: Segmentation model name (can be string or tuple) to filter by
+        scene: Scene name to filter by
+        status_filter: Status to filter by (default: 'success')
+        
+    Returns:
+        List of run indices that match the criteria
+    """
+    if not os.path.exists(mapping_file):
+        raise FileNotFoundError(f"Mapping file not found: {mapping_file}")
+    
+    df = pd.read_csv(mapping_file)
+    
+    # Apply status filter
+    # if status_filter and 'status' in df.columns:
+    #     df = df[df['status'] == status_filter]
+    
+    # Apply scene filter
+    if scene and 'scene' in df.columns:
+        df = df[df['scene'] == scene]
+    
+    # Apply image model filter (skip if None)
+    if image_model is not None and 'image_model' in df.columns:
+        df = df[df['image_model'] == image_model]
+    
+    
+    # Apply lidar model filter (skip if None)
+    if lidar_model is not None and 'lidar_model' in df.columns:
+        if isinstance(lidar_model, tuple):
+            # Handle tuple format like ('model_name', 'dataset')
+            lidar_model_str = str(lidar_model)
+            df = df[df['lidar_model'] == lidar_model_str]
+        else:
+            # Handle string format - check if it's contained in the lidar_model field
+            df = df[df['lidar_model'].str.contains(lidar_model, na=False)]
+    
+    # Apply segmentation model filter (skip if None)
+    if seg_model is not None and 'seg_model' in df.columns:
+        if isinstance(seg_model, tuple):
+            # Handle tuple format like ('model_name', 'seg_type')
+            seg_model_str = str(seg_model)
+            df = df[df['seg_model'] == seg_model_str]
+        else:
+            # Handle string format - check if it's contained in the seg_model field
+            df = df[df['seg_model'].str.contains(seg_model, na=False)]
+    
+    return df['run_index'].tolist()
+
+def extract_rain_rate_from_scene(scene_name: str) -> int:
+    """
+    Extract rain rate from scene name. Returns 0 for baseline (no rain).
+    
+    Args:
+        scene_name: Scene name that may contain rain rate information
+        
+    Returns:
+        Rain rate as integer (0 for baseline)
+    """
+    if '_rainrate' in scene_name:
+        try:
+            return int(scene_name.split('_rainrate')[1])
+        except:
+            return 0
+    return 0
+
+def get_baseline_scene_name(scene_name: str) -> str:
+    """
+    Get the baseline scene name (without rain rate suffix).
+    
+    Args:
+        scene_name: Scene name that may contain rain rate information
+        
+    Returns:
+        Base scene name without rain rate suffix
+    """
+    if '_rainrate' in scene_name:
+        return scene_name.split('_rainrate')[0]
+    return scene_name
 
 def count_points(token):
     try:

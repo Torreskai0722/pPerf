@@ -12,7 +12,7 @@ from pathlib import Path
 
 # Configuration
 ORIGINAL_SCENE_TOKEN = "2f0e54af35964a3fb347359836bec035"
-RAIN_INTENSITIES = [25, 50, 100]
+RAIN_INTENSITIES = [25, 50, 65, 90, 100]
 
 # File paths
 SCENE_JSON_PATH = "data/nuscenes/v1.0-trainval/scene.json"
@@ -47,6 +47,14 @@ def find_original_scene(scene_data):
         if scene.get("token") == ORIGINAL_SCENE_TOKEN:
             return scene
     return None
+
+def check_existing_rain_scene(scene_data, rain_intensity):
+    """Check if rain scene for this intensity already exists."""
+    rain_token = f"{ORIGINAL_SCENE_TOKEN}_rainrate{rain_intensity}"
+    for scene in scene_data:
+        if scene.get("token") == rain_token:
+            return True
+    return False
 
 def find_samples_for_scene(sample_data, first_sample_token, last_sample_token):
     """Find all samples for a given scene."""
@@ -184,6 +192,11 @@ def main():
     for rain_intensity in RAIN_INTENSITIES:
         print(f"\nProcessing rain intensity {rain_intensity}...")
         
+        # Check if rain scene already exists
+        if check_existing_rain_scene(scene_data, rain_intensity):
+            print(f"Rain scene for intensity {rain_intensity} already exists. Skipping.")
+            continue
+
         # Create rain scene entry
         rain_scene = create_rain_scene_entry(original_scene, rain_intensity)
         
@@ -218,6 +231,11 @@ def create_template_entries(original_scene):
     
     for rain_intensity in RAIN_INTENSITIES:
         print(f"\nProcessing rain intensity {rain_intensity}...")
+        
+        # Check if rain scene already exists
+        if check_existing_rain_scene(scene_data, rain_intensity):
+            print(f"Rain scene for intensity {rain_intensity} already exists. Skipping.")
+            continue
         
         # Create rain scene entry
         rain_scene = create_rain_scene_entry(original_scene, rain_intensity)

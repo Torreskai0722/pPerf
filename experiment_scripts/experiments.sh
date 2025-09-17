@@ -1,0 +1,3 @@
+python3 /mmdetection3d_ros2/experiment_scripts/det3d_seg.py
+python3 /mmdetection3d_ros2/experiment_scripts/dets.py
+python3 /mmdetection3d_ros2/experiment_scripts/models_base.py

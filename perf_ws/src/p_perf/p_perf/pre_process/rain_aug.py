@@ -7,13 +7,11 @@ from pylisa.lisa import Lisa
 import os
 import json
 from p_perf.utils import load_sweep_sd
-from p_perf.nuscenes_instance import get_nuscenes_instance
 import imgaug.augmenters as iaa
 import cv2
 from PIL import Image
 
-
-
+from nuscenes.nuscenes import NuScenes
 
 
 
@@ -85,7 +83,7 @@ def aug_image_rain(rain_rate, image_file, output_file):
 
 
 if __name__=='__main__':
-    nusc = get_nuscenes_instance()
+    nusc = NuScenes(version='v1.0-trainval', dataroot='/mnt/nas/Nuscenes')
     scene_token = '2f0e54af35964a3fb347359836bec035'
 
     scene = nusc.get('scene', scene_token)  
@@ -96,7 +94,7 @@ if __name__=='__main__':
 
     data_dir = '/mnt/nas/Nuscenes'
     weather = 'rain'
-    rain_rate = [25, 50, 100]
+    rain_rate = [65, 90]
 
     output_dir = f'/mmdetection3d_ros2/data/nuscenes/rain'
 

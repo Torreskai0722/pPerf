@@ -24,11 +24,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            f'sensor_publish_node = {package_name}.sensor_publisher:main',
-            f'inference_node = {package_name}.inferencer:main',
-            f"sensor_replay_node = {package_name}.sensor_replayer:main",
-            f'inferencer_ms_node = {package_name}.inferencer_ms:main',
-            f'test_node = {package_name}.timediff_test:main',
+            f'sensor_publish_node = {package_name}.test_bed.sensor_publisher:main',
+            f'det_inference_node = {package_name}.test_bed.det_inferencer:main',
+            f'seg_inference_node = {package_name}.test_bed.seg_inferencer:main',
+            f"sensor_replay_node = {package_name}.test_bed.sensor_replayer:main",
+            f'inference_ms_node = {package_name}.test_bed.inferencer_ms:main',
         ],
     },
 )
