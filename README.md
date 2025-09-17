@@ -1,120 +1,16 @@
-# perf_ws
+# pPerf: Multi-Tenant DNN Inference Predictability Profiler
 
-**Multi-Tenant DNN Inference Profiling for Autonomous Driving**
+pPerf is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. The toolkit supports single- and multi-model inference with LiDAR, image, and multi-modal (BEVFusion) models using ROS 2 for real-time and offline replay. It includes profiling tools for timing, GPU/CPU usage, and NVTX-based CUDA tracing. Data can be published from NuScenes or replayed from ROS 2 bags. Logs include timing, predictions, and resource usage in JSON/CSV. Post-processing tools provide kernel, layer, and system-level analysis, with scripts for running standard benchmarks.
 
-perf_ws is a suite of tools for profiling, benchmarking, and analyzing multi-model DNN inference pipelines for autonomous driving. It supports both LiDAR and camera (image) modalities, and is designed for use with the NuScenes dataset. perf_ws helps you understand, debug, and optimize inference pipelines running on CPUs and GPUs.
-
----
-
-## TODO
-
-- [ ] Fix the multi-modal profiling pipeline
-
----
-
-## Features
-
-perf_ws offers a number of tools to analyze and visualize the performance of your models across multiple GPU and data streams. Some of the key features include:
-
-- **Profiling & Monitoring:**  
-  - Fine-grained timing and call-depth profiling of DNN models (`pPerf.py`)
-  - GPU and CPU utilization monitoring (NVML, psutil)
-  - NVTX marker insertion for CUDA profiling
-
-- **Flexible Inference Pipelines:**  
-  - Single-model and multi-model (multi-threaded) inference nodes
-  - Support for LiDAR, image, and multi-modal (BEVFusion) models
-  - Real-time ROS2-based streaming and offline bag replay
-
-- **Data Publishing & Replay:**  
-  - Publish preloaded NuScenes data as ROS2 messages (`sensor_publisher.py`)
-  - Replay recorded ROS2 bag files for offline benchmarking (`sensor_replayer.py`)
-
-- **Comprehensive Logging:**  
-  - Detailed timing logs (communication, decode, inference, end-to-end)
-  - Output predictions and resource usage to JSON/CSV
-
-- **Demos & Example Scripts:**
-  - Ready-to-run experiment scripts for common scenarios and benchmarking (`experiment_scripts/`)
-
-- **Post-Processing & Analysis:**
-  - Tools for analyzing layer-wise, kernel-level, and end-to-end performance (`post_processing/`)
-  - Visualization and reporting utilities for in-depth analysis
-
----
-
-## Demo
-
-**First time user?**  
-Check out the [Demos & Example Scripts](#demos--example-scripts) below to get started quickly.
-
----
-
-## Installation
-
-The easiest way to get started with perf_ws is using Docker. We provide a pre-configured Docker environment with all dependencies installed.
-
-### Using Docker
-
-1. **Build the Docker image:**
-   ```bash
-   docker build -t perf_ws -f Docker/pPerf.Dockerfile .
-   ```
-
-2. **Run the container:**
-   ```bash
-   docker run -it --gpus all -v $(pwd):/workspace perf_ws
-   ```
-
-3. **Inside the container, build the ROS2 workspace:**
-   ```bash
-   cd /workspace/perf_ws
-   colcon build
-   source install/setup.bash
-   ```
-
-### Manual Installation (Advanced)
-
-If you prefer to install dependencies manually, you'll need:
-
-- **Software:**
-  - ROS2 (Humble or later)
-  - Python 3.8+
-  - PyTorch, MMDetection3D, OpenCV, NumPy, pandas, etc.
-  - NVIDIA GPU (for CUDA profiling and inference)
-  - NuScenes dataset (mini or full)
-
-- **Important Library Versions:**
-  - CUDA Driver: 525.60.13 or higher
-  - CUDA Toolkit: 12.5
-  - PyTorch: 2.0+ (with CUDA support)
-  - MMDetection3D: Latest stable release
-  - ROS2: Humble or later
-
-- **NVIDIA GPU drivers and CUDA Toolkit:**
-  - CUDA 12.5 requires 525.60.13 and higher.
-  - Ensure that CUPTI is available on your path:
-    ```bash
-    $ /sbin/ldconfig -N -v $(sed 's/:/ /g' <<< $LD_LIBRARY_PATH) | grep libcupti
-    ```
-    If you don't see the correct `libcupti.so`, prepend its installation directory to your `LD_LIBRARY_PATH`:
-    ```bash
-    $ export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
-    ```
-    If this doesn't work, try:
-    ```bash
-    $ sudo apt-get install libcupti-dev
-    ```
-
----
+![pPerf Design](./assets/pPerf.png "pPerf")
 
 ## Quick Start
 
-1. **Install dependencies**  
-   Make sure you have all prerequisites installed (see above).
+1. **Install**  
+   Follow this to setup: [INSTALL.md](doc/INSTALL.md).
 
 2. **Prepare your data**  
-   Download and extract the NuScenes dataset. Update paths in your config if needed.
+   Download and extract the NuScenes dataset. Update paths in your config if needed. See [DATA.md](doc/DATA.md).
 
 3. **Launch the pipeline**
 
@@ -139,32 +35,14 @@ If you prefer to install dependencies manually, you'll need:
    - Profiling outputs (timing, GPU/CPU stats) are saved in your specified data directory.
    - Analyze logs and outputs for performance, accuracy, and resource usage.
 
----
 
-## Data Setup
-
-For detailed information about data organization, directory structure, and setup instructions, see [DATA.md](DATA.md).
-
----
-
-## Demos & Example Scripts
-
-The `experiment_scripts/` directory contains ready-to-run scripts for common experiments, benchmarking, and ablation studies. These scripts demonstrate how to use the core pipeline for different scenarios, including:
-
-- Multi-model scheduling and resource sharing
-- Priority-based and round-robin inference
-- Model complexity analysis
-- LiDAR and image base experiments
-- Multi-modal fusion experiments
-
+## Demos
 For detailed documentation on the experiment scripts, see [experiment_scripts/README.md](experiment_scripts/README.md).
 
 To run a demo, simply execute the desired script, e.g.:
 ```bash
 python experiment_scripts/bag_test.py
 ```
-
----
 
 ## Post-Processing & Analysis
 
@@ -177,23 +55,13 @@ The `tools/` directory provides a suite of tools for in-depth analysis of your e
 
 These tools help you interpret the results, identify bottlenecks, and optimize your models and pipelines.
 
----
+## TODO
+
+- [ ] Fix the multi-modal profiling pipeline
 
 ## Acknowledgments
 
-perf_ws builds upon and integrates with several external tools and datasets:
+pPerf builds upon and integrates atop: [LISA](https://github.com/velatkilic/LISA), [nuscenes_to_rosbag](https://github.com/WATonomous/nuscenes_to_ros2bag), [NuScenes](https://www.nuscenes.org/), [DINO](https://github.com/IDEA-Research/DINO?tab=readme-ov-file).
 
-- **LISA**: Atmospheric simulation and weather effects for autonomous driving scenarios
-- **nuscenes_to_rosbag**: Tools for converting NuScenes dataset to ROS2 bag format
-- **NuScenes**: The 3D object detection dataset used for benchmarking and evaluation
-- **DINO**: Vision transformer model for self-supervised learning and object detection
-
-We thank the respective authors and contributors for making these resources available to the community.
-
----
-
-Let us know if you have questions or want to contribute!
-
----
 
 **Happy profiling! 🚗📊**
