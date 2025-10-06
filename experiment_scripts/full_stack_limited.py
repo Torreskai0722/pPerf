@@ -36,7 +36,7 @@ OVERWRITE = True
 LOGGING_DELAY = False
 
 # Parameter sweep setup
-scenes = ['2f0e54af35964a3fb347359836bec035']
+scenes = ['2f0e54af35964a3fb347359836bec035', '2f0e54af35964a3fb347359836bec035_rainrate25', '2f0e54af35964a3fb347359836bec035_rainrate100']
 depths = [0]
 image_queues = [1]
 lidar_queues = [1]

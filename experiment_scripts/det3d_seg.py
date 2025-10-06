@@ -28,17 +28,24 @@ nsys_base = [
 ]
 
 bag_dir = "/mmdetection3d_ros2/data/"
-OVERWRITE = False
-CONTINUE = True  # Set to True to continue from existing mapping file
+OVERWRITE = True
+CONTINUE = False  # Set to True to continue from existing mapping file
 LOGGING_DELAY = False
 
 # Parameter sweep setup
-scenes = ['2f0e54af35964a3fb347359836bec035_rainrate65', '2f0e54af35964a3fb347359836bec035_rainrate90', '2f0e54af35964a3fb347359836bec035_rainrate100']
-depths = [-1]
+scenes = ['2f0e54af35964a3fb347359836bec035', '2f0e54af35964a3fb347359836bec035_rainrate25']
+depths = [0]
 image_queues = [1]
 lidar_queues = [1]
 publishing_rate = [10]
-output_name = "det_1L1S-2"
+
+# MPS percentage pairs (det, seg) that add up to 100
+mps_percentage_pairs = [
+    (90, 10), (85, 15), (80, 20), (75, 25), (70, 30), (65, 35), (60, 40), (55, 45), (50, 50),
+    (45, 55), (40, 60), (35, 65), (30, 70), (25, 75), (20, 80), (15, 85), (10, 90)
+]
+
+output_name = "det_1L1S-MPS-2"
 
 output_base = f"/mmdetection3d_ros2/outputs/{output_name}"
 os.makedirs(output_base, exist_ok=True)
@@ -47,14 +54,14 @@ os.makedirs(output_base, exist_ok=True)
 base_config_file = os.path.join(output_base, "base_config.yaml")
 manager = pPerfConfigManager(base_config_file)
 manager.create_base_config(
-    num_det_inferencers=1,  # LiDAR + Image detection
+    num_det_inferencers=1,  # LiDAR detection
     num_seg_inferencers=1,  # Segmentation
     use_sim_time=True,
     logging_delay=LOGGING_DELAY
 )
 
 # Create combinations for full stack testing
-combinations = list(product(depths, seg_models, lidar_models, scenes, image_queues, lidar_queues, publishing_rate))
+combinations = list(product(depths, seg_models, lidar_models, scenes, image_queues, lidar_queues, publishing_rate, mps_percentage_pairs))
 
 # Create mapping CSV with all combinations marked "pending"
 mapping_file = os.path.join(output_base, "full_stack_mapping.csv")
@@ -63,9 +70,10 @@ if OVERWRITE and not CONTINUE:
     # Complete overwrite - create new mapping file
     with open(mapping_file, mode='w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["run_index", "scene", "depth", "seg_model", "lidar_model", "image_queue", "lidar_queue", "publishing_rate", "status", "start_time"])
-        for i, (depth, seg_model, lidar_model, scene, img_q, lidar_q, publishing_rate) in enumerate(combinations):
-            writer.writerow([i, scene, depth, seg_model, lidar_model, img_q, lidar_q, publishing_rate, "pending", ""])
+        writer.writerow(["run_index", "scene", "depth", "seg_model", "lidar_model", "image_queue", "lidar_queue", "publishing_rate", "det_mps_percentage", "seg_mps_percentage", "status", "start_time"])
+        for i, (depth, seg_model, lidar_model, scene, img_q, lidar_q, pub_rate, mps_pair) in enumerate(combinations):
+            det_mps, seg_mps = mps_pair
+            writer.writerow([i, scene, depth, seg_model, lidar_model, img_q, lidar_q, pub_rate, det_mps, seg_mps, "pending", ""])
 elif CONTINUE and os.path.exists(mapping_file):
     # Continue mode - load existing mapping and add new combinations if any
     existing_df = pd.read_csv(mapping_file)
@@ -74,7 +82,8 @@ elif CONTINUE and os.path.exists(mapping_file):
     start_index = len(existing_df)
     new_combinations = []
     
-    for i, (depth, seg_model, lidar_model, scene, img_q, lidar_q, publishing_rate) in enumerate(combinations):
+    for i, (depth, seg_model, lidar_model, scene, img_q, lidar_q, pub_rate, mps_pair) in enumerate(combinations):
+        det_mps, seg_mps = mps_pair
         # Check if this combination already exists
         combo_exists = False
         for _, row in existing_df.iterrows():
@@ -84,12 +93,14 @@ elif CONTINUE and os.path.exists(mapping_file):
                 str(row["lidar_model"]) == str(lidar_model) and
                 row["image_queue"] == img_q and 
                 row["lidar_queue"] == lidar_q and 
-                row["publishing_rate"] == publishing_rate):
+                row["publishing_rate"] == pub_rate and
+                row["det_mps_percentage"] == det_mps and
+                row["seg_mps_percentage"] == seg_mps):
                 combo_exists = True
                 break
         
         if not combo_exists:
-            new_combinations.append([start_index + len(new_combinations), scene, depth, seg_model, lidar_model, img_q, lidar_q, publishing_rate, "pending", ""])
+            new_combinations.append([start_index + len(new_combinations), scene, depth, seg_model, lidar_model, img_q, lidar_q, pub_rate, det_mps, seg_mps, "pending", ""])
     
     # Append new combinations to existing file
     if new_combinations:
@@ -129,6 +140,8 @@ for i, row in df.iterrows():
     img_q = row["image_queue"]
     lidar_q = row["lidar_queue"]
     publishing_rate = row["publishing_rate"]
+    det_mps_percentage = row["det_mps_percentage"]
+    seg_mps_percentage = row["seg_mps_percentage"]
 
     prefix = f"{output_base}/test_run_{i}"
 
@@ -154,30 +167,44 @@ for i, row in df.iterrows():
                 'inferencer_index': 0,
                 'mode': "lidar",
                 'model_name': lidar_model_name,
-                'data_dir': output_base
+                'data_dir': output_base,
+                'cuda_mps_thread_percentage': det_mps_percentage
             },
             {
                 'section': 'seg_inferencers',
                 'inferencer_index': 0,
                 'mode': seg_mode,
                 'model_name': seg_model_name,
-                'data_dir': output_base
+                'data_dir': output_base,
+                'cuda_mps_thread_percentage': seg_mps_percentage
             }
         ]
         
         # Update all inferencers in a loop
         for config in inferencer_configs:
+            # Extract MPS percentage if it exists for this config
+            mps_percentage = config.pop('cuda_mps_thread_percentage', None)
+            
+            # Base parameters for all inferencers
+            update_params = {
+                'mode': config['mode'],
+                'model_name': config['model_name'],
+                'index': i,  # experiment run index
+                'data_dir': config['data_dir'],
+                'lidar_model_mode': lidar_mode,
+                #QoS
+                'lidar_queue': lidar_q,
+                'image_queue': img_q
+            }
+            
+            # Add MPS percentage if specified
+            if mps_percentage is not None:
+                update_params['cuda_mps_thread_percentage'] = mps_percentage
+            
             manager.update_inferencer(
                 config['section'], 
                 config['inferencer_index'],
-                mode=config['mode'],
-                model_name=config['model_name'],
-                index=i,  # experiment run index
-                data_dir=config['data_dir'],
-                lidar_model_mode=lidar_mode,
-                #QoS
-                lidar_queue=lidar_q,
-                image_queue=img_q
+                **update_params
             )
         
         # Save the updated configuration
