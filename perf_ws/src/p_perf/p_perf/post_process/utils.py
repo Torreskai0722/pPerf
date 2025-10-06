@@ -17,21 +17,17 @@ from typing import List, Dict, Optional, Union, Tuple
 # DELAY_DIR = f'{BASE}/outputs/nusc_scene0'  # Folder containing delay_{run_index}.csv
 
 def get_run_indices_by_models(mapping_file: str, 
-                            image_model: Optional[str] = None,
-                            lidar_model: Optional[Union[str, Tuple[str, str]]] = None,
-                            seg_model: Optional[Union[str, Tuple[str, str]]] = None,
-                            scene: Optional[str] = None,
-                            status_filter: str = 'success') -> List[int]:
+                            status_filter: str = 'success',
+                            **filter_params) -> List[int]:
     """
-    Get run indices from a mapping CSV file based on model combinations.
+    Get run indices from a mapping CSV file based on model combinations and other filters.
     
     Args:
         mapping_file: Path to the mapping CSV file
-        image_model: Image model name to filter by
-        lidar_model: LiDAR model name (can be string or tuple) to filter by
-        seg_model: Segmentation model name (can be string or tuple) to filter by
-        scene: Scene name to filter by
         status_filter: Status to filter by (default: 'success')
+        **filter_params: Additional filters as key-value pairs where the key is the column name
+            in the mapping CSV and the value is the filter value. Special handling for:
+            - lidar_model, seg_model: Support both exact match (for tuples) and contains (for strings)
         
     Returns:
         List of run indices that match the criteria
@@ -45,34 +41,31 @@ def get_run_indices_by_models(mapping_file: str,
     # if status_filter and 'status' in df.columns:
     #     df = df[df['status'] == status_filter]
     
-    # Apply scene filter
-    if scene and 'scene' in df.columns:
-        df = df[df['scene'] == scene]
-    
-    # Apply image model filter (skip if None)
-    if image_model is not None and 'image_model' in df.columns:
-        df = df[df['image_model'] == image_model]
-    
-    
-    # Apply lidar model filter (skip if None)
-    if lidar_model is not None and 'lidar_model' in df.columns:
-        if isinstance(lidar_model, tuple):
-            # Handle tuple format like ('model_name', 'dataset')
-            lidar_model_str = str(lidar_model)
-            df = df[df['lidar_model'] == lidar_model_str]
+    # Apply filters from filter_params
+    for column_name, filter_value in filter_params.items():
+        if filter_value is None:
+            continue
+            
+        if column_name not in df.columns:
+            continue
+            
+        print(f"Filtering by {column_name} with value {filter_value}")
+        
+        # Handle special cases for model filters that support tuple/string contains logic
+        if column_name in ['lidar_model', 'seg_model']:
+            if isinstance(filter_value, tuple):
+                # Handle tuple format like ('model_name', 'dataset')
+                df = df[df[column_name] == str(filter_value)]
+            else:
+                # Handle string format - check if it's contained in the model field
+                # The CSV contains quoted strings like "('model_name', 'dataset')"
+                # We need to check if our filter_value is contained within these strings
+                contains_mask = df[column_name].astype(str).str.contains(filter_value, na=False, regex=False)
+                print(f"Found {contains_mask.sum()} matches for '{filter_value}' in {column_name}")
+                df = df[contains_mask]
         else:
-            # Handle string format - check if it's contained in the lidar_model field
-            df = df[df['lidar_model'].str.contains(lidar_model, na=False)]
-    
-    # Apply segmentation model filter (skip if None)
-    if seg_model is not None and 'seg_model' in df.columns:
-        if isinstance(seg_model, tuple):
-            # Handle tuple format like ('model_name', 'seg_type')
-            seg_model_str = str(seg_model)
-            df = df[df['seg_model'] == seg_model_str]
-        else:
-            # Handle string format - check if it's contained in the seg_model field
-            df = df[df['seg_model'].str.contains(seg_model, na=False)]
+            # Handle standard equality filters
+            df = df[df[column_name] == filter_value]
     
     return df['run_index'].tolist()
 

@@ -40,9 +40,9 @@ image_classes = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian']
 
 image_models = [    
     'faster-rcnn_r50_fpn_1x_coco',      # TWO STAGE
-    # 'yolov3_d53_mstrain-608_273e_coco', # ONE STAGE ANCHOR
+    'yolov3_d53_mstrain-608_273e_coco', # ONE STAGE ANCHOR
     # 'yolox_x_8x8_300e_coco',            # ONE STAGE ANCHOR FREE
-    # 'detr_r50_8xb2-150e_coco'           # TRANSFORMER
+    'detr_r50_8xb2-150e_coco'           # TRANSFORMER
 ]
 
 lidar_models = [
@@ -50,7 +50,7 @@ lidar_models = [
     ('centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d', 'nus'),        # VOXEL BASED
     # ('hv_ssn_regnet-400mf_secfpn_sbn-all_16xb2-2x_nus-3d', 'nus'),      # VOXEL BASED
     ('3dssd_4x4_kitti-3d-car', 'kitti-car'),                       # POINT BASED
-    # ('pv_rcnn_8xb2-80e_kitti-3d-3class', 'kitti-3class'),             # POINT + VOXEL (Hybrid)
+    ('pv_rcnn_8xb2-80e_kitti-3d-3class', 'kitti-3class'),             # POINT + VOXEL (Hybrid)
 ]
 
 seg_models = [
@@ -58,9 +58,9 @@ seg_models = [
     # ('gcnet_mask_rcnn_r50_fpn_3x_ins_seg_bdd100k', 'ins_seg'),    # Instance segmentation: CNN based
     # ('mask_rcnn_hrnetv2p_w18_1x_ins_seg_bdd100k', 'ins_seg'),    # Instance segmentation: CNN based
     # ('panoptic_fpn_r50_fpn_1x_pan_seg_bdd100k', 'pan_seg'),       # Panoptic segmentation
-    # ('upernet_swin-t_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: transformer based
+    ('upernet_swin-t_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: transformer based
     # ('fcn_hr48_512x1024_80k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation : CNN based
-    # ('deeplabv3+_r50-d8_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: CNN based
+    ('deeplabv3+_r50-d8_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: CNN based
 ]
 
 # Model name mappings for shorter display names

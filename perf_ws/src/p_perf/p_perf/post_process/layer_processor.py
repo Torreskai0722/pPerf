@@ -253,77 +253,85 @@ class LayerProcessor:
         self.logger.info(f"Saved combined timings to: {combined_file}")
     
     def plot_layer_boxplot(self, 
-                          run_indices: List[int], 
                           layer_name: str, 
-                          model_name: str,
+                          target_model: str,
                           mapping_file: str,
                           metric: str,
                           save_plot: bool = True,
                           remove_outliers: bool = True,
-                          figsize: Tuple[int, int] = (10, 6)) -> None:
+                          figsize: Tuple[int, int] = (10, 6),
+                          **filter_params) -> None:
         """
-        Create a box plot of layer timings for specified run indices, layer, and model.
+        Create a box plot of layer timings for runs selected by filtering criteria.
         
         Args:
-            run_indices: List of run indices to include in the plot
             layer_name: Name of the layer to plot (e.g., 'inference', 'e2e', 'data_preprocessing')
-            model_name: Name of the model to plot
+            target_model: Name of the target model to analyze in the timing data
             mapping_file: Path to the mapping CSV file
-            metric: Column name from mapping CSV to include as metric data
+            metric: Column name from mapping CSV to use for x-axis grouping
             save_plot: Whether to save the plot to file
-            remove_outliers: Whether to remove outliers using IQR method (default: True)
+            remove_outliers: Whether to remove outliers using IQR method
             figsize: Figure size as (width, height) tuple
+            **filter_params: Filters as column_name=value pairs. Column names must match CSV exactly.
+                Special handling for lidar_model/seg_model (supports tuple and string contains)
         """
-        self.logger.info(f"Creating box plot for layer '{layer_name}' and model '{model_name}' across {len(run_indices)} runs")
+        self.logger.info(f"Creating box plot for layer '{layer_name}' and model '{target_model}'")
+        self.logger.info(f"Applied filters: {filter_params}")
         
-        # Load mapping CSV after the logger info
+        # Get run indices based on filters
+        run_indices = get_run_indices_by_models(
+            str(self.output_dir / mapping_file),
+            **filter_params
+        )
+        
+        if not run_indices:
+            self.logger.error("No runs found matching the specified criteria")
+            return
+            
+        self.logger.info(f"Found {len(run_indices)} matching runs: {run_indices}")
+        
+        # Load mapping data
         mapping_df = self.load_mapping_csv(mapping_file)
         
-        # Collect timing data for all specified run indices
+        # Collect timing data
         all_timings = []
         
         for run_idx in run_indices:
             try:
-                # Load timings for this run
+                # Load and filter timing data
                 timings_df = self.load_layer_timings(run_idx)
-                
-                # Filter for the specific layer and model
-                filtered_data = timings_df[
+                layer_data = timings_df[
                     (timings_df['Layer'] == layer_name) & 
-                    (timings_df['Model'] == model_name)
+                    (timings_df['Model'] == target_model)
                 ]
                 
-                # Get metric value from mapping CSV for this run_index
-                metric_value = None
-                matching_rows = mapping_df[mapping_df['run_index'] == run_idx]
-                if len(matching_rows) > 0:
-                    if metric in matching_rows.columns:
-                        metric_value = matching_rows.iloc[0][metric]
-                    else:
-                        self.logger.warning(f"Metric '{metric}' not found in mapping CSV columns")
-                else:
-                    self.logger.warning(f"Run index {run_idx} not found in mapping CSV")
+                # Get metric value for this run
+                run_data = mapping_df[mapping_df['run_index'] == run_idx]
+                metric_value = run_data.iloc[0][metric] if len(run_data) > 0 and metric in run_data.columns else None
                 
-                if len(filtered_data) > 0:
-                    # Add the timing data with run index label and metric
-                    for _, row in filtered_data.iterrows():
-                        all_timings.append({
-                            'run_index': run_idx,
-                            'elapsed_time': row['Elapsed Time'],
-                            'metric': metric_value
-                        })
-                else:
-                    self.logger.warning(f"No data found for layer '{layer_name}' and model '{model_name}' in run {run_idx}")
+                if metric_value is None:
+                    self.logger.warning(f"No metric '{metric}' found for run {run_idx}")
+                
+                # Add timing records
+                for _, timing_row in layer_data.iterrows():
+                    all_timings.append({
+                        'run_index': run_idx,
+                        'elapsed_time': timing_row['Elapsed Time'],
+                        'metric': metric_value
+                    })
+                    
+                if len(layer_data) == 0:
+                    self.logger.warning(f"No timing data for layer '{layer_name}' and model '{target_model}' in run {run_idx}")
                     
             except FileNotFoundError:
-                self.logger.warning(f"Layer timings file not found for run {run_idx}")
+                self.logger.warning(f"Timing file not found for run {run_idx}")
                 continue
         
         if not all_timings:
-            self.logger.error(f"No timing data found for layer '{layer_name}' and model '{model_name}' across specified runs")
+            self.logger.error(f"No timing data found for layer '{layer_name}' and model '{target_model}'")
             return
         
-        # Convert to DataFrame for plotting
+        # Prepare plot data
         plot_df = pd.DataFrame(all_timings)
         
         # Remove outliers if requested
@@ -334,55 +342,47 @@ class LayerProcessor:
             if removed_count > 0:
                 self.logger.info(f"Removed {removed_count} outliers from {original_count} data points")
         
-        # Set seaborn style and context for larger text
-        sns.set_style("white")  # Clean white background without grid
-        sns.set_context("poster", font_scale=1.2)  # Use poster context for large text
+        # Create plot
+        sns.set_style("white")
+        sns.set_context("poster", font_scale=1.2)
         
-        # Create the box plot
         plt.figure(figsize=figsize)
+        ax = sns.boxplot(
+            data=plot_df, 
+            x='metric', 
+            y='elapsed_time',
+            boxprops=dict(facecolor='white', edgecolor='black', linewidth=1.5),
+            medianprops=dict(color='orange', linewidth=3),
+            whiskerprops=dict(color='black', linewidth=1.5),
+            capprops=dict(color='black', linewidth=1.5),
+            flierprops=dict(marker='o', markerfacecolor='white', 
+                          markeredgecolor='black', markersize=6, alpha=0.7)
+        )
         
-        # Use seaborn for better-looking box plots matching the reference style
-        ax = sns.boxplot(data=plot_df, x='metric', y='elapsed_time', 
-                        boxprops=dict(facecolor='white', edgecolor='black', linewidth=1.5),
-                        medianprops=dict(color='orange', linewidth=3),
-                        whiskerprops=dict(color='black', linewidth=1.5),
-                        capprops=dict(color='black', linewidth=1.5),
-                        flierprops=dict(marker='o', markerfacecolor='white', 
-                                      markeredgecolor='black', markersize=6, alpha=0.7))
-        
-        # Customize the plot using seaborn
-        # ax.set_title(f'Layer Timing Distribution: {layer_name} ({model_name})', 
-        #             fontsize=20, fontweight='bold', pad=20)
-        ax.set_xlabel('')  # Remove x-axis label
-        ax.set_ylabel('')  # Remove y-axis label
-        
-        # Rotate x-axis labels if needed
-        # plt.xticks(rotation=45, ha='right')
-        
-        # Adjust layout to prevent label cutoff
+        # Clean plot appearance
+        ax.set_xlabel('')
+        ax.set_ylabel('')
         plt.tight_layout()
         
-        # Save the plot if requested
+        # Save plot
         if save_plot:
-            plot_filename = f"boxplot_{layer_name}_{model_name}_runs_{'_'.join(map(str, run_indices))}.png"
-            plot_path = self.output_dir / plot_filename
+            # Generate filename from filters
+            filter_parts = [f"{k}_{str(v).replace('/', '_').replace(' ', '_')}" 
+                          for k, v in filter_params.items() if v is not None]
+            filter_suffix = "_".join(filter_parts) if filter_parts else "all"
+            
+            filename = f"boxplot_{layer_name}_{target_model.replace('/', '_')}_{sum(run_indices)}.png"
+            plot_path = self.output_dir / filename
             plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-            self.logger.info(f"Saved box plot to: {plot_path}")
+            self.logger.info(f"Saved plot: {plot_path}")
         
-
+        plt.show()
         plt.close()
         
         # Log summary statistics
-        summary_stats = plot_df.groupby('run_index')['elapsed_time'].describe()
-        self.logger.info(f"Summary statistics for {layer_name} ({model_name}):")
-        self.logger.info(f"\n{summary_stats}")
-        
-        # Log metric information
-        if 'metric' in plot_df.columns:
-            metric_info = plot_df[['run_index', 'metric']].drop_duplicates()
-            self.logger.info(f"Metric '{metric}' values by run_index:")
-            for _, row in metric_info.iterrows():
-                self.logger.info(f"  Run {row['run_index']}: {row['metric']}")
+        stats = plot_df.groupby('metric')['elapsed_time'].describe()
+        self.logger.info(f"Summary statistics for {layer_name} ({target_model}):")
+        self.logger.info(f"\n{stats}")
 
     def plot_rain_rate_analysis(self, 
                                rain_output_dir: str,
