@@ -1,7 +1,7 @@
 import csv
 from collections import defaultdict
 from p_perf.nuscenes_instance import get_nuscenes_instance
-from p_perf.utils import load_sweep_sd
+from p_perf.general_utils import load_sweep_sd
 import os
 
 def analyze_flops(nusc, csv_file: str, sensor_type: str = 'lidar', scene_token: str = None) -> dict:

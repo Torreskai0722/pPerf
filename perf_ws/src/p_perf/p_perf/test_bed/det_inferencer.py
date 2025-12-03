@@ -23,7 +23,7 @@ import cv2
 from p_perf.pPerf import pPerf
 from p_perf.pPerf_inferencer import pPerf3dDetInferencer, pPerf2dDetInferencer
 
-from p_perf.utils import convert_to_kitti_ros
+from p_perf.general_utils import convert_to_kitti_ros
 
 
 warnings.filterwarnings("ignore")
@@ -135,8 +135,11 @@ class DetInferenceNode(Node):
         elif self.mode == 'image':
             self.subscriber = self.create_subscription(CompressedImage, 'image_data/CAM_FRONT', self.image_callback, self.image_qos)
 
-        # Subscribe to termination signal
+        # Subscribe to termination signals
         self.create_subscription(String, 'terminate_inferencers', self._terminate_callback, 5)
+        
+        # Subscribe to targeted termination signal
+        self.create_subscription(String, 'terminate_inferencer', self._terminate_targeted_callback, 10)
 
     def _init_warmup(self):
         """Initialize warmup - can be overridden by child classes"""
@@ -158,8 +161,6 @@ class DetInferenceNode(Node):
 
     def _announce_pid(self):
         """Announce the PID of the inferencer to the resource manager."""
-        import json
-        
         pid = os.getpid()
         announcement = {
             'pid': pid,
@@ -274,10 +275,28 @@ class DetInferenceNode(Node):
         return dict(points=points.astype(np.float32))
 
     def _terminate_callback(self, msg):
+        """Handle broadcast termination signal."""
         if msg.data.strip() == "TERMINATE":
             self.get_logger().info(f"{self.mode} Inferencer shutting down.................")
             self.destroy_node()
             raise SystemExit
+    
+    def _terminate_targeted_callback(self, msg):
+        """Handle targeted termination signal with PID specification."""
+        try:
+            data = json.loads(msg.data)
+            target_pid = data.get('pid')
+            my_pid = os.getpid()
+            
+            if target_pid == my_pid:
+                self.get_logger().info(f"{self.mode} Inferencer (PID {my_pid}) received termination request")
+                self.destroy_node()
+                raise SystemExit
+                
+        except (json.JSONDecodeError, KeyError) as e:
+            self.get_logger().error(f"Invalid termination message: {e}")
+        except Exception as e:
+            self.get_logger().error(f"Error in targeted termination: {e}")
     
 
 def main(args=None):

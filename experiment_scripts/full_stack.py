@@ -1,47 +1,68 @@
 #!/usr/bin/env python3
 
 import os
-import subprocess
-import csv
-from itertools import product
-from subprocess import TimeoutExpired
-import pandas as pd
 import ast
-import time
+from itertools import product
+import pandas as pd
 from nuscenes.nuscenes import NuScenes
-import json
 import sys
+from pathlib import Path
 
 # Add the p_perf package to the path
 sys.path.append('/mmdetection3d_ros2/perf_ws/src/p_perf')
 
 from p_perf.pPerf_manager import pPerfConfigManager
-from p_perf.post_process.timing_post import timing_processor
-from p_perf.config.constant import image_models, lidar_models, seg_models
+from p_perf.config.constant import (
+    image_models,
+    lidar_models,
+    seg_models,
+    scenes,
+    get_abbreviated_name,
+    get_abbreviated_scene,
+    get_full_model_name,
+    get_full_scene_token
+)
+from p_perf.utils import (
+    ensure_bags_exist,
+    ExperimentCSVManager,
+    create_failure_log,
+    ExperimentRunner
+)
 
-# Base nsys command
-nsys_base = [
-    "nsys", "profile",
-    "--trace=cuda,nvtx,cudnn",
-    "--backtrace=none",
-    "--force-overwrite", "true",
-]
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
 
-bag_dir = "/mmdetection3d_ros2/data/"
+bag_dir = "/mmdetection3d_ros2/data/bag"
+# dataset_version = "v1.0-trainval"
+dataset_version = "v1.0-mini"
+# nuscenes_data_dir = Path("/mnt/nas/Nuscenes")
+nuscenes_data_dir = Path("/mmdetection3d_ros2/data/nuscenes")
+num_runs = -1
+
 OVERWRITE = True
 CONTINUE = False  # Set to True to continue from existing mapping file
 LOGGING_DELAY = False
 
 # Parameter sweep setup
-scenes = ['2f0e54af35964a3fb347359836bec035']
-depths = [0]
+scenes = ["c5224b9b454b4ded9b5d2d2634bbda8a"]
+depths = [1]
 image_queues = [1]
 lidar_queues = [1]
 publishing_rate = [10]
-output_name = "full_stack_1I1L1S-MPS-1"
+decode_head_w = [1, 2, 4]
+decode_head_h = [1, 2, 4]
+output_name = "full_stack_1I1L1S-MPS-LOW-10-2"
+
+# ============================================================================
+# SETUP
+# ============================================================================
 
 output_base = f"/mmdetection3d_ros2/outputs/{output_name}"
 os.makedirs(output_base, exist_ok=True)
+
+# Create failure log
+failure_log = create_failure_log(output_base)
 
 # Create base configuration
 base_config_file = os.path.join(output_base, "base_config.yaml")
@@ -53,288 +74,210 @@ manager.create_base_config(
     logging_delay=LOGGING_DELAY
 )
 
+# ============================================================================
+# EXPERIMENT MAPPING
+# ============================================================================
+
 # Create combinations for full stack testing
-combinations = list(product(depths, image_models, lidar_models, seg_models, scenes, image_queues, lidar_queues, publishing_rate))
+combinations = list(product(depths, image_models, lidar_models, seg_models, scenes, image_queues, lidar_queues, publishing_rate, decode_head_w, decode_head_h))
 
-# Create mapping CSV with all combinations marked "pending"
+# Define CSV columns
+csv_columns = ["run_index", "scene", "depth", "image_model", "lidar_model", "seg_model", "image_queue", "lidar_queue", "publishing_rate", "decode_head_w", "decode_head_h", "status", "start_time"]
+
+# Row formatter for CSV
+def format_csv_row(index, combo):
+    """Format combination tuple into CSV row with abbreviated names."""
+    depth, img_model, lidar_model, seg_model, scene, img_q, lidar_q, pub_rate, decode_head_w, decode_head_h = combo
+    abbreviated_scene = get_abbreviated_scene(scene)
+    abbreviated_img_model = get_abbreviated_name(img_model)
+    abbreviated_lidar_model = (get_abbreviated_name(lidar_model[0]), lidar_model[1])
+    abbreviated_seg_model = (get_abbreviated_name(seg_model[0]), seg_model[1])
+    return [index, abbreviated_scene, depth, abbreviated_img_model, abbreviated_lidar_model, abbreviated_seg_model, img_q, lidar_q, pub_rate, decode_head_w, decode_head_h, "pending", ""]
+
+# Create or load mapping file
 mapping_file = os.path.join(output_base, "full_stack_mapping.csv")
+csv_manager = ExperimentCSVManager(mapping_file, csv_columns)
+df = csv_manager.create_mapping(combinations, format_csv_row, OVERWRITE, CONTINUE)
 
-if OVERWRITE and not CONTINUE:   
-    # Complete overwrite - create new mapping file
-    with open(mapping_file, mode='w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["run_index", "scene", "depth", "image_model", "lidar_model", "seg_model", "image_queue", "lidar_queue", "publishing_rate", "status", "start_time"])
-        for i, (depth, img_model, lidar_model, seg_model, scene, img_q, lidar_q, publishing_rate) in enumerate(combinations):
-            writer.writerow([i, scene, depth, img_model, lidar_model, seg_model, img_q, lidar_q, publishing_rate, "pending", ""])
-elif CONTINUE and os.path.exists(mapping_file):
-    # Continue mode - load existing mapping and add new combinations if any
-    existing_df = pd.read_csv(mapping_file)
-    
-    # Create new combinations with indices starting from the last existing index + 1
-    start_index = len(existing_df)
-    new_combinations = []
-    
-    for i, (depth, img_model, lidar_model, seg_model, scene, img_q, lidar_q, publishing_rate) in enumerate(combinations):
-        # Check if this combination already exists
-        combo_exists = False
-        for _, row in existing_df.iterrows():
-            if (row["scene"] == scene and 
-                row["depth"] == depth and 
-                str(row["image_model"]) == str(img_model) and 
-                str(row["lidar_model"]) == str(lidar_model) and
-                str(row["seg_model"]) == str(seg_model) and
-                row["image_queue"] == img_q and 
-                row["lidar_queue"] == lidar_q and 
-                row["publishing_rate"] == publishing_rate):
-                combo_exists = True
-                break
-        
-        if not combo_exists:
-            new_combinations.append([start_index + len(new_combinations), scene, depth, img_model, lidar_model, seg_model, img_q, lidar_q, publishing_rate, "pending", ""])
-    
-    # Append new combinations to existing file
-    if new_combinations:
-        with open(mapping_file, mode='a', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            for combo in new_combinations:
-                writer.writerow(combo)
-        print(f"Added {len(new_combinations)} new combinations to existing mapping file")
-    else:
-        print("No new combinations to add - all combinations already exist in mapping file")
-else:
-    # Default behavior - create new file without overwrite
-    with open(mapping_file, mode='w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["run_index", "scene", "depth", "image_model", "lidar_model", "seg_model", "image_queue", "lidar_queue", "publishing_rate", "status", "start_time"])
-        for i, (depth, img_model, lidar_model, seg_model, scene, img_q, lidar_q, publishing_rate) in enumerate(combinations):
-            writer.writerow([i, scene, depth, img_model, lidar_model, seg_model, img_q, lidar_q, publishing_rate, "pending", ""])
+# ============================================================================
+# ROSBAG PREPARATION
+# ============================================================================
 
-# Now run them and update status
-df = pd.read_csv(mapping_file)
+available_scenes = ensure_bags_exist(
+    scenes=scenes,
+    bag_dir=bag_dir,
+    nuscenes_data_dir=nuscenes_data_dir,
+    dataset_version=dataset_version,
+    failure_log=failure_log
+)
 
-# Failure log file
-failure_log = os.path.join(output_base, "failures.log")
-with open(failure_log, "w") as flog:
-    flog.write("Failed Runs Log\n")
-    flog.write("================\n")
+# ============================================================================
+# EXPERIMENT EXECUTION
+# ============================================================================
 
+# Create nsys base command
+nsys_base = ExperimentRunner.create_nsys_base_cmd()
 
-print("\n" + "="*60)
-print("EXPERIMENT EXECUTION PHASE")
-print("="*60)
+# Create experiment runner
+runner = ExperimentRunner(
+    output_base=output_base,
+    failure_log=failure_log,
+    nsys_base=nsys_base,
+    timeout=300,
+    cleanup_memory=True  # Automatically clean memory after each run
+)
 
-
-for i, row in df.iterrows():
-    # Skip already completed experiments when continuing (both run_success and success)
-    if df.at[i, "status"] in ["run_success", "success"]:
-        print(f"Skipping run {i} - already completed (status: {df.at[i, 'status']})")
-        continue
-
+def update_config_for_run(row, run_index):
+    """Update configuration for a specific experiment run."""
+    # Read abbreviated names from CSV and convert back to full names for config
+    abbreviated_img_model = row["image_model"]
+    abbreviated_lidar_model = row["lidar_model"]
+    abbreviated_seg_model = row["seg_model"]
+    abbreviated_scene = row["scene"]
     depth = row["depth"]
-    img_model = row["image_model"]
-    lidar_model_tuple = ast.literal_eval(row["lidar_model"])
-    seg_model_tuple = ast.literal_eval(row["seg_model"])
-    scene = row["scene"]
     img_q = row["image_queue"]
     lidar_q = row["lidar_queue"]
-    publishing_rate = row["publishing_rate"]
-
-    prefix = f"{output_base}/test_run_{i}"
-
-    lidar_model_name, lidar_mode = lidar_model_tuple
-    seg_model_name, seg_mode = seg_model_tuple
-
-    df.at[i, "status"] = "pending"
-
-    # Update configuration using pPerfConfigManager
-    try:
-        
-        # Update sensor replayer configuration
-        manager.update_sensor_replayer(
-            bag_dir=bag_dir,
-            scene=scene,
-            publishing_rate=publishing_rate,
-            index=i,
-        )
-        
-        # Define inferencer configurations to update
-        inferencer_configs = [
-            {
-                'section': 'det_inferencers',
-                'inferencer_index': 0,
-                'mode': "lidar",
-                'model_name': lidar_model_name,
-                'data_dir': output_base
-            },
-            {
-                'section': 'det_inferencers', 
-                'inferencer_index': 1,
-                'mode': "image",
-                'model_name': img_model,
-                'data_dir': output_base
-            },
-            {
-                'section': 'seg_inferencers',
-                'inferencer_index': 0,
-                'mode': seg_mode,
-                'model_name': seg_model_name,
-                'data_dir': output_base
-            }
-        ]
-        
-        # Update all inferencers in a loop
-        for config in inferencer_configs:
-            # Extract MPS percentage if it exists for this config
-            mps_percentage = config.pop('cuda_mps_thread_percentage', None)
-            
-            # Base parameters for all inferencers
-            update_params = {
-                'mode': config['mode'],
-                'model_name': config['model_name'],
-                'index': i,  # experiment run index
-                'data_dir': config['data_dir'],
-                'lidar_model_mode': lidar_mode,
-                #QoS
-                'lidar_queue': lidar_q,
-                'image_queue': img_q
-            }
-            
-            # Add MPS percentage if specified
-            if mps_percentage is not None:
-                update_params['cuda_mps_thread_percentage'] = mps_percentage
-            
-            manager.update_inferencer(
-                config['section'], 
-                config['inferencer_index'],
-                **update_params
-            )
-        
-        # Save the updated configuration
-        config_file = base_config_file
-        manager.save_config(config_file)
-        print(f"✓ Updated configuration for run {i} and saved to: {config_file}")
-        
-        # Display current configuration for debugging
-        print(f"\n📋 Configuration for run {i}:")
-        manager.list_inferencers()
-        
-    except Exception as e:
-        error_msg = f"Failed to update configuration for run {i}: {str(e)}"
-        print(f"Error: {error_msg}")
-        with open(failure_log, "a") as flog:
-            flog.write(f"{error_msg}\n")
-        df.at[i, "status"] = "config_error"
-        df.at[i, "start_time"] = time.time()
-        continue
-
-    # Launch full stack using the generated YAML configuration
-    ros2_cmd = [
-        "ros2", "launch", "p_perf", "full_stack.launch.py",
-        f"config_file:={config_file}"
+    pub_rate = row["publishing_rate"]
+    
+    # Convert abbreviated names to full names for configuration
+    img_model = get_full_model_name(abbreviated_img_model)
+    lidar_model_abbreviated_tuple = ast.literal_eval(abbreviated_lidar_model)
+    lidar_model_name = get_full_model_name(lidar_model_abbreviated_tuple[0])
+    lidar_mode = lidar_model_abbreviated_tuple[1]
+    seg_model_abbreviated_tuple = ast.literal_eval(abbreviated_seg_model)
+    seg_model_name = get_full_model_name(seg_model_abbreviated_tuple[0])
+    seg_mode = seg_model_abbreviated_tuple[1]
+    scene = get_full_scene_token(abbreviated_scene)
+    
+    # Update sensor replayer configuration
+    manager.update_sensor_replayer(
+        bag_dir=bag_dir,
+        scene=scene,
+        publishing_rate=pub_rate,
+        index=run_index,
+    )
+    
+    # Define inferencer configurations to update
+    inferencer_configs = [
+        {
+            'section': 'det_inferencers',
+            'inferencer_index': 0,
+            'mode': "lidar",
+            'model_name': lidar_model_name,
+            'data_dir': output_base
+        },
+        {
+            'section': 'det_inferencers', 
+            'inferencer_index': 1,
+            'mode': "image",
+            'model_name': img_model,
+            'data_dir': output_base
+        },
+        {
+            'section': 'seg_inferencers',
+            'inferencer_index': 0,
+            'mode': seg_mode,
+            'model_name': seg_model_name,
+            'data_dir': output_base,
+            'decode_head_h': row["decode_head_h"],
+            'decode_head_w': row["decode_head_w"]
+        }
     ]
-
-    full_cmd = nsys_base + ["-o", prefix] + ros2_cmd
-
-    print(f"\n>>> Running Full Stack ({i+1}/{len(df)}): {' '.join(full_cmd)}\n")
-
-    start_time = time.time()
-    try:
-        subprocess.run(full_cmd, check=True, timeout=300)  # Increased timeout for full stack
-        df.at[i, "status"] = "run_success"
-        df.at[i, "start_time"] = start_time
-        print(f"Full stack run {i} completed successfully")
-    except TimeoutExpired as e:
-        error_msg = f"Full stack run {i} timed out after {e.timeout} seconds"
-        print(f"Error: {error_msg}")
-        with open(failure_log, "a") as flog:
-            flog.write(f"{error_msg}\n")
-        df.at[i, "status"] = "timeout"
-        df.at[i, "start_time"] = start_time
-        print(f"Marked run {i} as timeout and continuing to next experiment")
-    except Exception as e:
-        error_msg = f"Full stack run {i} failed with unexpected error: {str(e)}"
-        print(f"Error: {error_msg}")
-        with open(failure_log, "a") as flog:
-            flog.write(f"{error_msg}\n")
-        df.at[i, "status"] = "error"
-        df.at[i, "start_time"] = start_time
-        print(f"Marked run {i} as error and continuing to next experiment")
-    finally:
-        df.to_csv(mapping_file, index=False)
-        print(f"Successfully saved status for run {i} to {mapping_file}")
-
-
-
-
-nusc = NuScenes(version='v1.0-trainval-rain', dataroot='/mnt/nas/Nuscenes')
-
-for i, row in df.iterrows():
-    prefix = f"{output_base}/test_run_{i}"
-    depth = row["depth"]
-    lidar_model_tuple = ast.literal_eval(row["lidar_model"])
-    lidar_model = lidar_model_tuple[0]
-    lidar_model_mode = lidar_model_tuple[1]
-    image_model = row["image_model"]
-    seg_model_tuple = ast.literal_eval(row["seg_model"])
-    seg_model = seg_model_tuple[0]
-    seg_mode = seg_model_tuple[1]
-    publishing_rate = row["publishing_rate"]
     
-    # Only process experiments that completed the run but haven't been post-processed yet
-    if df.at[i, "status"] != "run_success":
-        continue
-
-    print(f"\n--- Processing Run {i}/{len(df)} ---")
-
-    # EVALUATION PIPELINE OF INFERENCE TIME
-    print(f"Processing run {i}: RAW JSON")
-    raw_timing_json = f"{prefix}.json"
-    nsys_report = f"{prefix}.nsys-rep"
-
-    if not os.path.exists(raw_timing_json):
-        if os.path.exists(nsys_report):
-            print(f"Raw timing JSON file not found. Generating from {nsys_report}")
-            try:
-                subprocess.run([
-                    "nsys", "export",
-                    "--type", "json",
-                    "--output", raw_timing_json,
-                    nsys_report
-                ], check=True)
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to export from {nsys_report}: {e}")
-                continue
-        else:
-            print(f"Both {raw_timing_json} and {nsys_report} do not exist. Skipping.")
-            continue
-
-    # Process timing data
-    try:
-        timing_analyzer = timing_processor(nusc, raw_timing_json, output_base, i, scene=row["scene"], publish_mode="bag")
-        timing_analyzer.parse_json()
-        layer_records, kernel_records = timing_analyzer.generate_mapping()
-        print(f"✓ Timing analysis completed for run {i}")
-    except Exception as e:
-        print(f"✗ Timing analysis failed for run {i}: {e}")
-        continue
-
-    # Delete the corresponding .json file after processing to save disk space
-    if os.path.exists(raw_timing_json):
-        os.remove(raw_timing_json)
+    # Update all inferencers
+    for config in inferencer_configs:
+        # Extract MPS percentage if it exists for this config
+        mps_percentage = config.pop('cuda_mps_thread_percentage', None)
+        
+        # Extract spatial tiling parameters for seg inferencer
+        decode_head_h = config.pop('decode_head_h', None)
+        decode_head_w = config.pop('decode_head_w', None)
+        
+        # Base parameters for all inferencers
+        update_params = {
+            'mode': config['mode'],
+            'model_name': config['model_name'],
+            'index': run_index,
+            'data_dir': config['data_dir'],
+            'lidar_model_mode': lidar_mode,
+            'lidar_queue': lidar_q,
+            'image_queue': img_q,
+            'depth': depth
+        }
+        
+        # Add MPS percentage if specified
+        if mps_percentage is not None:
+            update_params['cuda_mps_thread_percentage'] = mps_percentage
+        
+        # Add spatial tiling parameters for seg inferencer
+        if decode_head_h is not None:
+            update_params['decode_head_h'] = decode_head_h
+        if decode_head_w is not None:
+            update_params['decode_head_w'] = decode_head_w
+        
+        manager.update_inferencer(
+            config['section'], 
+            config['inferencer_index'],
+            **update_params
+        )
     
-    # Cleanup
-    timing_analyzer.cleanup()
+    # Save the updated configuration
+    manager.save_config(base_config_file)
+    print(f"📋 Configuration for run {run_index}:")
+    manager.list_inferencers()
+    
+    return base_config_file
 
-    # Mark as fully complete (run + post-processing done)
-    df.at[i, "status"] = "success"
-    df.to_csv(mapping_file, index=False)
+def build_launch_cmd(config_file):
+    """Build ROS2 launch command."""
+    return ExperimentRunner.build_ros2_launch_cmd(
+        package="p_perf",
+        launch_file="full_stack.launch.py",
+        config_file=config_file
+    )
 
-    print(f"✓ Run {i} post-processing completed and marked as success")
-    time.sleep(5)  # Brief pause between runs
+# Run experiments
+# max_runs: -1 = run all, >0 = run that many experiments
+df = runner.run_experiments(
+    df=df,
+    csv_path=mapping_file,
+    config_updater=update_config_for_run,
+    launch_cmd_builder=build_launch_cmd,
+    max_runs=num_runs  # Change to positive number to limit runs (e.g., 1 for testing)
+)
+
+# ============================================================================
+# POST-PROCESSING
+# ============================================================================
+
+# Load NuScenes for post-processing
+nusc = NuScenes(version=dataset_version, dataroot=str(nuscenes_data_dir))
+
+def parse_row_for_postprocessing(row):
+    """Parse row to extract scene and other information for post-processing."""
+    abbreviated_scene = row["scene"]
+    scene = get_full_scene_token(abbreviated_scene)
+    return {'scene': scene}
+
+# Post-process experiments
+# max_runs: -1 = process all, >0 = process that many experiments
+df = runner.post_process_experiments(
+    df=df,
+    csv_path=mapping_file,
+    nusc=nusc,
+    row_parser=parse_row_for_postprocessing,
+    publish_mode="bag",
+    cleanup_json=True,  # Set to True to delete JSON files after processing
+    max_runs=num_runs  # Change to positive number to limit post-processing (e.g., 1 for testing)
+)
+
+# ============================================================================
+# COMPLETION
+# ============================================================================
 
 print("\n" + "="*60)
 print("ALL RUNS COMPLETED")
 print("="*60)
 print(f"Results saved to: {output_base}")
 print(f"Mapping file: {mapping_file}")
-print(f"Failure log: {failure_log}") 
+print(f"Failure log: {failure_log}")

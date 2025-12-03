@@ -29,8 +29,10 @@ except ImportError as e:
 def create_rosbag_from_scene(
     data_dir: Path,
     output_dir: Path,
-    scene_name: str,
-    dataset_version: str = "v1.0-trainval-rain"
+    scene_token: str,
+    dataset_version: str = "v1.0-trainval",
+    nusc=None,
+    nusc_can=None
 ):
     """
     Create a ROS bag (MCAP format) from a specific NuScenes scene.
@@ -38,31 +40,37 @@ def create_rosbag_from_scene(
     Args:
         data_dir: Path to NuScenes data directory
         output_dir: Path to write MCAP files
-        scene_name: Name of the scene to convert (e.g., "scene-0001")
+        scene_token: Token of the scene to convert
         dataset_version: NuScenes dataset version (e.g., "v1.0-mini", "v1.0-trainval")
+        nusc: Optional pre-loaded NuScenes instance (avoids re-loading)
+        nusc_can: Optional pre-loaded NuScenesCanBus instance (avoids re-loading)
     """
-    print(f"Loading NuScenes dataset: {dataset_version}")
-    nusc = NuScenes(version=dataset_version, dataroot=str(data_dir), verbose=True)
-    nusc_can = NuScenesCanBus(dataroot=str(data_dir))
+    # Only load NuScenes if not provided
+    if nusc is None:
+        print(f"Loading NuScenes dataset: {dataset_version}")
+        nusc = NuScenes(version=dataset_version, dataroot=str(data_dir), verbose=True)
     
-    # Find the scene by name
+    if nusc_can is None:
+        nusc_can = NuScenesCanBus(dataroot=str(data_dir))
+    
+    # Find the scene by token
     target_scene = None
     for scene in nusc.scene:
-        if scene["name"] == scene_name:
+        if scene["token"] == scene_token:
             target_scene = scene
             break
     
     if not target_scene:
-        raise ValueError(f"Scene with name '{scene_name}' not found")
+        raise ValueError(f"Scene with token '{scene_token}' not found")
     
-    # Create output filename (ROS bag directory)
+    # Create output filename (ROS bag directory) - use scene name to maintain naming convention
     bag_dirname = f"NuScenes-{dataset_version}-{target_scene['name']}"
     output_path = output_dir / bag_dirname
     
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    print(f"Converting scene '{target_scene['name']}' to ROS bag format...")
+    print(f"Converting scene '{target_scene['name']}' (token: {scene_token}) to ROS bag format...")
     print(f"Output directory: {output_path}")
     
     # Call the conversion function
@@ -80,17 +88,20 @@ def main():
     # Configure these values for your use case
     data_dir = Path("/mnt/nas/Nuscenes")  # Update this path
     output_dir = Path("/mmdetection3d_ros2/data/bag")
-    scene_names = ["scene-0539_rainrate65", "scene-0539_rainrate90"]
-    dataset_version = "v1.0-trainval-rain"
+    # Update this list with actual scene tokens from your dataset
+    scene_tokens = ["<scene_token_1>",
+                    "<scene_token_2>",
+                    "<scene_token_3>"]
+    dataset_version = "v1.0-trainval"
     
-    print(f"Creating ROS bag for scene: {scene_names}")
+    print(f"Creating ROS bags for {len(scene_tokens)} scenes")
     
     try:
-        for scene_name in scene_names:
+        for scene_token in scene_tokens:
             create_rosbag_from_scene(
                 data_dir=data_dir,
                 output_dir=output_dir,
-                scene_name=scene_name,
+                scene_token=scene_token,
                 dataset_version=dataset_version
             )
     except Exception as e:

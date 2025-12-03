@@ -1,0 +1,68 @@
+================================================================================
+PERFORMANCE ANALYSIS REPORT
+================================================================================
+
+1. OVERALL STATISTICS
+----------------------------------------
+Total experiments analyzed: 60
+Delays files processed: 60
+Layer timings files processed: 60
+
+2. PUBLISHING RATES
+----------------------------------------
+Publishing rates tested: [10, 13, 15] Hz
+
+3. MODEL PAIRS
+----------------------------------------
+Image models: ['faster-rcnn_r50_fpn_1x_coco', 'yolov3_d53_mstrain-608_273e_coco', 'yolox_x_8x8_300e_coco', 'detr_r50_8xb2-150e_coco']
+Lidar models: ['point-rcnn_8xb2_kitti-3d-3class', '3dssd_4x4_kitti-3d-car', 'hv_ssn_regnet-400mf_secfpn_sbn-all_16xb2-2x_nus-3d', 'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d', 'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d']
+
+4. DELAYS ANALYSIS SUMMARY
+----------------------------------------
+Average E2E delay (all models): 40626.002 ± 445034.523 seconds
+Average communication delay: -40625.901 ± 445034.526 seconds
+Average decode delay: 0.002 ± 0.002 seconds
+Average inference delay: 0.073 ± 0.049 seconds
+
+Best E2E Performance:
+  Model pair: yolov3_d53_mstrain-608_273e_coco + centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d
+  Model type: image
+  Publishing rate: 10 Hz
+  E2E delay: 0.041 seconds
+
+Worst E2E Performance:
+  Model pair: yolov3_d53_mstrain-608_273e_coco + hv_ssn_regnet-400mf_secfpn_sbn-all_16xb2-2x_nus-3d
+  Model type: lidar
+  Publishing rate: 13 Hz
+  E2E delay: 4875109.036 seconds
+
+5. LAYER TIMINGS SUMMARY
+----------------------------------------
+Average GPU utilization: 28.2 ± 26.8%
+Average E2E elapsed time: 60.893 ± 37.995 seconds
+Average GPU turnaround time: 1636.277 ± 2646.615 seconds
+
+Model-specific insights:
+  Lidar models:
+    Average E2E time: 74.779 seconds
+    Average GPU utilization: 40.2%
+    Average layers: 2421.9
+
+  Image models:
+    Average E2E time: 47.920 seconds
+    Average GPU utilization: 17.0%
+    Average layers: 2559.5
+
+6. RECOMMENDATIONS
+----------------------------------------
+Based on the analysis:
+1. Consider the trade-off between publishing rate and E2E delay
+2. Monitor GPU utilization to identify bottlenecks
+3. Analyze communication delays for network optimization
+4. Consider model complexity vs performance trade-offs
+5. Investigate GPU wait times for potential optimization
+
+================================================================================
+Report generated successfully!
+Check the analysis_outputs directory for visualizations.
+================================================================================

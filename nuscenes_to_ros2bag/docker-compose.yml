@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+        rosbag_service:
+                image: rosbag_image
+                build:
+                        context: .
+                        dockerfile: ./Dockerfile
+                volumes:
+                        - .:/work
+                command: sleep inf

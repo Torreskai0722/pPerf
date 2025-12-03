@@ -15,7 +15,7 @@ import pandas as pd
 import json
 
 from p_perf.pPerf import pPerf
-from p_perf.utils import load_sweep_sd, get_paths_from_sd, convert_to_kitti
+from p_perf.general_utils import load_sweep_sd, get_paths_from_sd, convert_to_kitti
 
 from nuscenes.nuscenes import NuScenes
 DATA_ROOT = '/mmdetection3d_ros2/data/nuscenes'

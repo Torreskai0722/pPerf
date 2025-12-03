@@ -27,6 +27,17 @@ from collections import defaultdict
 from nuscenes import NuScenes
 from scipy.spatial import cKDTree
 
+sys.path.append('/mmdetection3d_ros2/perf_ws/src/p_perf')
+from p_perf.config.constant import (
+    image_models,
+    lidar_models,
+    seg_models,
+    scenes,
+    get_abbreviated_name,
+    get_abbreviated_scene,
+    get_full_model_name,
+    get_full_scene_token
+)
 
 def load_sweep_sd(nusc, scene, sensor_channel='CAM_FRONT'):
     """
@@ -740,8 +751,7 @@ def main():
     # Create output directory
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    scenes = ['2f0e54af35964a3fb347359836bec035', 
-              '2f0e54af35964a3fb347359836bec035_rainrate25',]
+    filtered_scenes = scenes[:10]
     
     # Collect CSV data from all scenes
     all_csv_data = []
@@ -749,10 +759,10 @@ def main():
     try:
         # Initialize nuScenes
         print("Initializing nuScenes...")
-        nusc = NuScenes(version='v1.0-trainval-rain', dataroot='/mnt/nas/Nuscenes', verbose=True)
+        nusc = NuScenes(version='v1.0-trainval', dataroot='/mnt/nas/Nuscenes', verbose=True)
         
         # Process each scene
-        for scene_token in scenes:
+        for scene_token in filtered_scenes:
             print(f"\n{'='*60}")
             print(f"Processing scene: {scene_token}")
             print(f"{'='*60}")

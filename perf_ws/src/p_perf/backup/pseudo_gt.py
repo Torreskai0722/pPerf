@@ -4,7 +4,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from nuscenes.nuscenes import NuScenes
-from p_perf.utils import load_sweep_sd, get_offset_sd_token
+from p_perf.general_utils import load_sweep_sd, get_offset_sd_token
 
 import dino_package.datasets.transforms as T
 from dino_package.util.slconfig import SLConfig

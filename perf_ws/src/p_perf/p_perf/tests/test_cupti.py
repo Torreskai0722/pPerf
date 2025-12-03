@@ -6,7 +6,7 @@ from mmdet.apis import init_detector, inference_detector
 from mmdet3d.apis import LidarDet3DInferencer, LidarSeg3DInferencer
 from mmengine.dataset import Compose
 
-from p_perf.utils import convert_to_kitti_ros
+from p_perf.general_utils import convert_to_kitti_ros
 
 WARM_IMAGE_PATH = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603612404.jpg'
 WARM_IMAGE = cv2.imread(WARM_IMAGE_PATH)

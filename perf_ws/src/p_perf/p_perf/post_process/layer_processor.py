@@ -6,7 +6,9 @@ from typing import Dict, List, Tuple, Optional, Union
 import logging
 import matplotlib.pyplot as plt
 import seaborn as sns
+import ast
 from p_perf.post_process.utils import get_run_indices_by_models, extract_rain_rate_from_scene, get_baseline_scene_name
+from p_perf.config.constant import get_abbreviated_name, get_full_model_name
 
 class LayerProcessor:
     """
@@ -256,10 +258,11 @@ class LayerProcessor:
                           layer_name: str, 
                           target_model: str,
                           mapping_file: str,
-                          metric: str,
+                          metric: Union[str, List[str]],
                           save_plot: bool = True,
                           remove_outliers: bool = True,
                           figsize: Tuple[int, int] = (10, 6),
+                          metric_separator: str = " × ",
                           **filter_params) -> None:
         """
         Create a box plot of layer timings for runs selected by filtering criteria.
@@ -268,15 +271,22 @@ class LayerProcessor:
             layer_name: Name of the layer to plot (e.g., 'inference', 'e2e', 'data_preprocessing')
             target_model: Name of the target model to analyze in the timing data
             mapping_file: Path to the mapping CSV file
-            metric: Column name from mapping CSV to use for x-axis grouping
+            metric: Column name(s) from mapping CSV to use for x-axis grouping.
+                   Can be a single string or a list of strings for combined grouping.
+                   Examples: 'decode_head_h' or ['decode_head_h', 'decode_head_w']
             save_plot: Whether to save the plot to file
             remove_outliers: Whether to remove outliers using IQR method
             figsize: Figure size as (width, height) tuple
+            metric_separator: Separator string to use when combining multiple metrics (default: " × ")
             **filter_params: Filters as column_name=value pairs. Column names must match CSV exactly.
                 Special handling for lidar_model/seg_model (supports tuple and string contains)
         """
         self.logger.info(f"Creating box plot for layer '{layer_name}' and model '{target_model}'")
+        self.logger.info(f"Grouping metric(s): {metric}")
         self.logger.info(f"Applied filters: {filter_params}")
+        
+        # Normalize metric to list
+        metric_list = [metric] if isinstance(metric, str) else metric
         
         # Get run indices based on filters
         run_indices = get_run_indices_by_models(
@@ -305,19 +315,36 @@ class LayerProcessor:
                     (timings_df['Model'] == target_model)
                 ]
                 
-                # Get metric value for this run
+                # Get metric values for this run
                 run_data = mapping_df[mapping_df['run_index'] == run_idx]
-                metric_value = run_data.iloc[0][metric] if len(run_data) > 0 and metric in run_data.columns else None
                 
-                if metric_value is None:
-                    self.logger.warning(f"No metric '{metric}' found for run {run_idx}")
+                if len(run_data) == 0:
+                    self.logger.warning(f"No run data found for run {run_idx}")
+                    continue
+                
+                # Build combined metric value
+                metric_values = []
+                all_metrics_found = True
+                
+                for metric_col in metric_list:
+                    if metric_col not in run_data.columns:
+                        self.logger.warning(f"Metric column '{metric_col}' not found for run {run_idx}")
+                        all_metrics_found = False
+                        break
+                    metric_values.append(str(run_data.iloc[0][metric_col]))
+                
+                if not all_metrics_found:
+                    continue
+                
+                # Combine metric values with separator
+                combined_metric = metric_separator.join(metric_values)
                 
                 # Add timing records
                 for _, timing_row in layer_data.iterrows():
                     all_timings.append({
                         'run_index': run_idx,
                         'elapsed_time': timing_row['Elapsed Time'],
-                        'metric': metric_value
+                        'metric': combined_metric
                     })
                     
                 if len(layer_data) == 0:
@@ -342,6 +369,19 @@ class LayerProcessor:
             if removed_count > 0:
                 self.logger.info(f"Removed {removed_count} outliers from {original_count} data points")
         
+        # Sort metric values for logical ordering
+        # Try to convert to numeric if possible for natural sorting
+        def natural_sort_key(val):
+            """Create a sort key that handles numeric values naturally"""
+            try:
+                # Try to split by separator and convert each part to number
+                parts = val.split(metric_separator)
+                return tuple(float(p) if p.replace('.', '').replace('-', '').isdigit() else p for p in parts)
+            except:
+                return (val,)
+        
+        unique_metrics = sorted(plot_df['metric'].unique(), key=natural_sort_key)
+        
         # Create plot
         sns.set_style("white")
         sns.set_context("poster", font_scale=1.2)
@@ -351,6 +391,7 @@ class LayerProcessor:
             data=plot_df, 
             x='metric', 
             y='elapsed_time',
+            order=unique_metrics,  # Use sorted order
             boxprops=dict(facecolor='white', edgecolor='black', linewidth=1.5),
             medianprops=dict(color='orange', linewidth=3),
             whiskerprops=dict(color='black', linewidth=1.5),
@@ -366,12 +407,46 @@ class LayerProcessor:
         
         # Save plot
         if save_plot:
-            # Generate filename from filters
-            filter_parts = [f"{k}_{str(v).replace('/', '_').replace(' ', '_')}" 
-                          for k, v in filter_params.items() if v is not None]
-            filter_suffix = "_".join(filter_parts) if filter_parts else "all"
+            # Build filename with model pair naming convention
+            # Format: {layer_name}_{Capitalized_target_model}_{lowercase_other_models}_{metric_names}
             
-            filename = f"boxplot_{layer_name}_{target_model.replace('/', '_')}_{sum(run_indices)}.png"
+            # Get abbreviated name of target model
+            target_abbrev = get_abbreviated_name(target_model)
+            
+            # Collect other models from filter_params
+            other_models = []
+            for key, value in filter_params.items():
+                if key in ['image_model', 'lidar_model', 'seg_model'] and value is not None:
+                    # Parse if it's a tuple string (for lidar/seg models)
+                    if isinstance(value, str) and value.startswith("("):
+                        try:
+                            parsed = ast.literal_eval(value)
+                            if isinstance(parsed, tuple):
+                                other_models.append(parsed[0].lower())
+                            else:
+                                other_models.append(value.lower())
+                        except (ValueError, SyntaxError):
+                            other_models.append(value.lower())
+                    else:
+                        other_models.append(value.lower())
+            
+            # Remove target model from other_models if present
+            other_models = [m for m in other_models if m.lower() != target_abbrev.lower()]
+            
+            # Build metric string for filename
+            metric_str = "_".join(metric_list) if len(metric_list) > 1 else metric_list[0]
+            
+            # Build filename
+            other_models_str = "_".join(other_models) if other_models else ""
+            
+            # Construct filename components
+            filename_parts = ["boxplot", layer_name, target_abbrev]
+            if other_models_str:
+                filename_parts.append(other_models_str)
+            filename_parts.append(f"by_{metric_str}")
+            
+            filename = "_".join(filename_parts) + ".png"
+            
             plot_path = self.output_dir / filename
             plt.savefig(plot_path, dpi=300, bbox_inches='tight')
             self.logger.info(f"Saved plot: {plot_path}")
@@ -573,12 +648,30 @@ class LayerProcessor:
         
         # Save the plot if requested
         if save_plot:
-            # Use rain_run_indices to create filename with run indices
-            if rain_run_indices:
-                run_indices_str = "_".join(map(str, sorted(rain_run_indices)))
-                plot_filename = f"rain_rate_analysis_{layer_name}_{target_model.replace('/', '_')}_runs{run_indices_str}.png"
+            # Get abbreviated name of target model
+            target_abbrev = get_abbreviated_name(target_model)
+            
+            # Collect other models from the kwargs passed to this function
+            other_models = []
+            if image_model is not None:
+                img_abbrev = get_abbreviated_name(image_model)
+                if img_abbrev.lower() != target_abbrev.lower():
+                    other_models.append(img_abbrev.lower())
+            if lidar_model is not None:
+                lidar_abbrev = get_abbreviated_name(lidar_model)
+                if lidar_abbrev.lower() != target_abbrev.lower():
+                    other_models.append(lidar_abbrev.lower())
+            if seg_model is not None:
+                seg_abbrev = get_abbreviated_name(seg_model)
+                if seg_abbrev.lower() != target_abbrev.lower():
+                    other_models.append(seg_abbrev.lower())
+            
+            # Build filename with model pair naming convention
+            other_models_str = "_".join(other_models) if other_models else ""
+            if other_models_str:
+                plot_filename = f"rain_rate_analysis_{layer_name}_{target_abbrev}_{other_models_str}.png"
             else:
-                plot_filename = f"rain_rate_analysis_{layer_name}_{target_model.replace('/', '_')}.png"
+                plot_filename = f"rain_rate_analysis_{layer_name}_{target_abbrev}.png"
             
             plot_path = rain_output_path / plot_filename
             plt.savefig(plot_path, dpi=300, bbox_inches='tight')

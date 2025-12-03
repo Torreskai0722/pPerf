@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import os
 from tqdm import tqdm
-from p_perf.utils import get_closest_token_from_timestamp, build_channel_timestamp_token_map
+from p_perf.general_utils import get_closest_token_from_timestamp, build_channel_timestamp_token_map
 from p_perf.config.constant import image_models, lidar_models
 from collections import Counter
 
@@ -459,6 +459,18 @@ class timing_processor:
                 "External Memcpy Size": external_memcpy
             })
 
+        # DEBUG: Check individual data_preprocessing records before combining
+        debug_data_prep = [r for r in layer_records if r["Layer"] == "data_preprocessing"]
+        if debug_data_prep:
+            print("\n=== DEBUG: Individual data_preprocessing records (before combining) ===")
+            for i, rec in enumerate(debug_data_prep[:5]):  # Show first 5
+                elapsed_from_timestamps = (rec["End Timestamp"] - rec["Start Timestamp"]) * 1e-6
+                print(f"Record {i}: Model={rec['Model']}, Input={rec['Input'][:30]}...")
+                print(f"  Start: {rec['Start Timestamp']}, End: {rec['End Timestamp']}")
+                print(f"  Elapsed (stored): {rec['Elapsed Time']:.6f} ms")
+                print(f"  Elapsed (calc from timestamps): {elapsed_from_timestamps:.6f} ms")
+                print(f"  MATCH: {abs(rec['Elapsed Time'] - elapsed_from_timestamps) < 0.001}")
+        
         # Combine data_preprocessor layers
         layer_records = self._combine_data_preprocessor_layers(layer_records)
 

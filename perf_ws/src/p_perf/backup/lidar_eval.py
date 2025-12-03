@@ -14,7 +14,7 @@ from collections import defaultdict
 from pyquaternion import Quaternion
 
 from p_perf.config.constant import nus_lidar_classes, dist_ths
-from p_perf.utils import interpolate_gt, get_offset_sd_token
+from p_perf.general_utils import interpolate_gt, get_offset_sd_token
 from mmdet3d.structures import LiDARInstance3DBoxes
 
 # HELPER FUNCTION FOR EVALUATION PIPELINE ==> LIDAR

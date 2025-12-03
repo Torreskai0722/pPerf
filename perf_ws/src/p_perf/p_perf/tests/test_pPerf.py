@@ -10,7 +10,7 @@ from nuscenes.nuscenes import NuScenes
 
 from p_perf.pPerf import pPerf
 from p_perf.pre_process.pPerf_inferencer import pPerf3dDetInferencer, pPerf2dDetInferencer
-from p_perf.utils import load_sweep_sd, get_paths_from_sd, convert_to_kitti
+from p_perf.general_utils import load_sweep_sd, get_paths_from_sd, convert_to_kitti
 
 # Configuration
 TEST_MODE = 'image'  # 'lidar' or 'image'

@@ -8,7 +8,7 @@ import csv
 from nuscenes.utils.geometry_utils import view_points
 from nuscenes.utils.data_classes import Box
 
-from p_perf.utils import interpolate_gt, get_offset_sd_token
+from p_perf.general_utils import interpolate_gt, get_offset_sd_token
 from p_perf.config.constant import image_classes
 
 from typing import List, Tuple, Union

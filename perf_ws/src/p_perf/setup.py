@@ -15,7 +15,11 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'psutil',
+        'nvidia-ml-py3',  # pynvml for GPU monitoring
+    ],
     zip_safe=True,
     maintainer='root',
     maintainer_email='myuguo@udel.edu',
@@ -29,6 +33,7 @@ setup(
             f'seg_inference_node = {package_name}.test_bed.seg_inferencer:main',
             f"sensor_replay_node = {package_name}.test_bed.sensor_replayer:main",
             f'inference_ms_node = {package_name}.test_bed.inferencer_ms:main',
+            f'resource_monitor_node = {package_name}.test_bed.resource_manager:main',
         ],
     },
 )

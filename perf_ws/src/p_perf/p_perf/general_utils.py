@@ -6,6 +6,7 @@ import pandas as pd
 import json
 import os
 import cv2
+import torch
 
 from nuscenes.eval.detection.data_classes import (
     DetectionBox,
@@ -563,5 +564,222 @@ def get_closest_token_from_timestamp(timestamp: float, ts_token_map: dict) -> st
     """
     closest_ts = min(ts_token_map.keys(), key=lambda t: abs(t - timestamp))
     return ts_token_map[closest_ts]
+
+
+def visualize_segmentation(result, output_path=None, alpha=0.5, palette='bdd'):
+    """
+    Visualize semantic segmentation results by overlaying colored masks on the original image.
+    
+    Args:
+        result: Segmentation result (DetDataSample or dict-like) containing:
+                - 'img' or result.img: Original image (H, W, 3) in BGR format
+                - 'pred_sem_seg' or result.pred_sem_seg: Predicted segmentation mask
+        output_path (str, optional): Path to save the visualization. If None, display using cv2.imshow()
+        alpha (float): Transparency of the segmentation overlay (0.0 = transparent, 1.0 = opaque)
+        palette (str): Color palette to use ('bdd', 'cityscapes', 'ade20k', or 'default')
+    
+    Returns:
+        numpy.ndarray: Visualization image in BGR format
+    """
+    import torch
+    
+    # Extract image
+    if hasattr(result, 'img'):
+        img = result.img
+    elif isinstance(result, dict) and 'img' in result:
+        img = result['img']
+    else:
+        raise ValueError("Result must contain 'img' field")
+    
+    # Extract segmentation mask
+    if hasattr(result, 'pred_sem_seg'):
+        seg_mask = result.pred_sem_seg.data
+    elif isinstance(result, dict) and 'pred_sem_seg' in result:
+        seg_mask = result['pred_sem_seg']['data'] if isinstance(result['pred_sem_seg'], dict) else result['pred_sem_seg']
+    else:
+        raise ValueError("Result must contain 'pred_sem_seg' field")
+    
+    # Convert to numpy if needed
+    if torch.is_tensor(seg_mask):
+        seg_mask = seg_mask.cpu().numpy()
+    
+    # Remove batch dimension if present
+    if len(seg_mask.shape) == 3 and seg_mask.shape[0] == 1:
+        seg_mask = seg_mask[0]
+    
+    # Ensure img is numpy array
+    if torch.is_tensor(img):
+        img = img.cpu().numpy()
+    
+    # Get color palette
+    color_map = get_segmentation_palette(palette)
+    
+    # Create colored segmentation mask
+    h, w = seg_mask.shape
+    colored_mask = np.zeros((h, w, 3), dtype=np.uint8)
+    
+    for class_id in np.unique(seg_mask):
+        class_id = int(class_id)
+        if class_id < len(color_map):
+            mask = seg_mask == class_id
+            colored_mask[mask] = color_map[class_id]
+    
+    # Resize colored mask to match original image size if needed
+    if colored_mask.shape[:2] != img.shape[:2]:
+        colored_mask = cv2.resize(colored_mask, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)
+    
+    # Blend the image with the colored mask
+    vis_img = cv2.addWeighted(img, 1 - alpha, colored_mask, alpha, 0)
+    
+    # Optionally save or display
+    if output_path:
+        cv2.imwrite(output_path, vis_img)
+        print(f"Saved segmentation visualization to: {output_path}")
+    
+    return vis_img
+
+
+def get_segmentation_palette(palette='bdd'):
+    """
+    Get color palette for segmentation visualization.
+    
+    Args:
+        palette (str): Name of the palette ('bdd', 'cityscapes', 'ade20k', 'default')
+    
+    Returns:
+        list: List of (B, G, R) color tuples for each class
+    """
+    if palette == 'bdd':
+        # BDD100K semantic segmentation classes
+        # 0: road, 1: sidewalk, 2: building, 3: wall, 4: fence, 5: pole, 
+        # 6: traffic light, 7: traffic sign, 8: vegetation, 9: terrain, 
+        # 10: sky, 11: person, 12: rider, 13: car, 14: truck, 15: bus,
+        # 16: train, 17: motorcycle, 18: bicycle
+        colors = [
+            (128, 64, 128),   # 0: road - purple
+            (244, 35, 232),   # 1: sidewalk - pink
+            (70, 70, 70),     # 2: building - dark gray
+            (102, 102, 156),  # 3: wall - gray-blue
+            (190, 153, 153),  # 4: fence - light gray
+            (153, 153, 153),  # 5: pole - gray
+            (250, 170, 30),   # 6: traffic light - orange
+            (220, 220, 0),    # 7: traffic sign - yellow
+            (107, 142, 35),   # 8: vegetation - green
+            (152, 251, 152),  # 9: terrain - light green
+            (70, 130, 180),   # 10: sky - blue
+            (220, 20, 60),    # 11: person - red
+            (255, 0, 0),      # 12: rider - bright red
+            (0, 0, 142),      # 13: car - dark blue
+            (0, 0, 70),       # 14: truck - darker blue
+            (0, 60, 100),     # 15: bus - blue
+            (0, 80, 100),     # 16: train - blue
+            (0, 0, 230),      # 17: motorcycle - bright blue
+            (119, 11, 32),    # 18: bicycle - brown-red
+        ]
+    elif palette == 'cityscapes':
+        # Cityscapes color palette
+        colors = [
+            (128, 64, 128),   # road
+            (244, 35, 232),   # sidewalk
+            (70, 70, 70),     # building
+            (102, 102, 156),  # wall
+            (190, 153, 153),  # fence
+            (153, 153, 153),  # pole
+            (250, 170, 30),   # traffic light
+            (220, 220, 0),    # traffic sign
+            (107, 142, 35),   # vegetation
+            (152, 251, 152),  # terrain
+            (70, 130, 180),   # sky
+            (220, 20, 60),    # person
+            (255, 0, 0),      # rider
+            (0, 0, 142),      # car
+            (0, 0, 70),       # truck
+            (0, 60, 100),     # bus
+            (0, 80, 100),     # train
+            (0, 0, 230),      # motorcycle
+            (119, 11, 32),    # bicycle
+        ]
+    else:  # default palette
+        # Generate distinct colors for up to 256 classes
+        np.random.seed(42)
+        colors = [(int(r), int(g), int(b)) 
+                  for r, g, b in np.random.randint(0, 255, size=(256, 3))]
+        # Make background (class 0) black
+        colors[0] = (0, 0, 0)
+    
+    return colors
+
+
+def visualize_segmentation_with_legend(result, output_path=None, alpha=0.5, palette='bdd', class_names=None):
+    """
+    Visualize semantic segmentation with a legend showing class names and colors.
+    
+    Args:
+        result: Segmentation result containing image and predictions
+        output_path (str, optional): Path to save the visualization
+        alpha (float): Transparency of the segmentation overlay
+        palette (str): Color palette to use
+        class_names (list, optional): List of class names. If None, uses indices.
+    
+    Returns:
+        numpy.ndarray: Visualization image with legend
+    """
+    # Get base visualization
+    vis_img = visualize_segmentation(result, output_path=None, alpha=alpha, palette=palette)
+    
+    # Extract segmentation mask for legend
+    if hasattr(result, 'pred_sem_seg'):
+        seg_mask = result.pred_sem_seg.data
+    else:
+        seg_mask = result['pred_sem_seg']['data'] if isinstance(result['pred_sem_seg'], dict) else result['pred_sem_seg']
+    
+    if torch.is_tensor(seg_mask):
+        seg_mask = seg_mask.cpu().numpy()
+    
+    if len(seg_mask.shape) == 3 and seg_mask.shape[0] == 1:
+        seg_mask = seg_mask[0]
+    
+    # Get unique classes present in the image
+    unique_classes = np.unique(seg_mask)
+    
+    # Get color palette
+    color_map = get_segmentation_palette(palette)
+    
+    # Create legend
+    legend_height = 30 * len(unique_classes) + 40
+    legend_width = 200
+    legend = np.ones((legend_height, legend_width, 3), dtype=np.uint8) * 255
+    
+    y_offset = 20
+    for class_id in sorted(unique_classes):
+        class_id = int(class_id)
+        
+        # Draw color box
+        color = color_map[class_id] if class_id < len(color_map) else (128, 128, 128)
+        cv2.rectangle(legend, (10, y_offset - 10), (30, y_offset + 10), color, -1)
+        cv2.rectangle(legend, (10, y_offset - 10), (30, y_offset + 10), (0, 0, 0), 1)
+        
+        # Draw class name
+        if class_names and class_id < len(class_names):
+            text = class_names[class_id]
+        else:
+            text = f"Class {class_id}"
+        
+        cv2.putText(legend, text, (40, y_offset + 5), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+        
+        y_offset += 30
+    
+    # Combine visualization and legend
+    h, w = vis_img.shape[:2]
+    combined = np.zeros((h, w + legend_width, 3), dtype=np.uint8)
+    combined[:h, :w] = vis_img
+    combined[:min(h, legend_height), w:] = legend[:min(h, legend_height)]
+    
+    if output_path:
+        cv2.imwrite(output_path, combined)
+        print(f"Saved segmentation visualization with legend to: {output_path}")
+    
+    return combined
 
     

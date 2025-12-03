@@ -1,6 +1,6 @@
 import json
 from p_perf.nuscenes_instance import get_nuscenes_instance
-from p_perf.utils import load_sweep_sd
+from p_perf.general_utils import load_sweep_sd
 import os
 
 # def get_scene_name(scene_token):

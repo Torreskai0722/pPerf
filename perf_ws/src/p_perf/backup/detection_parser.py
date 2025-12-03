@@ -8,7 +8,7 @@ from typing import Dict, Any
 from p_perf.post_process.lidar_eval import lidar_output_to_nusc_box, lidar_nusc_box_to_global
 from p_perf.post_process.image_eval import image_output_to_coco
 from p_perf.config.constant import nus_lidar_classes, kitti_lidar_classes
-from p_perf.utils import get_closest_token_from_timestamp, build_channel_timestamp_token_map
+from p_perf.general_utils import get_closest_token_from_timestamp, build_channel_timestamp_token_map
 
 
 class DetectionParser:

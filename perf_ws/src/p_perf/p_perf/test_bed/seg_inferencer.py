@@ -12,8 +12,20 @@ from p_perf.pPerf_inferencer import pPerf3dSegInferencer, bddSegInferencer
 
 class SegmentationInferenceNode(DetInferenceNode):
     def __init__(self):
+        # Set flag to track if spatial tiling has been configured
+        self._spatial_tiling_configured = False
+        
         # Call parent constructor which will call our overridden methods
         super().__init__()
+        
+        # Declare spatial tiling parameters
+        self.declare_parameter('decode_head_h', 1)
+        self.declare_parameter('decode_head_w', 1)
+        self.decode_head_h = self.get_parameter('decode_head_h').value
+        self.decode_head_w = self.get_parameter('decode_head_w').value
+        
+        # Configure spatial tiling NOW (after model is initialized)
+        self._configure_spatial_tiling()
         
         # Override CSV filename for segmentation
         if self.logging_delay:
@@ -22,6 +34,28 @@ class SegmentationInferenceNode(DetInferenceNode):
             with open(self.delay_csv, 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['time_stamp', 'input_token', 'comm_delay', 'decode_delay', 'inference_delay', 'e2e_delay', 'model_name', 'model_type'])
+    
+    def _configure_spatial_tiling(self):
+        """Configure spatial tiling for segmentation models"""
+        if self._spatial_tiling_configured:
+            return
+            
+        if self.mode in ['sem_seg', 'ins_seg', 'pan_seg', 'drivable']:
+            if hasattr(self.inferencer.model, 'decode_head') and \
+               hasattr(self.inferencer.model.decode_head, 'bottleneck_spatial'):
+                module = self.inferencer.model.decode_head.bottleneck_spatial
+                module.splits_h = self.decode_head_h
+                module.splits_w = self.decode_head_w
+                self.get_logger().info(
+                    f"Configured spatial tiling: {self.decode_head_h}x{self.decode_head_w} "
+                    f"(halo={module.halo})"
+                )
+                self._spatial_tiling_configured = True
+            else:
+                self.get_logger().warning(
+                    f"Model does not have decode_head.bottleneck_spatial, "
+                    f"spatial tiling not configured"
+                )
 
     def _init_subscribers(self):
         """Initialize subscribers - can be overridden by child classes"""

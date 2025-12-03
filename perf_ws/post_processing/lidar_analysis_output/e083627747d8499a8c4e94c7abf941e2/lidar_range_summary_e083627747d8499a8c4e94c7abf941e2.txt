@@ -1,0 +1,162 @@
+================================================================================
+LIDAR_TOP RANGE ANALYSIS SUMMARY FOR SCENE: e083627747d8499a8c4e94c7abf941e2
+================================================================================
+
+Scene Information:
+  Scene Name: scene-0895
+  Description: Rain, parked cars, cones, peds, car leaving parking garage, cross intersection, construction site, construction vehicle, barrier
+  Number of Frames Processed: 30
+  Frame Limit Applied: First 30 frames only
+  Total Points (filtered): 992,500
+  Point Cloud Range Filter: [-50, -50, -5, 50, 50, 3]
+    X: [-50, 50] m
+    Y: [-50, 50] m
+    Z: [-5, 3] m
+  Intensity Filter: >= 0.0
+  Local Density Radius: 0.5m
+
+Point Percentages by Distance Range:
+  Points within 0.5m:
+    Mean Percentage: 18.54%
+    Std Dev: 0.78%
+    Min Percentage: 17.27%
+    Max Percentage: 19.93%
+    Median Percentage: 18.56%
+
+  Points within 1m:
+    Mean Percentage: 29.09%
+    Std Dev: 0.65%
+    Min Percentage: 27.96%
+    Max Percentage: 30.09%
+    Median Percentage: 29.08%
+
+  Points within 2.5m:
+    Mean Percentage: 30.40%
+    Std Dev: 0.67%
+    Min Percentage: 29.26%
+    Max Percentage: 31.43%
+    Median Percentage: 30.38%
+
+  Points within 5m:
+    Mean Percentage: 47.20%
+    Std Dev: 0.73%
+    Min Percentage: 45.31%
+    Max Percentage: 48.04%
+    Median Percentage: 47.30%
+
+  Points within 10m:
+    Mean Percentage: 71.28%
+    Std Dev: 0.80%
+    Min Percentage: 70.21%
+    Max Percentage: 72.90%
+    Median Percentage: 70.99%
+
+  Points within 25m:
+    Mean Percentage: 94.36%
+    Std Dev: 0.53%
+    Min Percentage: 93.68%
+    Max Percentage: 95.27%
+    Median Percentage: 94.27%
+
+  Points within 50m:
+    Mean Percentage: 99.90%
+    Std Dev: 0.06%
+    Min Percentage: 99.81%
+    Max Percentage: 100.00%
+    Median Percentage: 99.89%
+
+Distance Statistics:
+  Mean Distance: 7.57 ± 0.13 m
+  Max Distance: 60.21 ± 1.90 m
+  Mean Intensity: 10.04 ± 20.43
+  Intensity Range: 255.00
+
+Global Distance Statistics (All Points):
+  Mean Distance: 7.57 ± 8.38 m
+  Min Distance: 0.00 m
+  Max Distance: 63.43 m
+  Median Distance: 5.36 m
+  Distance Percentiles:
+    10th percentile: 0.16 m
+    25th percentile: 0.72 m
+    50th percentile: 5.36 m
+    75th percentile: 10.82 m
+    90th percentile: 15.47 m
+    95th percentile: 27.51 m
+    99th percentile: 38.94 m
+
+Global Intensity Statistics (All Points):
+  Mean Intensity: 10.04 ± 20.48
+  Min Intensity: 0.00
+  Max Intensity: 255.00
+  Median Intensity: 3.00
+  Intensity Percentiles:
+    10th percentile: 0.00
+    25th percentile: 1.00
+    50th percentile: 3.00
+    75th percentile: 9.00
+    90th percentile: 25.00
+    95th percentile: 47.00
+    99th percentile: 100.00
+
+Distance Variation Across Frames:
+  Mean Distance Range: 7.34 - 7.77 m
+  Max Distance Range: 55.69 - 63.43 m
+  Distance Range (Mean): 60.21 ± 1.90 m
+
+Intensity Variation Across Frames:
+  Mean Intensity Range: 9.62 - 10.72
+  Max Intensity Range: 255.00 - 255.00
+  Intensity Range (Mean): 255.00 ± 0.00
+
+Filtering Statistics:
+  Original Points: 1,041,792
+  After Spatial Filter: 992,500
+  After Intensity Filter: 992,500
+  Spatial Filter Retention: 95.27%
+  Intensity Filter Retention: 100.00%
+  Total Retention: 95.27%
+
+Distance-Stratified Local Density:
+  0_to_0.5m (radius: 0.25m):
+    Mean Neighbors per Point: 5394.52
+    Std Dev: 220.13
+    Range: 5033.79 - 5710.95
+
+  0.5_to_1m (radius: 0.25m):
+    Mean Neighbors per Point: 501.01
+    Std Dev: 11.77
+    Range: 476.99 - 526.08
+
+  1_to_2.5m (radius: 0.5m):
+    Mean Neighbors per Point: 157.79
+    Std Dev: 11.24
+    Range: 136.29 - 179.76
+
+  2.5_to_5m (radius: 0.75m):
+    Mean Neighbors per Point: 404.99
+    Std Dev: 60.75
+    Range: 326.11 - 526.74
+
+  5_to_10m (radius: 1.0m):
+    Mean Neighbors per Point: 142.83
+    Std Dev: 9.11
+    Range: 133.97 - 166.21
+
+  10_to_25m (radius: 1.5m):
+    Mean Neighbors per Point: 140.96
+    Std Dev: 6.49
+    Range: 128.51 - 148.99
+
+  25_to_50m (radius: 2.0m):
+    Mean Neighbors per Point: 27.83
+    Std Dev: 2.16
+    Range: 24.98 - 31.01
+
+
+Global Local Density (radius: 0.5m):
+  Mean Neighbors per Point: 1244.63
+  Std Dev: 81.41
+  Range: 1114.95 - 1377.80
+
+================================================================================

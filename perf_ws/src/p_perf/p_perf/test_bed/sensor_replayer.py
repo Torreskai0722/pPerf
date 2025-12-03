@@ -12,9 +12,10 @@ import time
 from rclpy.parameter import ParameterType
 import json
 
-def get_scene_name(scene_token):
+SCENE_FILE = '/mmdetection3d_ros2/data/nuscenes/v1.0-mini/scene.json'
+
+def get_scene_name(scene_token, scene_file):
     """Get scene name from scene token without loading entire NuScenes dataset"""
-    scene_file = '/mnt/nas/Nuscenes/v1.0-trainval-rain/scene.json'
     with open(scene_file, 'r') as f:
         scenes = json.load(f)
         for scene in scenes:
@@ -42,7 +43,7 @@ class SensorReplayer(Node):
         print(self.bag_dir)
 
         scene_token = self.get_parameter('scene').value
-        self.scene = get_scene_name(scene_token)
+        self.scene = get_scene_name(scene_token, scene_file=SCENE_FILE)
         print(self.scene)
         
         # Discover .mcap files
@@ -56,10 +57,10 @@ class SensorReplayer(Node):
             raise RuntimeError(f"No .mcap files found for {self.scene}")
             
         # Use only the first matching bag file
-        if 'rainrate' not in self.scene:
-            self.bag_file = [bag for bag in matching_bags if '-'.join(bag.split('-')[-2:]).split('.')[0] == f"{self.scene}"]
-        else:
-            self.bag_file = matching_bags
+        # if 'rainrate' not in self.scene:
+        #     self.bag_file = [bag for bag in matching_bags if '-'.join(bag.split('-')[-2:]).split('.')[0] == f"{self.scene}"]
+        # else:
+        self.bag_file = matching_bags
 
         self.get_logger().info(f"Using bag file: {(self.bag_file)}")
         self.get_logger().info(f"Using scene: {self.scene}")

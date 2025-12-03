@@ -1,0 +1,17 @@
+*.bag
+*.tgz
+*.zip
+.ipynb_checkpoints
+data
+__pycache__
+*.mcap
+output
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Distribution / packaging
+build/
+install/
+log/
+

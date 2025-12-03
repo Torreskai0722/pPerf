@@ -1,12 +1,14 @@
 from p_perf.pPerf_inferencer import pPerf2dDetInferencer, bddDetInferencer, bddSegInferencer, pPerf3dSegInferencer
+from p_perf.pPerf import pPerf
 import cv2
 import numpy as np
+import torch
 
 from mmdet.apis import init_detector, inference_detector
 from mmdet3d.apis import LidarDet3DInferencer, LidarSeg3DInferencer
 from mmengine.dataset import Compose
 
-from p_perf.utils import convert_to_kitti_ros
+from p_perf.general_utils import convert_to_kitti_ros, visualize_segmentation_with_legend
 
 WARM_IMAGE_PATH = '/mmdetection3d_ros2/perf_ws/src/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603612404.jpg'
 WARM_IMAGE = cv2.imread(WARM_IMAGE_PATH)
@@ -55,16 +57,67 @@ def test_pPerf3dSegInferencer():
     results = inferencer(dict(points=kitti_array))
     print(results)
 
-def test_bddSegInferencer():
-    modes = ['ins_seg', 'pan_seg', 'sem_seg', 'drivable']
-    models = ['cascade_mask_rcnn_r50_fpn_1x_ins_seg_bdd100k', 'panoptic_fpn_r50_fpn_1x_pan_seg_bdd100k', 'apcnet_r50-d8_512x1024_40k_sem_seg_bdd100k', 'apcnet_r50-d8_512x1024_40k_drivable_bdd100k']
+def test_bddSegInferencer(n_runs=10, splits_h=2, splits_w=2):
+    # BDD100K class names
+    BDD_CLASS_NAMES = [
+        'road', 'sidewalk', 'building', 'wall', 'fence', 'pole',
+        'traffic light', 'traffic sign', 'vegetation', 'terrain',
+        'sky', 'person', 'rider', 'car', 'truck', 'bus',
+        'train', 'motorcycle', 'bicycle'
+    ]
+    
+    modes = ['sem_seg']
+    models = ['deeplabv3+_r50-d8_512x1024_40k_sem_seg_bdd100k']
     for mode, model in zip(modes, models):
         inferencer = bddSegInferencer(model, mode=mode)
-        results = inferencer(dict(img=WARM_IMAGE))
-        print(results)
+        inferencer.model.eval()
+        
+        module = inferencer.model.decode_head.bottleneck_spatial
+        module.splits_h = splits_h
+        module.splits_w = splits_w
+        
+        # Initialize pPerf profiler
+        profiler = pPerf(model, inferencer, depth=1, mode='image')
+        
+        # Warm up and register hooks
+        profiler.warm_up(dict(img=WARM_IMAGE))
+        profiler.register_hooks(dict(img=WARM_IMAGE))
+        
+        # Run inference with NVTX annotation
+        last_result = None
+        for i in range(n_runs):
+            torch.cuda.nvtx.range_push(f"{model}.e2e")
+            try:
+                results = profiler.run_inference(dict(img=WARM_IMAGE), input_name=f"input_{i}")
+                # print(results)
+                # Handle both list and single DetDataSample results
+                if isinstance(results, list):
+                    last_result = results[0] if results else None
+                else:
+                    last_result = results
+            except Exception as e:
+                print(f"Error processing {model}: {e}")
+
+            torch.cuda.nvtx.range_pop()
+        
+        # Save visualization of the last result
+        if last_result is not None:
+            output_path = f'seg_vis_h{splits_h}_w{splits_w}.png'
+            print(f"\n✅ Saving visualization to: {output_path}")
+            visualize_segmentation_with_legend(
+                last_result,
+                output_path=output_path,
+                alpha=0.5,
+                palette='bdd',
+                class_names=BDD_CLASS_NAMES
+            )
+
 
 if __name__ == '__main__':
     # test_pPerf2dDetInferencer()
     # test_bdd100k_det_inferencer()
-    test_pPerf3dSegInferencer()
-    test_bddSegInferencer()
+    # test_pPerf3dSegInferencer()
+    test_bddSegInferencer(1, 1, 1)
+    test_bddSegInferencer(1, 2, 2)
+    test_bddSegInferencer(1, 2, 1)
+    test_bddSegInferencer(1, 4, 1)

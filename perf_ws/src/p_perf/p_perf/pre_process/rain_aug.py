@@ -6,7 +6,7 @@ if not hasattr(np, 'bool'):
 from pylisa.lisa import Lisa
 import os
 import json
-from p_perf.utils import load_sweep_sd
+from p_perf.general_utils import load_sweep_sd
 import imgaug.augmenters as iaa
 import cv2
 from PIL import Image
