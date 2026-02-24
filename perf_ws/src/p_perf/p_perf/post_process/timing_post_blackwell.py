@@ -11,14 +11,13 @@ from collections import Counter, defaultdict
 class timing_processor:
     COPYKIND_MAPPING = {1: "host2device", 8: "device2device", 2: "device2host"}
 
-    def __init__(self, nusc, raw_json, output_dir, index, scene, mode=None, publish_mode="bag", process_kernels=True):
+    def __init__(self, nusc, raw_json, output_dir, index, scene, mode=None, publish_mode="bag"):
         self.raw_json = raw_json
         self.output_dir = output_dir
         self.index = index
         self.mode = mode
         self.publish_mode = publish_mode
         self.scene_token = scene
-        self.process_kernels = process_kernels
         
         # Build reverse mapping from model names to their types
         self._build_model_type_mapping()
@@ -42,8 +41,29 @@ class timing_processor:
         if self.publish_mode == "bag":
             self.lidar_token_map = build_channel_timestamp_token_map(nusc, self.scene_token, "LIDAR_TOP")
             self.image_token_map = build_channel_timestamp_token_map(nusc, self.scene_token, "CAM_FRONT")
-        
+            self._lidar_sorted_ts = sorted(self.lidar_token_map.keys())
+            self._image_sorted_ts = sorted(self.image_token_map.keys())
+        else:
+            self._lidar_sorted_ts = self._image_sorted_ts = []
+
         self.lidar_model_names = [model[0] for model in lidar_models]
+
+        print("publish_mode: ", self.publish_mode)
+
+    def _get_closest_token_fast(self, timestamp: float, channel: str) -> str:
+        """O(log n) lookup using bisect; use in bag mode when maps are large."""
+        if not self._lidar_sorted_ts and not self._image_sorted_ts:
+            return get_closest_token_from_timestamp(timestamp, self.lidar_token_map if channel == "lidar" else self.image_token_map)
+        ts_list = self._lidar_sorted_ts if channel == "lidar" else self._image_sorted_ts
+        token_map = self.lidar_token_map if channel == "lidar" else self.image_token_map
+        i = bisect.bisect_left(ts_list, timestamp)
+        if i == 0:
+            return token_map[ts_list[0]]
+        if i >= len(ts_list):
+            return token_map[ts_list[-1]]
+        t_lo, t_hi = ts_list[i - 1], ts_list[i]
+        closest_ts = t_hi if (t_hi - timestamp) < (timestamp - t_lo) else t_lo
+        return token_map[closest_ts]
 
     def _build_model_type_mapping(self):
         """Build mapping from model names to their types (lidar vs non-lidar)."""
@@ -166,19 +186,20 @@ class timing_processor:
 
     def fill_pending_inputs(self):
         input_events = [e for e in self.nvtx_events if e["Input"] != "pending"]
+        # Index by (pid, model) so we only scan relevant e2e events per pending event
+        by_pid_model = defaultdict(list)
+        for e in input_events:
+            by_pid_model[(e["PID"], e["Model Name"])].append(e)
         for event in self.nvtx_events:
             if event["Input"] != "pending":
                 continue
             pid, model, start, end = event["PID"], event["Model Name"], event["StartTimestamp"], event["EndTimestamp"]
             candidates = [
-                e for e in input_events
-                if e["PID"] == pid and e["Model Name"] == model and
-                e["StartTimestamp"] <= start <= e["EndTimestamp"] and
-                e["StartTimestamp"] <= end <= e["EndTimestamp"]
+                e for e in by_pid_model[(pid, model)]
+                if e["StartTimestamp"] <= start <= e["EndTimestamp"] and e["StartTimestamp"] <= end <= e["EndTimestamp"]
             ]
             if candidates:
-                matched_input = sorted(candidates, key=lambda x: x["StartTimestamp"])
-                event["Input"] = matched_input[0]["Input"]
+                event["Input"] = min(candidates, key=lambda x: x["StartTimestamp"])["Input"]
 
     def process_cuda_event(self, entry):
         cuda = entry["CudaEvent"]
@@ -418,60 +439,103 @@ class timing_processor:
         # Return original kernel records unchanged (they won't match the combined layers anyway)
         return combined_layer_records
 
+    def _build_trace_and_cuda_index(self):
+        """Pre-index trace by pid (sorted by ts) and cuda by (pid, cid) for fast per-layer lookup."""
+        trace_by_pid = defaultdict(list)
+        for cid, (ts, p) in self.trace_process_events.items():
+            trace_by_pid[p].append((ts, cid))
+        for p in trace_by_pid:
+            trace_by_pid[p].sort(key=lambda x: x[0])
+
+        cuda_by_pid_cid = defaultdict(list)
+        if self.cuda_df.empty:
+            return trace_by_pid, cuda_by_pid_cid
+        # itertuples uses underscored names (spaces -> _)
+        for row in self.cuda_df.itertuples(index=False):
+            cid = getattr(row, "CorrelationId", None)
+            if cid is None:
+                continue
+            pid = getattr(row, "PID", None)
+            cuda_by_pid_cid[(pid, cid)].append({
+                "Kernel Start": getattr(row, "Kernel_Start", None),
+                "Kernel End": getattr(row, "Kernel_End", None),
+                "Kernel Name": getattr(row, "Kernel_Name", None),
+                "Kernel Elapsed": getattr(row, "Kernel_Elapsed", None),
+                "Memcpy Size": getattr(row, "Memcpy_Size", 0),
+            })
+        return trace_by_pid, cuda_by_pid_cid
+
+    @staticmethod
+    def _compute_gpu_time_from_list(candidate_list):
+        """Same as compute_gpu_time but for list of kernel dicts with 'Kernel Start'/'Kernel End'."""
+        if not candidate_list:
+            return 0
+        intervals = sorted((k["Kernel Start"], k["Kernel End"]) for k in candidate_list)
+        total_time = 0
+        current_start, current_end = intervals[0]
+        for start, end in intervals[1:]:
+            if start > current_end:
+                total_time += (current_end - current_start)
+                current_start, current_end = start, end
+            else:
+                current_end = max(current_end, end)
+        total_time += (current_end - current_start)
+        return total_time * 1e-6
+
     def generate_mapping(self, saving=True):
         layer_records = []
         kernel_records = []
 
-        for _, nvtx in tqdm(self.nvtx_df.iterrows(), desc="Processing NVTX events"):
+        trace_by_pid, cuda_by_pid_cid = self._build_trace_and_cuda_index()
+
+        nvtx_cols = list(self.nvtx_df.columns)
+        nvtx_tuples = list(self.nvtx_df.itertuples(index=False, name=None))
+
+        for row in tqdm(nvtx_tuples, desc="Processing NVTX events"):
+            nvtx = dict(zip(nvtx_cols, row))
             pid = nvtx["PID"]
             start = nvtx["StartTimestamp"]
             end = nvtx["EndTimestamp"]
 
+            # TraceProcessEvents in [start, end] for this pid (bisect on sorted ts list)
+            trace_list = trace_by_pid.get(pid, [])
+            trace_cids = {}
+            if trace_list:
+                ts_only = [x[0] for x in trace_list]
+                lo = bisect.bisect_left(ts_only, start)
+                hi = bisect.bisect_right(ts_only, end)
+                trace_cids = {cid: ts for ts, cid in trace_list[lo:hi]}
+
+            candidate_list = []
+            for cid in trace_cids:
+                for k in cuda_by_pid_cid.get((pid, cid), []):
+                    kstart, kend = k["Kernel Start"], k["Kernel End"]
+                    if kstart >= start and kend <= end:
+                        candidate_list.append(k)
+
+            if candidate_list:
+                k_starts = [k["Kernel Start"] for k in candidate_list]
+                k_ends = [k["Kernel End"] for k in candidate_list]
+                layer_gpu_turnaround = (max(k_ends) - min(k_starts)) * 1e-6
+            else:
+                layer_gpu_turnaround = 0
+            gpu_active_time = self._compute_gpu_time_from_list(candidate_list)
+            layer_gpu_waittime = layer_gpu_turnaround - gpu_active_time
             layer_cpu_time = (end - start) * 1e-6
 
-            if self.process_kernels:
-            
-                # Try correlation through TraceProcessEvents
-                # Find TraceProcessEvents that occur within the NVTX time range and belong to the same PID
-                trace_candidates = {
-                    cid: ts for cid, (ts, p) in self.trace_process_events.items()
-                    if start <= ts <= end and p == pid
-                }
+            internal_memcpy = sum(k["Memcpy Size"] for k in candidate_list if k["Kernel Name"] == "device2device")
+            external_memcpy = sum(k["Memcpy Size"] for k in candidate_list if k["Kernel Name"] in ("host2device", "device2host"))
 
-                # Find CUDA kernels that have matching correlation IDs AND belong to the same PID AND occur within the layer's time range
-                # This ensures proper correlation - kernels must be from same process and happen during the layer execution
-                candidate_kernels = self.cuda_df[
-                    (self.cuda_df["CorrelationId"].isin(trace_candidates.keys())) &
-                    (self.cuda_df["PID"] == pid) &
-                    (self.cuda_df["Kernel Start"] >= start) &
-                    (self.cuda_df["Kernel End"] <= end)
-                ]
-                
-                layer_gpu_turnaround = (candidate_kernels["Kernel End"].max() - candidate_kernels["Kernel Start"].min()) * 1e-6 if not candidate_kernels.empty else 0
-                gpu_active_time = self.compute_gpu_time(candidate_kernels)
-                layer_gpu_waittime = layer_gpu_turnaround - gpu_active_time
-            
-
-                memcpy_kernels = candidate_kernels[
-                    candidate_kernels["Kernel Name"].isin(self.COPYKIND_MAPPING.values())
-                ]
-                internal_memcpy = memcpy_kernels[
-                    memcpy_kernels["Kernel Name"] == "device2device"
-                ]["Memcpy Size"].sum()
-                external_memcpy = memcpy_kernels[
-                    memcpy_kernels["Kernel Name"].isin(["host2device", "device2host"])
-                ]["Memcpy Size"].sum()
-
-                for _, krow in candidate_kernels.iterrows():
-                    kernel_records.append({
-                        "Input": nvtx["Input"],
-                        "Model": nvtx["Model Name"],
-                        "Layer": nvtx["Layer"],
-                        "Kernel Name": krow["Kernel Name"],
-                        "Start Timestamp": krow["Kernel Start"],
-                        "End Timestamp": krow["Kernel End"],
-                        "Elapsed Time": krow["Kernel Elapsed"],
-                    })
+            for k in candidate_list:
+                kernel_records.append({
+                    "Input": nvtx["Input"],
+                    "Model": nvtx["Model Name"],
+                    "Layer": nvtx["Layer"],
+                    "Kernel Name": k["Kernel Name"],
+                    "Start Timestamp": k["Kernel Start"],
+                    "End Timestamp": k["Kernel End"],
+                    "Elapsed Time": k["Kernel Elapsed"],
+                })
 
             layer_records.append({
                 "Input": nvtx["Input"],
@@ -480,11 +544,11 @@ class timing_processor:
                 "Start Timestamp": start,
                 "End Timestamp": end,
                 "Elapsed Time": layer_cpu_time,
-                "GPU Turnaround Time": layer_gpu_turnaround if self.process_kernels else 0,
-                "GPU Computation Time": gpu_active_time if self.process_kernels else 0,
-                "GPU Wait Time": max(0, layer_gpu_waittime) if self.process_kernels else 0,
-                "Internal Memcpy Size": internal_memcpy if self.process_kernels else 0,
-                "External Memcpy Size": external_memcpy if self.process_kernels else 0,
+                "GPU Turnaround Time": layer_gpu_turnaround,
+                "GPU Computation Time": gpu_active_time,
+                "GPU Wait Time": max(0, layer_gpu_waittime),
+                "Internal Memcpy Size": internal_memcpy,
+                "External Memcpy Size": external_memcpy
             })
 
         # DEBUG: Check individual data_preprocessing records before combining
@@ -505,16 +569,6 @@ class timing_processor:
         if saving:
             self.save_results(layer_records, kernel_records, self.output_dir)
         return layer_records, kernel_records
-
-    def save_results(self, layer_records, kernel_records, output_dir):
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Always save layer records
-        pd.DataFrame(layer_records).to_csv(os.path.join(output_dir, f"layer_timings_{self.index}.csv"), index=False)
-        
-        # Only save kernel records if they were processed
-        if self.process_kernels and kernel_records:
-            pd.DataFrame(kernel_records).to_csv(os.path.join(output_dir, f"kernel_timings_{self.index}.csv"), index=False)
 
     def save_results(self, layer_records, kernel_records, output_dir):
         os.makedirs(output_dir, exist_ok=True)
