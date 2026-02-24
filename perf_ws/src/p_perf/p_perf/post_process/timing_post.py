@@ -11,13 +11,14 @@ from collections import Counter, defaultdict
 class timing_processor:
     COPYKIND_MAPPING = {1: "host2device", 8: "device2device", 2: "device2host"}
 
-    def __init__(self, nusc, raw_json, output_dir, index, scene, mode=None, publish_mode="bag"):
+    def __init__(self, nusc, raw_json, output_dir, index, scene, mode=None, publish_mode="bag", process_kernels=True):
         self.raw_json = raw_json
         self.output_dir = output_dir
         self.index = index
         self.mode = mode
         self.publish_mode = publish_mode
         self.scene_token = scene
+        self.process_kernels = process_kernels
         
         # Build reverse mapping from model names to their types
         self._build_model_type_mapping()
@@ -425,48 +426,52 @@ class timing_processor:
             pid = nvtx["PID"]
             start = nvtx["StartTimestamp"]
             end = nvtx["EndTimestamp"]
-            
-            # Try correlation through TraceProcessEvents
-            # Find TraceProcessEvents that occur within the NVTX time range and belong to the same PID
-            trace_candidates = {
-                cid: ts for cid, (ts, p) in self.trace_process_events.items()
-                if start <= ts <= end and p == pid
-            }
 
-            # Find CUDA kernels that have matching correlation IDs AND belong to the same PID AND occur within the layer's time range
-            # This ensures proper correlation - kernels must be from same process and happen during the layer execution
-            candidate_kernels = self.cuda_df[
-                (self.cuda_df["CorrelationId"].isin(trace_candidates.keys())) &
-                (self.cuda_df["PID"] == pid) &
-                (self.cuda_df["Kernel Start"] >= start) &
-                (self.cuda_df["Kernel End"] <= end)
-            ]
-            
-            layer_gpu_turnaround = (candidate_kernels["Kernel End"].max() - candidate_kernels["Kernel Start"].min()) * 1e-6 if not candidate_kernels.empty else 0
-            gpu_active_time = self.compute_gpu_time(candidate_kernels)
-            layer_gpu_waittime = layer_gpu_turnaround - gpu_active_time
             layer_cpu_time = (end - start) * 1e-6
 
-            memcpy_kernels = candidate_kernels[
-                candidate_kernels["Kernel Name"].isin(self.COPYKIND_MAPPING.values())
-            ]
-            internal_memcpy = memcpy_kernels[
-                memcpy_kernels["Kernel Name"] == "device2device"
-            ]["Memcpy Size"].sum()
-            external_memcpy = memcpy_kernels[
-                memcpy_kernels["Kernel Name"].isin(["host2device", "device2host"])
-            ]["Memcpy Size"].sum()
+            if self.process_kernels:
+            
+                # Try correlation through TraceProcessEvents
+                # Find TraceProcessEvents that occur within the NVTX time range and belong to the same PID
+                trace_candidates = {
+                    cid: ts for cid, (ts, p) in self.trace_process_events.items()
+                    if start <= ts <= end and p == pid
+                }
 
-            for _, krow in candidate_kernels.iterrows():
-                kernel_records.append({
-                    "Input": nvtx["Input"],
-                    "Model": nvtx["Model Name"],
-                    "Layer": nvtx["Layer"],
-                    "Kernel Name": krow["Kernel Name"],
-                    "Start Timestamp": krow["Kernel Start"],
-                    "End Timestamp": krow["Kernel End"],
-                    "Elapsed Time": krow["Kernel Elapsed"],
-                })
+                # Find CUDA kernels that have matching correlation IDs AND belong to the same PID AND occur within the layer's time range
+                # This ensures proper correlation - kernels must be from same process and happen during the layer execution
+                candidate_kernels = self.cuda_df[
+                    (self.cuda_df["CorrelationId"].isin(trace_candidates.keys())) &
+                    (self.cuda_df["PID"] == pid) &
+                    (self.cuda_df["Kernel Start"] >= start) &
+                    (self.cuda_df["Kernel End"] <= end)
+                ]
+                
+                layer_gpu_turnaround = (candidate_kernels["Kernel End"].max() - candidate_kernels["Kernel Start"].min()) * 1e-6 if not candidate_kernels.empty else 0
+                gpu_active_time = self.compute_gpu_time(candidate_kernels)
+                layer_gpu_waittime = layer_gpu_turnaround - gpu_active_time
+            
+
+                memcpy_kernels = candidate_kernels[
+                    candidate_kernels["Kernel Name"].isin(self.COPYKIND_MAPPING.values())
+                ]
+                internal_memcpy = memcpy_kernels[
+                    memcpy_kernels["Kernel Name"] == "device2device"
+                ]["Memcpy Size"].sum()
+                external_memcpy = memcpy_kernels[
+                    memcpy_kernels["Kernel Name"].isin(["host2device", "device2host"])
+                ]["Memcpy Size"].sum()
+
+                for _, krow in candidate_kernels.iterrows():
+                    kernel_records.append({
+                        "Input": nvtx["Input"],
+                        "Model": nvtx["Model Name"],
+                        "Layer": nvtx["Layer"],
+                        "Kernel Name": krow["Kernel Name"],
+                        "Start Timestamp": krow["Kernel Start"],
+                        "End Timestamp": krow["Kernel End"],
+                        "Elapsed Time": krow["Kernel Elapsed"],
+                    })
 
             layer_records.append({
                 "Input": nvtx["Input"],
@@ -475,11 +480,11 @@ class timing_processor:
                 "Start Timestamp": start,
                 "End Timestamp": end,
                 "Elapsed Time": layer_cpu_time,
-                "GPU Turnaround Time": layer_gpu_turnaround,
-                "GPU Computation Time": gpu_active_time,
-                "GPU Wait Time": max(0, layer_gpu_waittime),
-                "Internal Memcpy Size": internal_memcpy,
-                "External Memcpy Size": external_memcpy
+                "GPU Turnaround Time": layer_gpu_turnaround if self.process_kernels else 0,
+                "GPU Computation Time": gpu_active_time if self.process_kernels else 0,
+                "GPU Wait Time": max(0, layer_gpu_waittime) if self.process_kernels else 0,
+                "Internal Memcpy Size": internal_memcpy if self.process_kernels else 0,
+                "External Memcpy Size": external_memcpy if self.process_kernels else 0,
             })
 
         # DEBUG: Check individual data_preprocessing records before combining
@@ -500,6 +505,16 @@ class timing_processor:
         if saving:
             self.save_results(layer_records, kernel_records, self.output_dir)
         return layer_records, kernel_records
+
+    def save_results(self, layer_records, kernel_records, output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Always save layer records
+        pd.DataFrame(layer_records).to_csv(os.path.join(output_dir, f"layer_timings_{self.index}.csv"), index=False)
+        
+        # Only save kernel records if they were processed
+        if self.process_kernels and kernel_records:
+            pd.DataFrame(kernel_records).to_csv(os.path.join(output_dir, f"kernel_timings_{self.index}.csv"), index=False)
 
     def save_results(self, layer_records, kernel_records, output_dir):
         os.makedirs(output_dir, exist_ok=True)
