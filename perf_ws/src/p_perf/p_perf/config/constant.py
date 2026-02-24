@@ -53,6 +53,8 @@ lidar_models = [
     # ('pv_rcnn_8xb2-80e_kitti-3d-3class', 'kitti-3class'),             # POINT + VOXEL (Hybrid)
 ]
 
+# Segmentation: use MMSeg model-zoo aliases. Config and weights are loaded from the
+# MMSeg model zoo automatically (no ETH URLs or local BDD100K paths).
 seg_models = [
     # ('cascade_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k', 'ins_seg'),  # Instance segmentation: CNN based
     # ('gcnet_mask_rcnn_r50_fpn_3x_ins_seg_bdd100k', 'ins_seg'),    # Instance segmentation: CNN based
@@ -60,7 +62,7 @@ seg_models = [
     # ('panoptic_fpn_r50_fpn_1x_pan_seg_bdd100k', 'pan_seg'),       # Panoptic segmentation
     # ('upernet_swin-t_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: transformer based
     # ('fcn_hr48_512x1024_80k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation : CNN based
-    ('deeplabv3+_r50-d8_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: CNN based
+    ('deeplabv3_r50-d8_4xb4-80k_coco-stuff164k-512x512', 'sem_seg'),
 ]
 
 # Model name mappings for shorter display names
@@ -80,14 +82,14 @@ model_name_mappings = {
     '3dssd_4x4_kitti-3d-car': '3DSSD',
     'pv_rcnn_8xb2-80e_kitti-3d-3class': 'PV-RCNN',
 
-    # Segmentation models
+    # Segmentation models (MMSeg model-zoo aliases; config/weights from zoo)
     'cascade_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k': 'CascadeMaskRCNN',
     'panoptic_fpn_r50_fpn_1x_pan_seg_bdd100k': 'PanopticFPN',
     'gcnet_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k': 'GCNet',
     'mask_rcnn_hrnetv2p_w18_1x_ins_seg_bdd100k': 'HRNet',
     'upernet_swin-t_512x1024_40k_sem_seg_bdd100k': 'SwinTransformer',
     'fcn_hr48_512x1024_80k_sem_seg_bdd100k': 'FCN',
-    'deeplabv3+_r50-d8_512x1024_40k_sem_seg_bdd100k': 'DeepLabV3+',
+    'deeplabv3_r50-d8_4xb4-80k_coco-stuff164k-512x512': 'DeepLabV3+',
     'upernet_convnext-t_fp16_512x1024_40k_sem_seg_bdd100k': 'ConvNeXt'
 }
 
