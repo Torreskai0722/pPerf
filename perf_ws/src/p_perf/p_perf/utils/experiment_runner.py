@@ -144,6 +144,7 @@ class ExperimentRunner:
         publish_mode: str = "bag",
         process_status: str = "run_success",
         cleanup_json: bool = True,
+        process_kernels: bool = True,
         max_runs: int = -1
     ) -> pd.DataFrame:
         """
@@ -157,6 +158,7 @@ class ExperimentRunner:
             publish_mode: Publishing mode for timing processor
             process_status: Status to look for to process experiments
             cleanup_json: Whether to delete JSON files after processing
+            process_kernels: Whether to process and save individual kernel timings (default: True)
             max_runs: Maximum number of experiments to post-process. -1 means run all, >0 means run that many
             
         Returns:
@@ -220,11 +222,16 @@ class ExperimentRunner:
             try:
                 timing_analyzer = timing_processor(
                     nusc, raw_timing_json, self.output_base, i,
-                    scene=scene, publish_mode=publish_mode
+                    scene=scene, publish_mode=publish_mode, process_kernels=process_kernels
                 )
                 timing_analyzer.parse_json()
+                print(f"timing analyzer finished parsing json")
                 layer_records, kernel_records = timing_analyzer.generate_mapping()
-                print(f"✓ Timing analysis completed for run {i}")
+                
+                if process_kernels:
+                    print(f"✓ Timing analysis completed for run {i} (layer + kernel timings)")
+                else:
+                    print(f"✓ Timing analysis completed for run {i} (layer timings only)")
             except Exception as e:
                 print(f"✗ Timing analysis failed for run {i}: {e}")
                 continue
