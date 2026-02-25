@@ -8,6 +8,7 @@ from sensor_msgs.msg import PointCloud2, CompressedImage
 import sensor_msgs_py.point_cloud2 as pc2
 import csv
 
+
 import time
 
 import numpy as np
