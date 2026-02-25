@@ -426,14 +426,17 @@ class pPerf:
     # ============================================================================
     
     def wrap_filtered_methods_with_nvtx(self):
-        """Wrap filtered methods at target depth with NVTX markers."""
+        """Wrap filtered methods with NVTX markers.
+
+        Model methods are wrapped only at ``target_depth`` while pipeline
+        transforms are always wrapped once they survive filtering.
+        """
         count = 0
         for method_id in self.filtered_methods:
-            if self.method_depths[method_id] != self.target_depth:
-                continue
-                
             if method_id in self.module_method_map:
                 # This is a model method
+                if self.method_depths[method_id] != self.target_depth:
+                    continue
                 module, name, tag = self.module_method_map[method_id]
                 original = getattr(module, name)
                 setattr(module, name, self._nvtx_wrapper(original, tag))
