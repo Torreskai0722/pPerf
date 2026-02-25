@@ -114,8 +114,6 @@ class pPerf:
     def register_hooks(self, warm_data: Any):
         """Register profiling hooks and prepare for inference."""
 
-        # Wrap pipeline transforms
-        self.trace_and_record_pipeline_times(warm_data)
         
         # Trace and record method timings
         self.trace_and_record_times(warm_data)
@@ -151,6 +149,9 @@ class pPerf:
         
         # Wrap model methods
         self._wrap_model_methods()
+        
+        # Wrap pipeline transforms
+        self.trace_and_record_pipeline_times(warmup_data)
         
         # Run inference to collect timing data
         self.inferencer(warmup_data)
@@ -219,13 +220,13 @@ class pPerf:
     def _purge_unused_hooks(self):
         """Remove hooks for methods that were not called during tracing."""
         # Purge unused method hooks
-        # unused = set(self.module_method_map.keys()) - self.method_called
-        # for method_id in unused:
-        #     module, name, _ = self.module_method_map[method_id]
-        #     original = getattr(module, f"_original_{name}", None)
-        #     if original:
-        #         setattr(module, name, original)
-        #     self.method_timings.pop(method_id, None)
+        unused = set(self.module_method_map.keys()) - self.method_called
+        for method_id in unused:
+            module, name, _ = self.module_method_map[method_id]
+            original = getattr(module, f"_original_{name}", None)
+            if original:
+                setattr(module, name, original)
+            self.method_timings.pop(method_id, None)
 
         # Purge unused pipeline transform hooks
         unused_pipeline = set(self.pipeline_transform_map.keys()) - self.pipeline_transform_called
@@ -316,13 +317,11 @@ class pPerf:
         # Prepare timing ranges
         ranges = self._prepare_timing_ranges()
         
-        # # Apply time-based filtering
-        # keep_set = self._apply_time_based_filtering(ranges, tolerance_ms)
+        # Apply time-based filtering
+        keep_set = self._apply_time_based_filtering(ranges, tolerance_ms)
         
-        # # Apply source-based filtering
-        # filtered = self._apply_source_based_filtering(keep_set, valid_modules)
-
-        filtered = [range[0] for range in ranges]
+        # Apply source-based filtering
+        filtered = self._apply_source_based_filtering(keep_set, valid_modules)
         
         # Compute nesting depths
         self._compute_nesting_depths(filtered)
@@ -427,31 +426,24 @@ class pPerf:
     # ============================================================================
     
     def wrap_filtered_methods_with_nvtx(self):
-        """Wrap filtered methods at target depth with NVTX markers.
-        
-        Note: Pipeline transforms are always wrapped regardless of depth.
-        """
+        """Wrap filtered methods at target depth with NVTX markers."""
         count = 0
         for method_id in self.filtered_methods:
+            if self.method_depths[method_id] != self.target_depth:
+                continue
+                
             if method_id in self.module_method_map:
-                # This is a model method - apply depth check
-                # if self.method_depths[method_id] != self.target_depth:
-                #     continue
+                # This is a model method
                 module, name, tag = self.module_method_map[method_id]
                 original = getattr(module, name)
                 setattr(module, name, self._nvtx_wrapper(original, tag))
                 count += 1
             else:
-                # This is a pipeline transform - always wrap regardless of depth
-                try:
-                    pipeline_obj, idx, tag = self.pipeline_transform_map[method_id]
-                    original = pipeline_obj.transforms[idx]
-                    pipeline_obj.transforms[idx] = self._nvtx_wrapper(original, tag)
-                    count += 1
-                except:
-                    print([key for key in self.pipeline_transform_map.keys()])
-                    print(method_id, 'not found in pipeline_transform_map')
-                    pass
+                # This is a pipeline transform
+                pipeline_obj, idx, tag = self.pipeline_transform_map[method_id]
+                original = pipeline_obj.transforms[idx]
+                pipeline_obj.transforms[idx] = self._nvtx_wrapper(original, tag)
+                count += 1
         
 
 

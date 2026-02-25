@@ -40,14 +40,15 @@ image_classes = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian']
 
 image_models = [    
     'faster-rcnn_r50_fpn_1x_coco',      # TWO STAGE
-    # 'yolov3_d53_mstrain-608_273e_coco', # ONE STAGE ANCHOR
+    'yolov3_d53_mstrain-608_273e_coco', # ONE STAGE ANCHOR
     # 'yolox_x_8x8_300e_coco',            # ONE STAGE ANCHOR FREE
-    # 'detr_r50_8xb2-150e_coco'           # TRANSFORMER
+    'detr_r50_8xb2-150e_coco'           # TRANSFORMER
+    'dino-4scale_r50_8xb2-12e_coco'
 ]
 
 lidar_models = [
     ('pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d', 'nus'),    # VOXEL BASED
-    # ('centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d', 'nus'),        # VOXEL BASED
+    ('centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d', 'nus'),        # VOXEL BASED
     # ('hv_ssn_regnet-400mf_secfpn_sbn-all_16xb2-2x_nus-3d', 'nus'),      # VOXEL BASED
     # ('3dssd_4x4_kitti-3d-car', 'kitti-car'),                       # POINT BASED
     # ('pv_rcnn_8xb2-80e_kitti-3d-3class', 'kitti-3class'),             # POINT + VOXEL (Hybrid)
@@ -58,11 +59,13 @@ lidar_models = [
 seg_models = [
     # ('cascade_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k', 'ins_seg'),  # Instance segmentation: CNN based
     # ('gcnet_mask_rcnn_r50_fpn_3x_ins_seg_bdd100k', 'ins_seg'),    # Instance segmentation: CNN based
-    # ('mask_rcnn_hrnetv2p_w18_1x_ins_seg_bdd100k', 'ins_seg'),    # Instance segmentation: CNN based
+    ('mask-rcnn_r50_fpn_1x_coco', 'ins_seg'),    # Instance segmentation: CNN based
     # ('panoptic_fpn_r50_fpn_1x_pan_seg_bdd100k', 'pan_seg'),       # Panoptic segmentation
     # ('upernet_swin-t_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: transformer based
-    # ('fcn_hr48_512x1024_80k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation : CNN based
-    ('deeplabv3_r50-d8_4xb4-80k_coco-stuff164k-512x512', 'sem_seg'),
+    ('fcn_hr18s_4xb2-40k_cityscapes-512x1024', 'sem_seg'),    # Semantic segmentation : CNN based
+    ('deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280', 'sem_seg'),
+    ('vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512', 'sem_seg'),
+    ('swin-base-patch4-window7-in1k-pre_upernet_8xb2-160k_ade20k-512x512', 'sem_seg'),
 ]
 
 # Model name mappings for shorter display names
@@ -73,7 +76,7 @@ model_name_mappings = {
     'yolox_x_8x8_300e_coco': 'YOLOX',
     'centernet_r18-dcnv2_8xb16-crop512-140e_coco': 'CenterNet',
     'detr_r50_8xb2-150e_coco': 'DETR',
-    
+    'dino-4scale_r50_8xb2-12e_coco': 'DINO',
     # Lidar models
     'pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d': 'PointPillars',
     'centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d': 'CenterPoint',
@@ -86,11 +89,13 @@ model_name_mappings = {
     'cascade_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k': 'CascadeMaskRCNN',
     'panoptic_fpn_r50_fpn_1x_pan_seg_bdd100k': 'PanopticFPN',
     'gcnet_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k': 'GCNet',
-    'mask_rcnn_hrnetv2p_w18_1x_ins_seg_bdd100k': 'HRNet',
+    'mask-rcnn_r50_fpn_1x_coco': 'MaskRCNN',
     'upernet_swin-t_512x1024_40k_sem_seg_bdd100k': 'SwinTransformer',
-    'fcn_hr48_512x1024_80k_sem_seg_bdd100k': 'FCN',
-    'deeplabv3_r50-d8_4xb4-80k_coco-stuff164k-512x512': 'DeepLabV3+',
-    'upernet_convnext-t_fp16_512x1024_40k_sem_seg_bdd100k': 'ConvNeXt'
+    'fcn_hr18s_4xb2-40k_cityscapes-512x1024': 'FCN',
+    'deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280': 'DeepLabV3+',
+    'upernet_convnext-t_fp16_512x1024_40k_sem_seg_bdd100k': 'ConvNeXt',
+    'vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512': 'ViT',
+    'swin-base-patch4-window7-in1k-pre_upernet_8xb2-160k_ade20k-512x512': 'SwinTransformer',
 }
 
 

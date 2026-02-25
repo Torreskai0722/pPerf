@@ -79,13 +79,29 @@ class pPerf3dSegInferencer(LidarSeg3DInferencer):
         return Compose(new_pipeline)
 
 class pPerf2dSegInferencer(MMSegInferencer):
-    """2D segmentation inferencer with custom pipeline (pPerfImageLoader). Uses MMSeg model zoo; no _add_preprocessor (config has data preprocessor)."""
+    """2D segmentation inferencer that dispatches to MMSeg or MMDet by mode.
+
+    - sem_seg / drivable -> MMSegInferencer backend
+    - ins_seg / pan_seg  -> MMDet inferencer backend
+    """
+
+    MMDET_SEG_MODES = {'ins_seg', 'pan_seg'}
 
     def __init__(self, model: str, mode: str = 'sem_seg', device: str = 'cuda:0', **kwargs):
-        """Args: model: MMSeg model-zoo alias. mode: e.g. 'sem_seg', 'ins_seg', 'pan_seg', 'drivable' (stored for compatibility with node/profiler)."""
-        super().__init__(model=model, device=device, **kwargs)
         self.model_name = model
         self.mode = mode
+        self._use_mmdet_backend = mode in self.MMDET_SEG_MODES
+        self._det_inferencer = None
+        self._show_progress = False
+
+        if self._use_mmdet_backend:
+            # Instance/panoptic segmentation models in this project are MMDet models.
+            self._det_inferencer = pPerf2dDetInferencer(model=model, device=device, **kwargs)
+            self.model = self._det_inferencer.model
+            self.pipeline = self._det_inferencer.pipeline
+        else:
+            super().__init__(model=model, device=device, **kwargs)
+
 
     def _init_pipeline(self, cfg: ConfigType2D) -> Compose:
         """Initialize the test pipeline with pPerfImageLoader."""
@@ -112,6 +128,9 @@ class pPerf2dSegInferencer(MMSegInferencer):
         return Compose(new_pipeline)
 
     def __call__(self, img, return_datasamples=False) -> List[Dict]:
+        if self._use_mmdet_backend and self._det_inferencer is not None:
+            return self._det_inferencer(img, return_datasamples=return_datasamples)
+
         input_data = self.pipeline(img)
         input_data['inputs'] = [input_data['inputs']]
         input_data['data_samples'] = [input_data['data_samples']]
@@ -121,6 +140,11 @@ class pPerf2dSegInferencer(MMSegInferencer):
 
     def show_result(self, img, results_dict):
         """Visualize segmentation results by overlaying the segmentation mask."""
+        if self._use_mmdet_backend:
+            # Keep this helper sem-seg specific. MMDet visualization should be handled
+            # by DetInferencer's visualize workflow.
+            return np.asarray(img).copy() if img is not None else np.zeros((512, 512, 3), dtype=np.uint8)
+
         vis_img = np.asarray(img).copy() if img is not None else np.zeros((512, 512, 3), dtype=np.uint8)
         # Accept DataSample (has .get or .pred_sem_seg) or dict
         if hasattr(results_dict, 'pred_sem_seg'):
@@ -227,6 +251,10 @@ class pPerf3dDetInferencer(LidarDet3DInferencer):
     
 
 class pPerf2dDetInferencer(DetInferencer):
+
+    def __init__(self, model: str, device: str = 'cuda:0', **kwargs):
+        super().__init__(model=model, device=device, **kwargs)
+        self.show_progress = False
 
     
     def _init_pipeline(self, cfg: ConfigType2D) -> Compose:

@@ -38,21 +38,22 @@ bag_dir = "/mmdetection3d_ros2/data/bag"
 dataset_version = "v1.0-mini"
 # nuscenes_data_dir = Path("/mnt/nas/Nuscenes")
 nuscenes_data_dir = Path("/mmdetection3d_ros2/data/nuscenes")
-num_runs = -1
+num_runs = 1
 
 OVERWRITE = True
-CONTINUE = False  # Set to True to continue from existing mapping file
+CONTINUE = False # Set to True to continue from existing mapping file
 LOGGING_DELAY = False
+POST_PROCESS = False
 
 # Parameter sweep setup
 scenes = ["c5224b9b454b4ded9b5d2d2634bbda8a"]
-depths = [1]
+depths = [0]
 image_queues = [1]
 lidar_queues = [1]
 publishing_rate = [10]
-decode_head_w = [1, 2, 4]
-decode_head_h = [1, 2, 4]
-output_name = "full_stack_1I1L1S-MPS-LOW-10-2"
+decode_head_w = [1]
+decode_head_h = [1]
+output_name = "full_stack_1I1L1S-MPS-check"
 
 # ============================================================================
 # SETUP
@@ -249,27 +250,27 @@ df = runner.run_experiments(
 # ============================================================================
 # POST-PROCESSING
 # ============================================================================
+if POST_PROCESS:
+    # Load NuScenes for post-processing
+    nusc = NuScenes(version=dataset_version, dataroot=str(nuscenes_data_dir))
 
-# Load NuScenes for post-processing
-nusc = NuScenes(version=dataset_version, dataroot=str(nuscenes_data_dir))
+    def parse_row_for_postprocessing(row):
+        """Parse row to extract scene and other information for post-processing."""
+        abbreviated_scene = row["scene"]
+        scene = get_full_scene_token(abbreviated_scene)
+        return {'scene': scene}
 
-def parse_row_for_postprocessing(row):
-    """Parse row to extract scene and other information for post-processing."""
-    abbreviated_scene = row["scene"]
-    scene = get_full_scene_token(abbreviated_scene)
-    return {'scene': scene}
-
-# Post-process experiments
-# max_runs: -1 = process all, >0 = process that many experiments
-df = runner.post_process_experiments(
-    df=df,
-    csv_path=mapping_file,
-    nusc=nusc,
-    row_parser=parse_row_for_postprocessing,
-    publish_mode="bag",
-    cleanup_json=True,  # Set to True to delete JSON files after processing
-    max_runs=num_runs  # Change to positive number to limit post-processing (e.g., 1 for testing)
-)
+    # Post-process experiments
+    # max_runs: -1 = process all, >0 = process that many experiments
+    df = runner.post_process_experiments(
+        df=df,
+        csv_path=mapping_file,
+        nusc=nusc,
+        row_parser=parse_row_for_postprocessing,
+        publish_mode="bag",
+        cleanup_json=False,  # Set to True to delete JSON files after processing
+        max_runs=num_runs  # Change to positive number to limit post-processing (e.g., 1 for testing)
+    )
 
 # ============================================================================
 # COMPLETION
