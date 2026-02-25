@@ -7,7 +7,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2, CompressedImage
 
 from p_perf.test_bed.det_inferencer import DetInferenceNode
-from p_perf.pPerf_inferencer import pPerf3dSegInferencer, bddSegInferencer
+from p_perf.pPerf_inferencer import pPerf3dSegInferencer, pPerf2dSegInferencer
 
 
 class SegmentationInferenceNode(DetInferenceNode):
@@ -70,15 +70,15 @@ class SegmentationInferenceNode(DetInferenceNode):
         self.create_subscription(String, 'terminate_inferencers', self._terminate_callback, 5)
 
     def _init_models(self):
-        """Override model initialization for segmentation"""
+        """Override model initialization for segmentation."""
         if self.mode == '3d':
-            # Initialize model with memory optimizations
             self.inferencer = pPerf3dSegInferencer(self.model_name)
             self.inferencer.show_progress = False
 
         elif self.mode in ['sem_seg', 'ins_seg', 'pan_seg', 'drivable']:
-            # Initialize model with memory optimizations
-            self.inferencer = bddSegInferencer(self.model_name, self.mode)
+            # model_name: MMSeg model-zoo alias (e.g. pspnet_r50-d8_4xb4-40k_cityscapes-512x1024).
+            # Config and weights are loaded automatically from the MMSeg model zoo.
+            self.inferencer = pPerf2dSegInferencer(self.model_name, mode=self.mode)
             self.inferencer.show_progress = False
 
         else:
