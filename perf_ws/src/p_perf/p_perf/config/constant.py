@@ -42,8 +42,8 @@ image_models = [
     'faster-rcnn_r50_fpn_1x_coco',      # TWO STAGE
     'yolov3_d53_mstrain-608_273e_coco', # ONE STAGE ANCHOR
     # 'yolox_x_8x8_300e_coco',            # ONE STAGE ANCHOR FREE
-    'detr_r50_8xb2-150e_coco'           # TRANSFORMER
-    'dino-4scale_r50_8xb2-12e_coco'
+    'detr_r50_8xb2-150e_coco',           # TRANSFORMER
+    'dino-4scale_r50_8xb2-12e_coco',
 ]
 
 lidar_models = [
