@@ -131,10 +131,18 @@ class pPerf:
 
     def run_inference(self, data: Any, input_name: str) -> Any:
         """Run inference with NVTX annotation."""
+        # Ensure e2e starts from an idle device so it does not include
+        # outstanding kernels from previous frames.
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         torch.cuda.nvtx.range_push(f'{input_name}.{self.model_name}.e2e')
         
         try:
             result = self.inferencer(data, return_datasamples=True)
+            # Block until all GPU work launched by the inferencer is complete
+            # before reporting e2e completion.
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
             return result
         finally:
             torch.cuda.nvtx.range_pop()
