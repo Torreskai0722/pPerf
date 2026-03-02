@@ -38,22 +38,23 @@ bag_dir = "/mmdetection3d_ros2/data/bag"
 dataset_version = "v1.0-mini"
 # nuscenes_data_dir = Path("/mnt/nas/Nuscenes")
 nuscenes_data_dir = Path("/mmdetection3d_ros2/data/nuscenes")
-num_runs = 1
+num_runs = -1
 
 OVERWRITE = True
 CONTINUE = False # Set to True to continue from existing mapping file
 LOGGING_DELAY = False
 POST_PROCESS = False
+KERNEL_PROCESS = False
 
 # Parameter sweep setup
 scenes = ["c5224b9b454b4ded9b5d2d2634bbda8a"]
-depths = [0]
+depths = [-1]
 image_queues = [1]
 lidar_queues = [1]
 publishing_rate = [10]
 decode_head_w = [1]
 decode_head_h = [1]
-output_name = "full_stack_1I1L1S-MPS-check"
+output_name = "full_stack_1I1L1S-blackwell-2"
 
 # ============================================================================
 # SETUP
@@ -269,7 +270,8 @@ if POST_PROCESS:
         row_parser=parse_row_for_postprocessing,
         publish_mode="bag",
         cleanup_json=False,  # Set to True to delete JSON files after processing
-        max_runs=num_runs  # Change to positive number to limit post-processing (e.g., 1 for testing)
+        max_runs=num_runs,  # Change to positive number to limit post-processing (e.g., 1 for testing)
+        process_kernels=KERNEL_PROCESS,
     )
 
 # ============================================================================

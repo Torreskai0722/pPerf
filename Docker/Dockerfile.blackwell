@@ -1,11 +1,12 @@
-# Use Ubuntu 22.04 with CUDA 11.8 and cuDNN 8
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+# Use Ubuntu 22.04 with CUDA 12.8 (Blackwell support)
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
 
 # Set environment variables
-ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0 7.5 8.0 8.6+PTX 12.0+PTX" \
+ENV TORCH_CUDA_ARCH_LIST="12.0" \
     TORCH_NVCC_FLAGS="-Xfatbin -compress-all" \
     CMAKE_PREFIX_PATH="$(dirname $(which conda))/../" \
-    FORCE_CUDA="1"
+    FORCE_CUDA="1" \
+    MAX_JOBS=12
 
 # Install dependencies
 RUN apt-get update && \
@@ -37,21 +38,30 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install -U colcon-common-extensions 
+RUN pip install -U colcon-common-extensions
 
 # Install specific version of empy (3.3.4) to avoid compatibility issues
 RUN pip install --no-cache-dir --force-reinstall empy==3.3.4
 RUN pip install --no-cache-dir regex ftfy
 
-# Install numpy PyTorch with CUDA 11.8 
-RUN pip install --no-cache-dir "numpy<2" --force-reinstall
-RUN pip install torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Install PyTorch built for CUDA 12.8
+RUN python3 -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu128   torch==2.8.* torchvision==0.23.* torchaudio==2.8.*
 
-# Install MMEngine, MMCV, MMDetection
+# # Install MMEngine, MMCV, MMDetection
 RUN pip install openmim && \
     mim install "mmengine"
 
-RUN pip install mmcv==2.1.0 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.1/index.html
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# # Build MMCV from source to avoid prebuilt wheel CUDA matrix constraints.
+RUN git clone -b v2.2.0 https://github.com/open-mmlab/mmcv.git /mmcv \
+    && cd /mmcv \
+    && pip install --no-cache-dir -r requirements/optional.txt \
+    && pip install --no-cache-dir -e . -v
+
 
 # Install MMDetection
 RUN git clone https://github.com/open-mmlab/mmdetection.git -b v3.3.0 /mmdetection \
@@ -68,15 +78,15 @@ RUN git clone -b main https://github.com/open-mmlab/mmsegmentation.git /mmsegmen
     && cd /mmsegmentation \
     && pip install --no-cache-dir -e .
 
-# Install spconv so that will not have issues with BEVFusion
-RUN pip install spconv-cu118
+# # Install spconv so that will not have issues with BEVFusion
 
-# # Install libsparsehash and torchsparse v1.4.0 from GitHub
-# RUN apt-get update && apt-get install -y --no-install-recommends libsparsehash-dev \
-#  && rm -rf /var/lib/apt/lists/* \
-#  && pip install --upgrade pip \
-#  && pip install --upgrade git+https://github.com/mit-han-lab/torchsparse.git@v1.4.0 \
-#  && pip install ftfy
+
+# # # Install libsparsehash and torchsparse v1.4.0 from GitHub
+RUN apt-get update && apt-get install -y --no-install-recommends libsparsehash-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && pip install --upgrade pip \
+ && pip install --upgrade git+https://github.com/mit-han-lab/torchsparse.git@v1.4.0 \
+ && pip install ftfy
 
 # ----------------------
 # Install ROS 2 Humble
@@ -115,12 +125,15 @@ ENV CMAKE_PREFIX_PATH=${ROS_ROOT}:$CMAKE_PREFIX_PATH
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
 
 
-# ----------------------
-# Install Nsys
-# ----------------------
+# # ----------------------
+# # Install Nsys
+# # ----------------------
 RUN cd /tmp && \
     wget https://developer.nvidia.com/downloads/assets/tools/secure/nsight-systems/2025_2/nsight-systems-2025.2.1_2025.2.1.130-1_amd64.deb && \
     apt-get install -y ./nsight-systems-2025.2.1_2025.2.1.130-1_amd64.deb && \
     rm -rf /tmp/*
 # Set working directory
 WORKDIR /mmdetection3d_ros2
+
+TODO: something is wrong with the downloading link of bdd100k segmentation, it is not found.
+    Confirmed that officially failed to reach the link.
