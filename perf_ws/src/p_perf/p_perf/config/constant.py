@@ -59,10 +59,11 @@ lidar_models = [
 seg_models = [
     # ('cascade_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k', 'ins_seg'),  # Instance segmentation: CNN based
     # ('gcnet_mask_rcnn_r50_fpn_3x_ins_seg_bdd100k', 'ins_seg'),    # Instance segmentation: CNN based
-    ('mask-rcnn_r50_fpn_1x_coco', 'ins_seg'),    # Instance segmentation: CNN based
     # ('panoptic_fpn_r50_fpn_1x_pan_seg_bdd100k', 'pan_seg'),       # Panoptic segmentation
     # ('upernet_swin-t_512x1024_40k_sem_seg_bdd100k', 'sem_seg'),    # Semantic segmentation: transformer based
+    # ('pidnet-m_2xb6-120k_1024x1024-cityscapes', 'sem_seg'),
     ('fcn_hr18s_4xb2-40k_cityscapes-512x1024', 'sem_seg'),    # Semantic segmentation : CNN based
+    ('mask-rcnn_r50_fpn_1x_coco', 'ins_seg'),    # Instance segmentation: CNN based
     ('deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280', 'sem_seg'),
     ('vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512', 'sem_seg'),
     ('swin-base-patch4-window7-in1k-pre_upernet_8xb2-160k_ade20k-512x512', 'sem_seg'),
@@ -96,6 +97,7 @@ model_name_mappings = {
     'upernet_convnext-t_fp16_512x1024_40k_sem_seg_bdd100k': 'ConvNeXt',
     'vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512': 'ViT',
     'swin-base-patch4-window7-in1k-pre_upernet_8xb2-160k_ade20k-512x512': 'SwinTransformer',
+    'pidnet-m_2xb6-120k_1024x1024-cityscapes': 'PIDNet',
 }
 
 

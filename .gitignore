@@ -12,3 +12,4 @@ perf_ws/visulization/*
 nuscenes_to_ros2bag/*
 tools/results/*
 analysis_outputs/*
+**/__pycache__/**

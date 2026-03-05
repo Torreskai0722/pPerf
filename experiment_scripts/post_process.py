@@ -16,9 +16,165 @@ import os
 import pandas as pd
 from pathlib import Path
 import ast
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def resolve_target_model_name(target_model: str) -> str:
+    if isinstance(target_model, str):
+        target_model = target_model.strip()
+        if target_model.startswith("(") and target_model.endswith(")"):
+            try:
+                parsed = ast.literal_eval(target_model)
+                if isinstance(parsed, (tuple, list)) and len(parsed) > 0:
+                    target_model = parsed[0]
+            except (ValueError, SyntaxError):
+                pass
+    return get_full_model_name(target_model)
+
+
+def generate_correlation_threshold_sweep_csv(
+    kernel_processor: KernelProcessor,
+    run_indices: list,
+    output_dir: str,
+    threshold_start_ms: float = 1.0,
+    threshold_end_ms: float = 4.0,
+    threshold_step_ms: float = 0.25,
+    output_csv_name: str = "correlation_threshold_sweep.csv",
+) -> str:
+    """
+    Compute correlations for all run_index and thresholds and update the CSV incrementally.
+    """
+    thresholds = np.arange(threshold_start_ms, threshold_end_ms + 1e-9, threshold_step_ms)
+    os.makedirs(output_dir, exist_ok=True)
+    sweep_csv_path = os.path.join(output_dir, output_csv_name)
+    columns = ["run_index", "model_name", "alignment_threshold_ms", "correlation"]
+
+    # Recreate the output CSV so each run starts with a clean file, then append rows incrementally.
+    pd.DataFrame(columns=columns).to_csv(sweep_csv_path, index=False)
+    total_records = 0
+
+    for run_index in run_indices:
+        for threshold_ms in thresholds:
+            _, correlations = kernel_processor.memcpy_analysis(
+                run_index=run_index,
+                output_dir=output_dir,
+                create_plots=False,
+                alignment_threshold_ms=float(np.round(threshold_ms, 2)),
+            )
+
+            for model_name, correlation in correlations.items():
+                record = {
+                    "run_index": run_index,
+                    "model_name": model_name,
+                    "alignment_threshold_ms": float(np.round(threshold_ms, 2)),
+                    "correlation": correlation,
+                }
+                pd.DataFrame([record]).to_csv(
+                    sweep_csv_path, mode="a", header=False, index=False
+                )
+                total_records += 1
+
+    print(f"Saved consolidated threshold sweep CSV: {sweep_csv_path}")
+    print(f"Total records: {total_records}")
+    return sweep_csv_path
+
+
+def plot_model_correlation_vs_alignment_threshold_from_csv(
+    sweep_df: pd.DataFrame,
+    run_index: int,
+    target_model: str,
+    output_dir: str,
+    threshold_start_ms: float = 1.0,
+    threshold_end_ms: float = 4.0,
+    threshold_step_ms: float = 0.25,
+) -> None:
+    """
+    Plot correlation vs threshold using only the consolidated threshold-sweep CSV.
+    """
+    thresholds = np.arange(threshold_start_ms, threshold_end_ms + 1e-9, threshold_step_ms)
+    target_model_full = resolve_target_model_name(target_model)
+    model_df = sweep_df[
+        (sweep_df["run_index"] == run_index) &
+        (sweep_df["model_name"] == target_model_full)
+    ].copy()
+
+    if model_df.empty:
+        print(
+            f"No records found in sweep CSV for run_index={run_index}, "
+            f"target_model='{target_model}' (resolved to '{target_model_full}')."
+        )
+        return
+
+    result_df = model_df.sort_values("alignment_threshold_ms")
+    model_name_for_output = str(target_model).replace(os.sep, "_")
+    result_csv = os.path.join(
+        output_dir, f"correlation_vs_alignment_threshold_run_{run_index}_{model_name_for_output}.csv"
+    )
+    result_plot = os.path.join(
+        output_dir, f"correlation_vs_alignment_threshold_run_{run_index}_{model_name_for_output}.png"
+    )
+    result_df.to_csv(result_csv, index=False)
+
+    plt.figure(figsize=(12, 8))
+    plt.plot(
+        result_df["alignment_threshold_ms"],
+        result_df["correlation"],
+        marker="o",
+        linewidth=2,
+    )
+    plt.xticks(thresholds)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(result_plot, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    print(f"Saved threshold sweep CSV: {result_csv}")
+    print(f"Saved threshold sweep plot: {result_plot}")
+
+
+def plot_all_models_for_run_indices_from_sweep_csv(
+    sweep_csv_path: str,
+    target_run_indices: list,
+    output_dir: str,
+    threshold_start_ms: float = 1.0,
+    threshold_end_ms: float = 4.0,
+    threshold_step_ms: float = 0.25,
+) -> None:
+    sweep_df = pd.read_csv(sweep_csv_path)
+    for target_run_index in target_run_indices:
+        models_for_run = (
+            sweep_df.loc[sweep_df["run_index"] == int(target_run_index), "model_name"]
+            .dropna()
+            .unique()
+            .tolist()
+        )
+        for target_model_name in models_for_run:
+            plot_model_correlation_vs_alignment_threshold_from_csv(
+                sweep_df=sweep_df,
+                run_index=int(target_run_index),
+                target_model=target_model_name,
+                output_dir=output_dir,
+                threshold_start_ms=threshold_start_ms,
+                threshold_end_ms=threshold_end_ms,
+                threshold_step_ms=threshold_step_ms,
+            )
+
 
 # output_dirs = ["full_stack_1I1L1S-1", 'det_1I1L-1', 'det_1L1S-1']
-output_dirs = ['full_stack_1I1L1S-MPS-LOW-10-2']
+# output_dirs = ['full_stack_1I1L1S-blackwell-2', 'full_stack_1I1L1S-2']
+output_dirs = ['full_stack_1I1L1S-orin-1']
+# Configure these to generate correlation-vs-threshold plots.
+# Only provide target run indices; all models in each run are plotted.
+
+TARGET_RUN_INDICES = range(40)
+ALIGNMENT_THRESHOLD_START_MS = 1
+ALIGNMENT_THRESHOLD_END_MS = 8
+ALIGNMENT_THRESHOLD_STEP_MS = 1
+ENABLE_THRESHOLD_SWEEP_PLOT = True
+ENABLE_THRESHOLD_SWEEP_CSV = True
+ENABLE_MODIFY_TIMINGS = False
+ENABLE_MEMCPY_ANALYSIS = False
 # for output_dir in output_dirs:
 #     output_base = f"/home/mg/pdnn/pPerf/outputs/{output_dir}"
 
@@ -74,17 +230,36 @@ for output_dir in output_dirs:
     kernel_processor = KernelProcessor(output_base)
     all_correlations = []
 
-    for i, row in df.iterrows():
-        if df.at[i, "status"] != "success":
-            continue
+    if ENABLE_MODIFY_TIMINGS:
+        for i, row in df.iterrows():
+            if df.at[i, "status"] != "success":
+                continue
+            run_index = row["run_index"]
+            layer_processor.modify_timings(
+                run_index=run_index,
+                add_inference=True,
+                save_modified_timings=True
+            )
 
-        run_index = row["run_index"]
+    if ENABLE_THRESHOLD_SWEEP_CSV:
+        sweep_csv_path = generate_correlation_threshold_sweep_csv(
+            kernel_processor=kernel_processor,
+            run_indices=TARGET_RUN_INDICES,
+            output_dir=f"{output_base}/memcpy_analysis",
+            threshold_start_ms=ALIGNMENT_THRESHOLD_START_MS,
+            threshold_end_ms=ALIGNMENT_THRESHOLD_END_MS,
+            threshold_step_ms=ALIGNMENT_THRESHOLD_STEP_MS,
+            output_csv_name="correlation_threshold_sweep.csv",
+        )
 
-        
-        layer_processor.modify_timings(
-            run_index=run_index,
-            add_inference=True,
-            save_modified_timings=True
+    if ENABLE_THRESHOLD_SWEEP_PLOT:
+        plot_all_models_for_run_indices_from_sweep_csv(
+            sweep_csv_path=sweep_csv_path,
+            target_run_indices=TARGET_RUN_INDICES,
+            output_dir=f"{output_base}/memcpy_analysis",
+            threshold_start_ms=ALIGNMENT_THRESHOLD_START_MS,
+            threshold_end_ms=ALIGNMENT_THRESHOLD_END_MS,
+            threshold_step_ms=ALIGNMENT_THRESHOLD_STEP_MS,
         )
 
 
@@ -113,121 +288,105 @@ for output_dir in output_dirs:
             except (ValueError, SyntaxError) as e:
                 print(f"Warning: Could not parse seg_model: {seg_str}")
     
-    print(f"Found {len(unique_image_models_abbrev)} unique image models")
-    print(f"Found {len(unique_lidar_models_abbrev)} unique lidar models")
-    print(f"Found {len(unique_seg_models_abbrev)} unique seg models")
+    # print(f"Found {len(unique_image_models_abbrev)} unique image models")
+    # print(f"Found {len(unique_lidar_models_abbrev)} unique lidar models")
+    # print(f"Found {len(unique_seg_models_abbrev)} unique seg models")
     
-    layer_name = 'e2e'
-    metric = ['decode_head_h', 'decode_head_w']
+    # layer_name = 'e2e'
+    # metric = ['decode_head_h', 'decode_head_w']
     
-    # Handle two cases: with or without seg models
-    if unique_seg_models_abbrev:
-        # Case 1: Full stack with segmentation (3 models)
-        print(f"\nProcessing full stack combinations (image + lidar + seg)...")
-        for abbreviated_img_model in unique_image_models_abbrev:
-            for abbreviated_lidar_tuple in unique_lidar_models_abbrev:
-                for abbreviated_seg_tuple in unique_seg_models_abbrev:
-                    # Convert abbreviated names back to full names for processing
-                    image_model = get_full_model_name(abbreviated_img_model)
-                    lidar_model = get_full_model_name(abbreviated_lidar_tuple[0])
-                    lidar_mode = abbreviated_lidar_tuple[1]
-                    seg_model = get_full_model_name(abbreviated_seg_tuple[0])
-                    seg_mode = abbreviated_seg_tuple[1]
+    # # Handle two cases: with or without seg models
+    # if unique_seg_models_abbrev:
+    #     # Case 1: Full stack with segmentation (3 models)
+    #     print(f"\nProcessing full stack combinations (image + lidar + seg)...")
+    #     for abbreviated_img_model in unique_image_models_abbrev:
+    #         for abbreviated_lidar_tuple in unique_lidar_models_abbrev:
+    #             for abbreviated_seg_tuple in unique_seg_models_abbrev:
+    #                 # Convert abbreviated names back to full names for processing
+    #                 image_model = get_full_model_name(abbreviated_img_model)
+    #                 lidar_model = get_full_model_name(abbreviated_lidar_tuple[0])
+    #                 lidar_mode = abbreviated_lidar_tuple[1]
+    #                 seg_model = get_full_model_name(abbreviated_seg_tuple[0])
+    #                 seg_mode = abbreviated_seg_tuple[1]
                     
-                    # Analyze all three models in this combination
-                    for target_model in [image_model, lidar_model, seg_model]:
-                        try:
-                            # For filtering, use abbreviated names (what's in the CSV)
-                            # For target_model (actual model file to load), use full name
-                            layer_processor.plot_layer_boxplot(
-                                layer_name=layer_name,
-                                target_model=target_model,  # Full name for loading timing files
-                                mapping_file='full_stack_mapping.csv',
-                                metric=metric,
-                                save_plot=True,
-                                remove_outliers=False,
-                                # Use abbreviated names for filtering (to match CSV)
-                                image_model=abbreviated_img_model,
-                                lidar_model=str(abbreviated_lidar_tuple),  # Keep as tuple string
-                                seg_model=str(abbreviated_seg_tuple),  # Keep as tuple string
-                            )
-                            print(f"  ✓ Created plot for {target_model}")
-                        except Exception as e:
-                            print(f"  ✗ Failed to create plot for {target_model}: {e}")
-    else:
-        # Case 2: Detection only (2 models - backward compatible)
-        print(f"\nProcessing detection-only combinations (image + lidar)...")
-        for abbreviated_img_model in unique_image_models_abbrev:
-            for abbreviated_lidar_tuple in unique_lidar_models_abbrev:
-                # Convert abbreviated names back to full names for processing
-                image_model = get_full_model_name(abbreviated_img_model)
-                lidar_model = get_full_model_name(abbreviated_lidar_tuple[0])
-                lidar_mode = abbreviated_lidar_tuple[1]
+    #                 # Analyze all three models in this combination
+    #                 for target_model in [image_model, lidar_model, seg_model]:
+    #                     try:
+    #                         # For filtering, use abbreviated names (what's in the CSV)
+    #                         # For target_model (actual model file to load), use full name
+    #                         layer_processor.plot_layer_boxplot(
+    #                             layer_name=layer_name,
+    #                             target_model=target_model,  # Full name for loading timing files
+    #                             mapping_file='full_stack_mapping.csv',
+    #                             metric=metric,
+    #                             save_plot=True,
+    #                             remove_outliers=False,
+    #                             # Use abbreviated names for filtering (to match CSV)
+    #                             image_model=abbreviated_img_model,
+    #                             lidar_model=str(abbreviated_lidar_tuple),  # Keep as tuple string
+    #                             seg_model=str(abbreviated_seg_tuple),  # Keep as tuple string
+    #                         )
+    #                         print(f"  ✓ Created plot for {target_model}")
+    #                     except Exception as e:
+    #                         print(f"  ✗ Failed to create plot for {target_model}: {e}")
+    # else:
+    #     # Case 2: Detection only (2 models - backward compatible)
+    #     print(f"\nProcessing detection-only combinations (image + lidar)...")
+    #     for abbreviated_img_model in unique_image_models_abbrev:
+    #         for abbreviated_lidar_tuple in unique_lidar_models_abbrev:
+    #             # Convert abbreviated names back to full names for processing
+    #             image_model = get_full_model_name(abbreviated_img_model)
+    #             lidar_model = get_full_model_name(abbreviated_lidar_tuple[0])
+    #             lidar_mode = abbreviated_lidar_tuple[1]
                 
-                # Analyze both image and lidar models in this combination
-                for target_model in [image_model, lidar_model]:
-                    try:
-                        # For filtering, use abbreviated names (what's in the CSV)
-                        # For target_model (actual model file to load), use full name
-                        layer_processor.plot_layer_boxplot(
-                            layer_name=layer_name,
-                            target_model=target_model,  # Full name for loading timing files
-                            mapping_file='full_stack_mapping.csv',
-                            metric='scene',
-                            save_plot=True,
-                            remove_outliers=False,
-                            # Use abbreviated names for filtering (to match CSV)
-                            image_model=abbreviated_img_model,
-                            lidar_model=str(abbreviated_lidar_tuple),  # Keep as tuple string
-                        )
-                        print(f"  ✓ Created plot for {target_model}")
-                    except Exception as e:
-                        print(f"  ✗ Failed to create plot for {target_model}: {e}")
+    #             # Analyze both image and lidar models in this combination
+    #             for target_model in [image_model, lidar_model]:
+    #                 try:
+    #                     # For filtering, use abbreviated names (what's in the CSV)
+    #                     # For target_model (actual model file to load), use full name
+    #                     layer_processor.plot_layer_boxplot(
+    #                         layer_name=layer_name,
+    #                         target_model=target_model,  # Full name for loading timing files
+    #                         mapping_file='full_stack_mapping.csv',
+    #                         metric='scene',
+    #                         save_plot=True,
+    #                         remove_outliers=False,
+    #                         # Use abbreviated names for filtering (to match CSV)
+    #                         image_model=abbreviated_img_model,
+    #                         lidar_model=str(abbreviated_lidar_tuple),  # Keep as tuple string
+    #                     )
+    #                     print(f"  ✓ Created plot for {target_model}")
+    #                 except Exception as e:
+    #                     print(f"  ✗ Failed to create plot for {target_model}: {e}")
 
-    # model_names = ['faster-rcnn_r50_fpn_1x_coco', '3dssd_4x4_kitti-3d-car', 'cascade_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k']
-    # layer_name = 'inference'
-    # for model_name in model_names:
-    #     layer_processor.plot_layer_boxplot(
-    #         run_indices=[6, 7, 8],
-    #         mapping_file=mapping_file,
-    #         metric='run_index',
-    #         layer_name=layer_name,
-    #         model_name=model_name,
-    #         save_plot=True,
-    #     )
+    image_models = [get_full_model_name(model_name) for model_name in unique_image_models_abbrev]
+    lidar_models = [get_full_model_name(model_name) for model_name in unique_lidar_models_abbrev]
+    seg_models = [get_full_model_name(model_name) for model_name in unique_seg_models_abbrev]
+    
+    model_names = ['faster-rcnn_r50_fpn_1x_coco', '3dssd_4x4_kitti-3d-car', 'cascade_mask_rcnn_r101_fpn_3x_ins_seg_bdd100k']
+    layer_name = 'inference'
 
-    #     _, correlations = kernel_processor.memcpy_analysis(
-    #         run_index=run_index,
-    #         output_dir=f"{output_base}/memcpy_analysis",
-    #         create_plots=False,
-    #         alignment_threshold_ms=2
-    #     )
-
-    #     kernel_processor.plot_multi_model_memcpy_vs_inference_subplots(
-    #         run_index=run_index,
-    #         csv_files=None,  # Auto-discover CSV files
-    #         csv_dir=f"{output_base}/memcpy_analysis",
-    #         output_dir=f"{output_base}/memcpy_analysis",
-    #         save_plot=True,
-    #         max_points_per_model=250
-    #     )
-
-    #     # Add run information to correlations and store in list
-    #     for model_name, correlation in correlations.items():
-    #         all_correlations.append({
-    #             'run_index': run_index,
-    #             'model_name': model_name,
-    #             'correlation': correlation,
-    #         })
-        
-    #     count += 1
-
-    # Save all correlations to CSV
-    # correlations_df = pd.DataFrame(all_correlations)
-    # correlations_csv_path = f"{output_base}/memcpy_analysis/all_correlations.csv"
-    # correlations_df.to_csv(correlations_csv_path, index=False)
-    # print(f"Saved all correlations to: {correlations_csv_path}")
-    # print(f"Total correlation records: {len(correlations_df)}")
+    if ENABLE_MEMCPY_ANALYSIS:
+        for run_index in range(len(df)):
+            if df.at[run_index, "status"] != "success":
+                continue
+            # layer_processor.plot_layer_boxplot(
+            #     mapping_file=mapping_file,
+            #     metric='run_index',
+            #     layer_name=layer_name,
+            #     model_name=model_name,
+            #     save_plot=True,
+            # )
+            for alignment_threshold_ms in range(ALIGNMENT_THRESHOLD_START_MS, ALIGNMENT_THRESHOLD_END_MS + 1, ALIGNMENT_THRESHOLD_STEP_MS):
+                kernel_processor.plot_multi_model_memcpy_vs_inference_subplots(
+                    run_index=run_index,
+                    csv_files=None,  # Auto-discover CSV files
+                    csv_dir=f"{output_base}/memcpy_analysis",
+                    output_dir=f"{output_base}/memcpy_analysis",
+                    save_plot=True,
+                    max_points_per_model=250,
+                    alignment_threshold_ms=alignment_threshold_ms
+                )
 
 
 

@@ -103,9 +103,9 @@ class timing_processor:
                 try:
                     sec = float(input_name)
                     if model_name in self.lidar_model_names:
-                        input_name = self._get_closest_token_fast(sec, "lidar")
+                        input_name = get_closest_token_from_timestamp(sec, self.lidar_token_map)
                     elif model_name in image_models:
-                        input_name = self._get_closest_token_fast(sec, "image")
+                        input_name = get_closest_token_from_timestamp(sec, self.image_token_map)
                 except (ValueError, TypeError):
                     raise ValueError(f"Error parsing input name for E2E: {input_name}")
                 layer = parts[3:]
@@ -122,9 +122,9 @@ class timing_processor:
                 sec = float(input_name)
                 model_name = "pending"
                 if layer == "lidar_decode":
-                    input_name = self._get_closest_token_fast(sec, "lidar")
+                    input_name = get_closest_token_from_timestamp(sec, self.lidar_token_map)
                 else:
-                    input_name = self._get_closest_token_fast(sec, "image")
+                    input_name = get_closest_token_from_timestamp(sec, self.image_token_map)
             except (ValueError, TypeError):
                 print(f"DECODE Error parsing input name: {input_name}")
                 raise ValueError(f"Error parsing input name for DECODE: {input_name}")

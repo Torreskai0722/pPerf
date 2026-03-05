@@ -378,6 +378,87 @@ class KernelProcessor:
             output_dir = Path(output_dir)
             
         output_dir.mkdir(exist_ok=True)
+
+        # If CSVs for this run/threshold already exist, reuse them and compute correlations directly.
+        target_threshold = float(np.round(alignment_threshold_ms, 2))
+        generated_files = {}
+        correlations = {}
+
+        def _compute_correlation_from_df(model_df: pd.DataFrame, model_name: str) -> float:
+            try:
+                x_vals = model_df['A_score'].values
+                y_vals = model_df['inference_time'].values
+                valid_mask = np.isfinite(x_vals) & np.isfinite(y_vals)
+
+                if np.sum(valid_mask) <= 1:
+                    self.logger.warning(
+                        f"Insufficient valid data points for correlation calculation for model {model_name}"
+                    )
+                    return 0.0
+
+                x_clean = x_vals[valid_mask]
+                y_clean = y_vals[valid_mask]
+
+                if np.std(x_clean) <= 1e-10 or np.std(y_clean) <= 1e-10:
+                    self.logger.warning(
+                        f"Insufficient variance in data for correlation calculation for model {model_name}"
+                    )
+                    return 0.0
+
+                correlation = np.corrcoef(x_clean, y_clean)[0, 1]
+                return correlation if not np.isnan(correlation) else 0.0
+            except Exception as e:
+                self.logger.warning(f"Error calculating correlation for model {model_name}: {e}")
+                return 0.0
+
+        existing_csv_files = list(output_dir.glob(f"*_run_{run_index}_*.csv"))
+        for csv_file in existing_csv_files:
+            filename = csv_file.stem
+            suffix = f"_run_{run_index}_"
+            if suffix not in filename:
+                continue
+
+            safe_model_name, threshold_str = filename.rsplit(suffix, 1)
+            try:
+                csv_threshold = float(threshold_str)
+            except ValueError:
+                continue
+
+            if not np.isclose(csv_threshold, target_threshold):
+                continue
+
+            model_name = self._reverse_safe_filename(safe_model_name)
+            try:
+                model_df = pd.read_csv(csv_file)
+                # Ensure expected columns exist before attempting correlation calculation.
+                if {'A_score', 'inference_time'}.issubset(model_df.columns):
+                    correlations[model_name] = _compute_correlation_from_df(model_df, model_name)
+                    generated_files[model_name] = str(csv_file)
+                else:
+                    self.logger.warning(
+                        f"Skipping malformed CSV (missing required columns): {csv_file}"
+                    )
+            except Exception as e:
+                self.logger.warning(f"Error loading existing CSV {csv_file}: {e}")
+
+        if len(generated_files) > 0:
+            self.logger.info(
+                f"Reused {len(generated_files)} existing model CSV files for run {run_index} "
+                f"at threshold {target_threshold}"
+            )
+            if create_plots:
+                self.logger.info("Creating plots from existing model CSV files...")
+                try:
+                    self.plot_multi_model_memcpy_vs_inference(
+                        run_index=run_index,
+                        csv_files=generated_files,
+                        output_dir=output_dir,
+                        save_plot=True,
+                        max_points_per_model=max_points_per_model
+                    )
+                except Exception as e:
+                    self.logger.error(f"Error creating plots: {e}")
+            return generated_files, correlations
         
         # Load and preprocess data once
         kernel_df = self.load_kernel_timings(run_index)
@@ -482,7 +563,7 @@ class KernelProcessor:
                 
                 # Create safe filename
                 safe_model_name = model.replace('/', '_').replace('(', '').replace(')', '').replace("'", '').replace(',', '_').replace(' ', '_')
-                csv_filename = f"{safe_model_name}_run_{run_index}.csv"
+                csv_filename = f"{safe_model_name}_run_{run_index}_{alignment_threshold_ms}.csv"
                 csv_filepath = output_dir / csv_filename
                 
                 model_df.to_csv(csv_filepath, index=False)
@@ -720,7 +801,8 @@ class KernelProcessor:
                                                      csv_dir: Optional[str] = None,
                                                      output_dir: Optional[str] = None,
                                                      save_plot: bool = True,
-                                                     max_points_per_model: int = 250) -> None:
+                                                     max_points_per_model: int = 250,
+                                                     alignment_threshold_ms: float = 2.0) -> None:
         """
         Plot the relationship between aligned memcpy count and inference time for multiple models 
         in separate subplots, ordered by model type (image, lidar, seg).
@@ -735,7 +817,7 @@ class KernelProcessor:
         """
         # Auto-discover CSV files if not provided
         if csv_files is None:
-            csv_files = self.find_existing_csv_files(run_index, csv_dir)
+            csv_files = self.find_existing_csv_files(run_index, csv_dir, alignment_threshold_ms)
             
         if len(csv_files) == 0:
             self.logger.warning("No CSV files provided for plotting")
@@ -922,7 +1004,8 @@ class KernelProcessor:
                                           csv_dir: Optional[str] = None,
                                           output_dir: Optional[str] = None,
                                           save_plot: bool = True,
-                                          max_points_per_experiment: int = 100) -> None:
+                                          max_points_per_experiment: int = 100,
+                                          alignment_threshold_ms: float = 2.0) -> None:
         """
         Plot the relationship between GPU utilization score and inference time for a target model 
         across multiple experiments, with different colors for each experiment and a legend showing 
@@ -1124,7 +1207,7 @@ class KernelProcessor:
             self.logger.warning(f"Error closing plot: {e}")
 
 
-    def find_existing_csv_files(self, run_index: int, csv_dir: Optional[str] = None) -> Dict[str, str]:
+    def find_existing_csv_files(self, run_index: int, csv_dir: Optional[str] = None, alignment_threshold_ms: float = 2.0) -> Dict[str, str]:
         """
         Find existing CSV files from previous memcpy_analysis runs.
         
@@ -1146,7 +1229,7 @@ class KernelProcessor:
             
         # Pattern for CSV files: {safe_model_name}_run_{run_index}.csv
         csv_files = {}
-        pattern = f"*_run_{run_index}.csv"
+        pattern = f"*_run_{run_index}_{alignment_threshold_ms}.csv"
         
         for csv_file in csv_dir.glob(pattern):
             # Extract model name from filename

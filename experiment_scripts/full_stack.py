@@ -43,8 +43,7 @@ num_runs = -1
 OVERWRITE = True
 CONTINUE = False # Set to True to continue from existing mapping file
 LOGGING_DELAY = False
-POST_PROCESS = False
-KERNEL_PROCESS = False
+POST_PROCESS = True
 
 # Parameter sweep setup
 scenes = ["c5224b9b454b4ded9b5d2d2634bbda8a"]
@@ -54,7 +53,7 @@ lidar_queues = [1]
 publishing_rate = [10]
 decode_head_w = [1]
 decode_head_h = [1]
-output_name = "full_stack_1I1L1S-blackwell-2"
+output_name = "full_stack_1I1L1S-2"
 
 # ============================================================================
 # SETUP
@@ -269,9 +268,8 @@ if POST_PROCESS:
         nusc=nusc,
         row_parser=parse_row_for_postprocessing,
         publish_mode="bag",
-        cleanup_json=False,  # Set to True to delete JSON files after processing
-        max_runs=num_runs,  # Change to positive number to limit post-processing (e.g., 1 for testing)
-        process_kernels=KERNEL_PROCESS,
+        cleanup_json=True,  # Set to True to delete JSON files after processing
+        max_runs=num_runs  # Change to positive number to limit post-processing (e.g., 1 for testing)
     )
 
 # ============================================================================
