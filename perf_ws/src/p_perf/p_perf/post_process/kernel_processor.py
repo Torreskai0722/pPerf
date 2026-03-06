@@ -3,7 +3,7 @@ import numpy as np
 import os
 import ast
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Set
+from typing import Any, Dict, List, Tuple, Optional, Set
 import logging
 from datetime import datetime
 
@@ -144,6 +144,566 @@ class KernelProcessor:
         else:
             self.logger.warning(f"No kernel data found in run {run_index}")
             return pd.DataFrame()
+
+    def load_layer_timings(self, run_index: int) -> pd.DataFrame:
+        """
+        Load layer timings for a specific run index.
+
+        Args:
+            run_index: The run index to load
+
+        Returns:
+            DataFrame containing the layer timings with run_index column added
+        """
+        layer_file = f"layer_timings_{run_index}.csv"
+        layer_path = self.output_dir / layer_file
+
+        if not layer_path.exists():
+            raise FileNotFoundError(f"Layer timings file not found: {layer_path}")
+
+        self.logger.info(f"Loading layer timings: {layer_path}")
+        layer_df = pd.read_csv(layer_path)
+        layer_df["run_index"] = run_index
+        return layer_df
+
+    def _safe_model_filename(self, model_name: str) -> str:
+        """Create a filesystem-safe model filename."""
+        return (
+            model_name.replace("/", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("'", "")
+            .replace(",", "_")
+            .replace(" ", "_")
+        )
+
+    def _model_candidate_names(self, model_name: str) -> Set[str]:
+        """Return full-name and display-name candidates for a model."""
+        candidates = {model_name, model_name_mappings.get(model_name, model_name)}
+        for original_name, display_name in model_name_mappings.items():
+            if model_name == display_name:
+                candidates.add(original_name)
+                candidates.add(display_name)
+        return {str(candidate) for candidate in candidates}
+
+    def _mapping_value_matches_model(self, value: Any, model_name: str) -> bool:
+        """Return whether a mapping CSV cell refers to the target model."""
+        if pd.isna(value):
+            return False
+
+        candidates = self._model_candidate_names(model_name)
+
+        if isinstance(value, str):
+            text_value = value.strip()
+            if text_value in candidates:
+                return True
+
+            try:
+                parsed = ast.literal_eval(text_value)
+            except (ValueError, SyntaxError):
+                parsed = None
+
+            if isinstance(parsed, (tuple, list, set)):
+                return any(str(item) in candidates for item in parsed)
+
+            return False
+
+        if isinstance(value, (tuple, list, set)):
+            return any(str(item) in candidates for item in value)
+
+        return str(value) in candidates
+
+    def find_run_indices_for_model(self, target_model: str, mapping_file: str) -> List[int]:
+        """
+        Find all run indices in the mapping CSV that contain the target model.
+
+        Args:
+            target_model: Full or display model name
+            mapping_file: Mapping CSV path relative to output_dir or absolute
+
+        Returns:
+            Sorted list of matching run indices
+        """
+        mapping_df = self.load_mapping_csv(mapping_file)
+        model_columns = ["image_model", "lidar_model", "seg_model"]
+        available_columns = [col for col in model_columns if col in mapping_df.columns]
+
+        run_indices: Set[int] = set()
+        for _, row in mapping_df.iterrows():
+            for model_column in available_columns:
+                if self._mapping_value_matches_model(row[model_column], target_model):
+                    run_indices.add(int(row["run_index"]))
+                    break
+
+        return sorted(run_indices)
+
+    def load_kernel_profile(
+        self,
+        target_model: str,
+        profile_dir: Optional[str] = None,
+        profile_csv: Optional[str] = None,
+    ) -> pd.DataFrame:
+        """
+        Load a per-model kernel profile CSV.
+
+        Args:
+            target_model: Full or display model name
+            profile_dir: Directory containing kernel profile CSVs
+            profile_csv: Explicit profile CSV path
+
+        Returns:
+            Normalized kernel profile DataFrame
+        """
+        candidate_paths: List[Path] = []
+
+        if profile_csv is not None:
+            candidate_paths.append(Path(profile_csv))
+
+        if profile_dir is None:
+            base_dir = self.output_dir / "kernel_profiles"
+        else:
+            base_dir = Path(profile_dir)
+
+        for candidate_name in self._model_candidate_names(target_model):
+            candidate_paths.append(base_dir / f"{candidate_name}.csv")
+            candidate_paths.append(base_dir / f"{self._safe_model_filename(candidate_name)}.csv")
+
+        for candidate_path in candidate_paths:
+            if candidate_path.exists():
+                profile_df = pd.read_csv(candidate_path)
+                return self._normalize_kernel_profile_df(profile_df, target_model)
+
+        raise FileNotFoundError(
+            f"Could not find a kernel profile CSV for '{target_model}' in {base_dir}"
+        )
+
+    def _normalize_kernel_profile_df(
+        self,
+        profile_df: pd.DataFrame,
+        target_model: str,
+    ) -> pd.DataFrame:
+        """Normalize profile columns for downstream kernel ID matching."""
+        normalized_df = profile_df.copy()
+
+        column_aliases = {
+            "Kernel Name": "kernel_name",
+            "Kernel ID": "kernel_id",
+            "Input Shape": "input_shape",
+            "Engine Config": "engine",
+            "Engine": "engine",
+            "Block Size": "block_size",
+            "Grid Size": "grid_size",
+            "Theoretical Occupancy": "theoretical_occupancy",
+            "theoretical occupancy": "theoretical_occupancy",
+        }
+        normalized_df = normalized_df.rename(columns=column_aliases)
+
+        if "kernel_name" not in normalized_df.columns:
+            raise ValueError("Kernel profile CSV must contain a kernel_name column")
+
+        if "kernel_id" not in normalized_df.columns:
+            normalized_df["kernel_id"] = np.arange(1, len(normalized_df) + 1)
+
+        if "model_name" not in normalized_df.columns:
+            normalized_df["model_name"] = target_model
+
+        if "theoretical_occupancy" not in normalized_df.columns:
+            normalized_df["theoretical_occupancy"] = np.nan
+        for optional_column in ["engine", "input_shape", "block_size", "grid_size"]:
+            if optional_column not in normalized_df.columns:
+                normalized_df[optional_column] = np.nan
+
+        occupancy_series = pd.to_numeric(
+            normalized_df["theoretical_occupancy"], errors="coerce"
+        )
+        occupancy_mask = occupancy_series.notna() & (occupancy_series <= 1.0)
+        occupancy_series.loc[occupancy_mask] = occupancy_series.loc[occupancy_mask] * 100.0
+        normalized_df["theoretical_occupancy"] = occupancy_series
+
+        normalized_df["kernel_occurrence_index"] = (
+            normalized_df.groupby("kernel_name").cumcount()
+        )
+        normalized_df["kernel_id"] = pd.to_numeric(
+            normalized_df["kernel_id"], errors="coerce"
+        ).astype("Int64")
+
+        return normalized_df
+
+    def assign_kernel_ids_to_kernel_timings(
+        self,
+        kernel_df: pd.DataFrame,
+        target_model: str,
+        profile_df: Optional[pd.DataFrame] = None,
+        profile_dir: Optional[str] = None,
+        profile_csv: Optional[str] = None,
+    ) -> pd.DataFrame:
+        """
+        Assign execution-order kernel IDs to target-model runtime kernels.
+
+        The mapping is done by occurrence order within each kernel name for every
+        `(run_index, Input, Model)` group, then joined back to the execution-order
+        `kernel_id` from the profiled kernel sequence.
+        """
+        if kernel_df.empty:
+            return kernel_df.copy()
+
+        if profile_df is None:
+            profile_df = self.load_kernel_profile(
+                target_model=target_model,
+                profile_dir=profile_dir,
+                profile_csv=profile_csv,
+            )
+        else:
+            profile_df = self._normalize_kernel_profile_df(profile_df, target_model)
+
+        result_df = kernel_df.copy()
+        candidates = self._model_candidate_names(target_model)
+        model_series = result_df["Model"].astype(str)
+        target_mask = model_series.isin(candidates)
+
+        metadata_columns = [
+            "kernel_id",
+            "theoretical_occupancy",
+            "engine",
+            "input_shape",
+            "block_size",
+            "grid_size",
+        ]
+        for column in metadata_columns:
+            if column not in result_df.columns:
+                if column in {"engine", "input_shape"}:
+                    result_df[column] = pd.Series(index=result_df.index, dtype="object")
+                else:
+                    result_df[column] = np.nan
+
+        if not target_mask.any():
+            return result_df
+
+        profile_lookup = profile_df[
+            [
+                "kernel_name",
+                "kernel_occurrence_index",
+                "kernel_id",
+                "theoretical_occupancy",
+                "engine",
+                "input_shape",
+                "block_size",
+                "grid_size",
+            ]
+        ].copy().rename(
+            columns={
+                "kernel_id": "profile_kernel_id",
+                "theoretical_occupancy": "profile_theoretical_occupancy",
+                "engine": "profile_engine",
+                "input_shape": "profile_input_shape",
+                "block_size": "profile_block_size",
+                "grid_size": "profile_grid_size",
+            }
+        )
+
+        group_columns = ["Input", "Model"]
+        if "run_index" in result_df.columns:
+            group_columns = ["run_index"] + group_columns
+
+        target_df = result_df[target_mask].copy()
+        target_df["_original_index"] = target_df.index
+        target_df = target_df.sort_values(
+            by=["Start Timestamp", "End Timestamp", "Kernel Name"]
+        )
+
+        assigned_groups: List[pd.DataFrame] = []
+        for _, group in target_df.groupby(group_columns, sort=False):
+            sorted_group = group.sort_values(
+                by=["Start Timestamp", "End Timestamp", "Kernel Name"]
+            ).copy()
+            sorted_group["kernel_occurrence_index"] = (
+                sorted_group.groupby("Kernel Name").cumcount()
+            )
+
+            merged_group = sorted_group.merge(
+                profile_lookup,
+                left_on=["Kernel Name", "kernel_occurrence_index"],
+                right_on=["kernel_name", "kernel_occurrence_index"],
+                how="left",
+            )
+
+            if (
+                merged_group["profile_kernel_id"].isna().any()
+                and len(merged_group) == len(profile_df)
+            ):
+                merged_group["profile_kernel_id"] = profile_df["kernel_id"].to_numpy()
+                merged_group["profile_theoretical_occupancy"] = profile_df[
+                    "theoretical_occupancy"
+                ].to_numpy()
+                merged_group["profile_engine"] = profile_df["engine"].to_numpy()
+                merged_group["profile_input_shape"] = profile_df["input_shape"].to_numpy()
+                merged_group["profile_block_size"] = profile_df["block_size"].to_numpy()
+                merged_group["profile_grid_size"] = profile_df["grid_size"].to_numpy()
+
+            assigned_groups.append(
+                merged_group[
+                    [
+                        "_original_index",
+                        "profile_kernel_id",
+                        "profile_theoretical_occupancy",
+                        "profile_engine",
+                        "profile_input_shape",
+                        "profile_block_size",
+                        "profile_grid_size",
+                    ]
+                ].copy().rename(
+                    columns={
+                        "profile_kernel_id": "kernel_id",
+                        "profile_theoretical_occupancy": "theoretical_occupancy",
+                        "profile_engine": "engine",
+                        "profile_input_shape": "input_shape",
+                        "profile_block_size": "block_size",
+                        "profile_grid_size": "grid_size",
+                    }
+                )
+            )
+
+        if assigned_groups:
+            assigned_df = pd.concat(assigned_groups, ignore_index=True)
+            assigned_df = assigned_df.set_index("_original_index")
+            for column in metadata_columns:
+                result_df.loc[assigned_df.index, column] = assigned_df[column]
+
+        return result_df
+
+    def get_resource_heavy_kernel_ids(
+        self,
+        target_model: str,
+        occupancy_threshold: float = 20.0,
+        profile_dir: Optional[str] = None,
+        profile_csv: Optional[str] = None,
+    ) -> List[int]:
+        """
+        Return kernel IDs whose theoretical occupancy is below the threshold.
+        """
+        profile_df = self.load_kernel_profile(
+            target_model=target_model,
+            profile_dir=profile_dir,
+            profile_csv=profile_csv,
+        )
+        heavy_kernel_df = profile_df[
+            profile_df["theoretical_occupancy"].notna()
+            & (profile_df["theoretical_occupancy"] < occupancy_threshold)
+        ]
+        return sorted(heavy_kernel_df["kernel_id"].dropna().astype(int).unique().tolist())
+
+    @staticmethod
+    def _compute_overlap_duration(
+        start_a: float,
+        end_a: float,
+        start_b: float,
+        end_b: float,
+    ) -> float:
+        """Return the overlap duration between two intervals."""
+        overlap_start = max(start_a, start_b)
+        overlap_end = min(end_a, end_b)
+        return max(0.0, overlap_end - overlap_start)
+
+    def analyze_resource_heavy_kernel_overlap(
+        self,
+        target_model: str,
+        mapping_file: str = "full_stack_mapping.csv",
+        occupancy_threshold: float = 20.0,
+        profile_dir: Optional[str] = None,
+        profile_csv: Optional[str] = None,
+        output_csv: Optional[str] = None,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Analyze how much each resource-heavy kernel overlaps with corunning models.
+
+        For each resource-heavy kernel occurrence, overlap is summed separately per
+        competing model and the maximum summed overlap is divided by the target
+        kernel duration.
+
+        Returns:
+            Tuple of (summary_df, detail_df)
+        """
+        run_indices = self.find_run_indices_for_model(target_model, mapping_file)
+        if not run_indices:
+            self.logger.warning(f"No run indices found for target model '{target_model}'")
+            return pd.DataFrame(), pd.DataFrame()
+
+        profile_df = self.load_kernel_profile(
+            target_model=target_model,
+            profile_dir=profile_dir,
+            profile_csv=profile_csv,
+        )
+        resource_heavy_ids = set(
+            self.get_resource_heavy_kernel_ids(
+                target_model=target_model,
+                occupancy_threshold=occupancy_threshold,
+                profile_dir=profile_dir,
+                profile_csv=profile_csv,
+            )
+        )
+
+        if not resource_heavy_ids:
+            self.logger.warning(f"No resource-heavy kernels found for '{target_model}'")
+            return pd.DataFrame(), pd.DataFrame()
+
+        target_candidates = self._model_candidate_names(target_model)
+        summary_rows: List[Dict[str, Any]] = []
+        detail_rows: List[Dict[str, Any]] = []
+
+        for run_index in run_indices:
+            kernel_df = self.load_kernel_timings(run_index)
+            kernel_df = self.assign_kernel_ids_to_kernel_timings(
+                kernel_df=kernel_df,
+                target_model=target_model,
+                profile_df=profile_df,
+            )
+            layer_df = self.load_layer_timings(run_index)
+
+            inference_df = layer_df[
+                (layer_df["Layer"] == "inference")
+                & (layer_df["Model"].astype(str).isin(target_candidates))
+            ].copy()
+
+            for _, inference_row in inference_df.iterrows():
+                inference_start = float(inference_row["Start Timestamp"])
+                inference_end = float(inference_row["End Timestamp"])
+                input_token = inference_row["Input"]
+                kernel_id_series = pd.to_numeric(kernel_df["kernel_id"], errors="coerce")
+
+                target_kernel_df = kernel_df[
+                    kernel_df["Model"].astype(str).isin(target_candidates)
+                    & (kernel_df["Input"] == input_token)
+                    & kernel_id_series.notna()
+                    & kernel_id_series.isin(resource_heavy_ids)
+                    & (kernel_df["Start Timestamp"] >= inference_start)
+                    & (kernel_df["End Timestamp"] <= inference_end)
+                ].copy()
+
+                other_kernel_df = kernel_df[
+                    ~kernel_df["Model"].astype(str).isin(target_candidates)
+                    & (kernel_df["Start Timestamp"] < inference_end)
+                    & (kernel_df["End Timestamp"] > inference_start)
+                ].copy()
+
+                current_detail_rows: List[Dict[str, Any]] = []
+                for _, kernel_row in target_kernel_df.iterrows():
+                    kernel_start = float(kernel_row["Start Timestamp"])
+                    kernel_end = float(kernel_row["End Timestamp"])
+                    kernel_duration = max(0.0, kernel_end - kernel_start)
+                    if kernel_duration <= 0.0:
+                        max_overlap_model = None
+                        max_overlap_duration = 0.0
+                        max_overlap_ratio = 0.0
+                    else:
+                        overlapping_df = other_kernel_df[
+                            (other_kernel_df["Start Timestamp"] < kernel_end)
+                            & (other_kernel_df["End Timestamp"] > kernel_start)
+                        ]
+
+                        overlap_by_model: Dict[str, float] = {}
+                        for _, other_row in overlapping_df.iterrows():
+                            overlap_duration = self._compute_overlap_duration(
+                                kernel_start,
+                                kernel_end,
+                                float(other_row["Start Timestamp"]),
+                                float(other_row["End Timestamp"]),
+                            )
+                            if overlap_duration <= 0.0:
+                                continue
+
+                            corunning_model = str(other_row["Model"])
+                            overlap_by_model[corunning_model] = (
+                                overlap_by_model.get(corunning_model, 0.0)
+                                + overlap_duration
+                            )
+
+                        if overlap_by_model:
+                            max_overlap_model, max_overlap_duration = max(
+                                overlap_by_model.items(), key=lambda item: item[1]
+                            )
+                        else:
+                            max_overlap_model, max_overlap_duration = (None, 0.0)
+
+                        max_overlap_ratio = max_overlap_duration / kernel_duration
+
+                    detail_record = {
+                        "run_index": run_index,
+                        "input": input_token,
+                        "model": inference_row["Model"],
+                        "kernel_id": int(kernel_row["kernel_id"]),
+                        "kernel_name": kernel_row["Kernel Name"],
+                        "kernel_duration": kernel_duration,
+                        "theoretical_occupancy": kernel_row["theoretical_occupancy"],
+                        "max_overlap_model": max_overlap_model,
+                        "max_overlap_duration": max_overlap_duration,
+                        "max_overlap_ratio": max_overlap_ratio,
+                        "overlap_ge_5pct": max_overlap_ratio >= 0.05,
+                        "overlap_ge_10pct": max_overlap_ratio >= 0.10,
+                        "overlap_ge_50pct": max_overlap_ratio >= 0.50,
+                    }
+                    current_detail_rows.append(detail_record)
+                    detail_rows.append(detail_record)
+
+                current_detail_df = pd.DataFrame(current_detail_rows)
+                if current_detail_df.empty:
+                    resource_heavy_kernel_count = 0
+                    overlap_ge_5pct_count = 0
+                    overlap_ge_10pct_count = 0
+                    overlap_ge_50pct_count = 0
+                    overlap_ge_5pct_kernel_ids: List[int] = []
+                    overlap_ge_10pct_kernel_ids = []
+                    overlap_ge_50pct_kernel_ids = []
+                else:
+                    resource_heavy_kernel_count = (
+                        current_detail_df["kernel_id"].nunique()
+                    )
+                    overlap_ge_5pct_kernel_ids = sorted(
+                        current_detail_df.loc[
+                            current_detail_df["overlap_ge_5pct"], "kernel_id"
+                        ].unique().tolist()
+                    )
+                    overlap_ge_10pct_kernel_ids = sorted(
+                        current_detail_df.loc[
+                            current_detail_df["overlap_ge_10pct"], "kernel_id"
+                        ].unique().tolist()
+                    )
+                    overlap_ge_50pct_kernel_ids = sorted(
+                        current_detail_df.loc[
+                            current_detail_df["overlap_ge_50pct"], "kernel_id"
+                        ].unique().tolist()
+                    )
+                    overlap_ge_5pct_count = len(overlap_ge_5pct_kernel_ids)
+                    overlap_ge_10pct_count = len(overlap_ge_10pct_kernel_ids)
+                    overlap_ge_50pct_count = len(overlap_ge_50pct_kernel_ids)
+
+                summary_rows.append(
+                    {
+                        "run_index": run_index,
+                        "input": input_token,
+                        "model": inference_row["Model"],
+                        "inference_time": inference_row["Elapsed Time"],
+                        "resource_heavy_kernel_count": resource_heavy_kernel_count,
+                        "overlap_ge_5pct_count": overlap_ge_5pct_count,
+                        "overlap_ge_10pct_count": overlap_ge_10pct_count,
+                        "overlap_ge_50pct_count": overlap_ge_50pct_count,
+                        "overlap_ge_5pct_kernel_ids": overlap_ge_5pct_kernel_ids,
+                        "overlap_ge_10pct_kernel_ids": overlap_ge_10pct_kernel_ids,
+                        "overlap_ge_50pct_kernel_ids": overlap_ge_50pct_kernel_ids,
+                    }
+                )
+
+        summary_df = pd.DataFrame(summary_rows)
+        detail_df = pd.DataFrame(detail_rows)
+
+        if output_csv is not None:
+            output_path = Path(output_csv)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            summary_df.to_csv(output_path, index=False)
+
+            detail_path = output_path.with_name(f"{output_path.stem}_details.csv")
+            detail_df.to_csv(detail_path, index=False)
+
+        return summary_df, detail_df
     
     def filter_kernels_by_layer(self, kernel_df: pd.DataFrame, target_layer: str = "e2e") -> pd.DataFrame:
         """
@@ -314,16 +874,7 @@ class KernelProcessor:
             Tuple of (inference_time_seconds, start_us, end_us) or None if not found
         """
         try:
-            # Load layer timings for the run
-            layer_file = f"layer_timings_{run_index}.csv"
-            layer_path = self.output_dir / layer_file
-            
-            if not layer_path.exists():
-                self.logger.warning(f"Layer timings file not found: {layer_path}")
-                return None
-            
-            # Read layer timings and find inference layer
-            layer_df = pd.read_csv(layer_path)
+            layer_df = self.load_layer_timings(run_index)
             inference_data = layer_df[
                 (layer_df['Input'] == input_token) & 
                 (layer_df['Model'] == model) & 
@@ -1227,22 +1778,47 @@ class KernelProcessor:
             self.logger.warning(f"CSV directory not found: {csv_dir}")
             return {}
             
-        # Pattern for CSV files: {safe_model_name}_run_{run_index}.csv
+        # Support both naming conventions:
+        # 1) {safe_model_name}_run_{run_index}.csv (legacy)
+        # 2) {safe_model_name}_run_{run_index}_{alignment_threshold}.csv (threshold-specific)
         csv_files = {}
-        pattern = f"*_run_{run_index}_{alignment_threshold_ms}.csv"
-        
-        for csv_file in csv_dir.glob(pattern):
-            # Extract model name from filename
+        run_suffix = f"_run_{run_index}"
+        target_threshold = float(alignment_threshold_ms)
+        legacy_candidates = {}
+
+        for csv_file in csv_dir.glob(f"*{run_suffix}*.csv"):
             filename = csv_file.stem  # Remove .csv extension
-            # Remove _run_{run_index} suffix
-            model_name_safe = filename.replace(f"_run_{run_index}", "")
-            
-            # Try to reverse the safe filename back to original model name
-            # This is a best-effort approach since the safe filename transformation is lossy
+            if run_suffix not in filename:
+                continue
+
+            model_name_safe, tail = filename.rsplit(run_suffix, 1)
+
+            # Exact run match without threshold suffix (legacy format).
+            if tail == "":
+                original_model_name = self._reverse_safe_filename(model_name_safe)
+                legacy_candidates[original_model_name] = str(csv_file)
+                continue
+
+            # Threshold-specific format must be: _<float>
+            if not tail.startswith("_"):
+                continue
+
+            threshold_str = tail[1:]
+            try:
+                csv_threshold = float(threshold_str)
+            except ValueError:
+                continue
+
+            if not np.isclose(csv_threshold, target_threshold):
+                continue
+
             original_model_name = self._reverse_safe_filename(model_name_safe)
-            
             csv_files[original_model_name] = str(csv_file)
-            
+
+        # Backward-compatibility fallback when only legacy files exist.
+        if not csv_files:
+            csv_files = legacy_candidates
+
         return csv_files
     
     def _reverse_safe_filename(self, safe_name: str) -> str:
