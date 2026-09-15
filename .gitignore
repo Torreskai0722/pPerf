@@ -1,17 +1,22 @@
-*.nsys-rep
-# Generated run artifacts at any depth
+# Generated datasets and experiment artifacts
+/data/
+/outputs/
+/analysis_outputs/
 runs/
-data/*
-outputs/*
-perf_ws/install
-perf_ws/log
-perf_ws/build
-DINO/dino_package/config/ckpts
-*.jpg
-detectron2/*
-perf_ws/visulization/*
+
+# Profiling reports and model checkpoints
+*.nsys-rep
+*.nsys-rep.gz
+*.ncu-rep
+*.pt.trace.json
 *.pth
-nuscenes_to_ros2bag/*
-tools/results/*
-analysis_outputs/*
-**/__pycache__/**
+
+# Python caches and generated installation files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+/symlink_install_manifest.txt
+
+# OS metadata
+.DS_Store
