@@ -1,4 +1,6 @@
 *.nsys-rep
+# Generated run artifacts at any depth
+runs/
 data/*
 outputs/*
 perf_ws/install
