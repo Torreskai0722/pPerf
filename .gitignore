@@ -1,7 +1,6 @@
 # Generated datasets and experiment artifacts
 /data/
 /outputs/
-/analysis_outputs/
 runs/
 
 # Profiling reports and model checkpoints
