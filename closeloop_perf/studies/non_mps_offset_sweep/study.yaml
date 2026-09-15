@@ -1,0 +1,14 @@
+schema_version: 1
+study_id: non_mps_offset_sweep
+section4_1_study: ../section4_1/study.yaml
+3dssd_study: ../input_data_variation_matrix_v3/study.yaml
+base_config: ../input_data_variation_matrix_v3/base.yaml
+output_root: ../../outputs/non_mps_offset_sweep
+bag_analysis_root: ../../../analysis_outputs/close_loop_perf/input_data_variation/non_mps_18_pair
+trials_per_offset: 3
+offset_step_ms: 8
+image_deadline_seconds: 2.0
+alignment_window_ms: 2.0
+launch_tolerance_seconds: 0.0005
+graphics_clock_mhz: 3105
+memory_clock_mhz: 10501

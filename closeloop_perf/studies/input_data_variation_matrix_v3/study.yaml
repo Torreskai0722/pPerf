@@ -1,0 +1,281 @@
+schema_version: 1
+study_id: input-data-variation-matrix-v3
+base_config: base.yaml
+output_root: /mmdetection3d_ros2/i3
+generated_config_root: generated_configs
+checkpoint_root: /root/.cache/torch/hub/checkpoints
+metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+warmup_image: /mmdetection3d_ros2/data/warmup.jpg
+warmup_lidar: /mmdetection3d_ros2/data/warmup.bin
+replicates: 1
+mps_modes: [false, true]
+mps_percentage: 100
+graphics_clock_mhz: 3105
+memory_clock_mhz: 10501
+nsys_version: 2025.2.1.130
+replay_cpu_affinity: [12, 13, 14, 15]
+replay_cpu_thread_count: 4
+
+models:
+  3dssd:
+    group: lidar_point
+    task: detection
+    modality: lidar
+    mmlab_model: 3dssd_4xb4_kitti-3d-car
+    architecture_profile: mmdet3d_point_single_stage_v1
+    model_config: /opt/mmdetection3d/configs/3dssd/3dssd_4xb4_kitti-3d-car.py
+    model_config_sha256: 9dc71fbec262a288de80d6d532b8d69f99ad43f465896ddff87eefec97ab4540
+    checkpoint: 3dssd_4x4_kitti-3d-car_20210818_203828-b89c8fc4.pth
+    checkpoint_sha256: b89c8fc42aa86772bf904be06442d39a859d9c62f8dbc7d074922e30f7a3c998
+    point_feature_count: 4
+  centerpoint:
+    group: lidar_voxel
+    task: detection
+    modality: lidar
+    mmlab_model: centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d
+    architecture_profile: mmdet3d_voxel_two_stage_v1
+    model_config: /opt/mmdetection3d/configs/centerpoint/centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d.py
+    model_config_sha256: 6475e4e9ea1891cb46823ce5ef62b6f3d3cf54ca79b45743476e986910f43ad5
+    checkpoint: centerpoint_0075voxel_second_secfpn_dcn_circlenms_4x8_cyclic_20e_nus_20220810_025930-657f67e0.pth
+    checkpoint_sha256: 657f67e049c40d6b3c293133bed0e29693aad4095938904fb4d83dc57dc9aca0
+  deeplabv3plus:
+    group: image_segmentation
+    task: semantic_segmentation
+    modality: image
+    mmlab_model: deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280
+    architecture_profile: mmseg_encoder_decoder_v1
+    model_config: /usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/deeplabv3plus/deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280.py
+    model_config_sha256: a5b64c57c184e3fb91077595b057df64be15206a77114907bdb2cb82f331d39e
+    checkpoint: deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280_20230301_110504-655f8e43.pth
+    checkpoint_sha256: 655f8e43c4f5042be122caae888a849c71b8d8d6652033e0a619820c6b50fb99
+    inference_resize_scale: [1024, 512]
+  vit-upernet:
+    group: image_segmentation
+    task: semantic_segmentation
+    modality: image
+    mmlab_model: vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512
+    architecture_profile: mmseg_encoder_decoder_v1
+    model_config: /usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/vit/vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512.py
+    model_config_sha256: 9d0ba4eca79d1492f3dc62134b3274ac8cb7e565636bba92e2699bce40d20cad
+    checkpoint: upernet_vit-b16_mln_512x512_160k_ade20k_20210624_130547-852fa768.pth
+    checkpoint_sha256: 852fa7681f761df8fa159b62ce9ce37b151c90ae5982370838246f2b4b0bb6aa
+    inference_resize_scale: [512, 512]
+  mask-rcnn:
+    group: image_segmentation
+    task: instance_segmentation
+    modality: image
+    mmlab_model: mask-rcnn_r50_fpn_1x_coco
+    architecture_profile: mmdet_two_stage_2d_v1
+    model_config: /opt/mmdetection/configs/mask_rcnn/mask-rcnn_r50_fpn_1x_coco.py
+    model_config_sha256: d6713165d805ed830ab79e5fa808824453588e45e6b0d9259ddf11e8c24dbf3f
+    checkpoint: mask_rcnn_r50_fpn_1x_coco_20200205-d4b0c5d6.pth
+    checkpoint_sha256: d4b0c5d6dfd452a9dede742267538201797618fdda8f33d5684e2f33528ee24d
+  detr:
+    group: image_detection
+    task: detection
+    modality: image
+    mmlab_model: detr_r50_8xb2-150e_coco
+    architecture_profile: mmdet_detr_2d_v1
+    model_config: /opt/mmdetection/configs/detr/detr_r50_8xb2-150e_coco.py
+    model_config_sha256: 9474db908e12cd0cf27d8fc0925929ed224f077b25d35dfb70df240e3edb1863
+    checkpoint: detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth
+    checkpoint_sha256: 436d03e8871a50b012994c43782c02662c791110f1f71e023db7f15538f52f5f
+  faster-rcnn:
+    group: image_detection
+    task: detection
+    modality: image
+    mmlab_model: faster-rcnn_r50_fpn_1x_coco
+    architecture_profile: mmdet_two_stage_2d_v1
+    model_config: /opt/mmdetection/configs/faster_rcnn/faster-rcnn_r50_fpn_1x_coco.py
+    model_config_sha256: 0a6f25c90df0393e48f4a4749b54df4ec3c01b26ecf9bb882d13cb0d92b338f4
+    checkpoint: faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth
+    checkpoint_sha256: 047c8118fc5ca88ba5ae1fab72f2cd6b070501fe3af2f3cba5cfa9a89b44b03e
+  yolov3:
+    group: image_detection
+    task: detection
+    modality: image
+    mmlab_model: yolov3_d53_mstrain-608_273e_coco
+    architecture_profile: mmdet_single_stage_2d_v1
+    model_config: /opt/mmdetection/configs/yolo/yolov3_d53_8xb8-ms-608-273e_coco.py
+    model_config_sha256: ffa39f0aea4d0c0e86b6959cc91c6336a9555288d2355faac66695ca70440c00
+    checkpoint: yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+    checkpoint_sha256: a2c3acb8585904b391336a12954179282a1defb2c6784c51967a6d8490f5b84d
+
+conditions:
+  env-low-urban:
+    effect: surrounding_environment
+    scene_name: scene-0434
+    scene_token: e0a212aafd574781b122a6ba66599a1e
+    scene_factors: {road_type: urban-crosswalk, traffic: low, object_density: low, complexity: low, lighting: daylight}
+    corruption_type: clean
+    severity: 0
+    seed: 4101
+    bag_directory: /mmdetection3d_ros2/data/input_variation/env-scene-0434-clean
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/env-scene-0434-clean/input_variation_manifest.json
+    dataset_manifest_sha256: 44a6581fa8ceba8e882fa81383cb2f100ffe85dd5c82e29143028b6a9f914f11
+  env-highspeed-construction:
+    effect: surrounding_environment
+    scene_name: scene-0245
+    scene_token: bcb05cffb5814973a6cff4fbdca2b99b
+    scene_factors: {road_type: arterial-bridge, traffic: medium, object_density: very-high, complexity: construction-high-speed, lighting: daylight}
+    corruption_type: clean
+    severity: 0
+    seed: 4102
+    bag_directory: /mmdetection3d_ros2/data/input_variation/env-scene-0245-clean
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/env-scene-0245-clean/input_variation_manifest.json
+    dataset_manifest_sha256: b3b1277e4b6fb845843c91bd4521d1f2a712601cdc136bf62498024a0acc5641
+  env-crowded-intersection:
+    effect: surrounding_environment
+    scene_name: scene-0539
+    scene_token: 2f0e54af35964a3fb347359836bec035
+    scene_factors: {road_type: urban-intersection, traffic: high, object_density: very-high, complexity: jaywalkers-bus-bicycles, lighting: daylight}
+    corruption_type: clean
+    severity: 0
+    seed: 4103
+    bag_directory: /mmdetection3d_ros2/data/input_variation/env-scene-0539-clean
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/env-scene-0539-clean/input_variation_manifest.json
+    dataset_manifest_sha256: 3965bad25bc011b1716e591580d3e4b5f89eaca895e9b8881c7fb3d045ec0d9e
+  env-night-congestion:
+    effect: surrounding_environment
+    scene_name: scene-1044
+    scene_token: f634de95cc7043b8b38ceaac67d472cf
+    scene_factors: {road_type: urban-intersection, traffic: congested, object_density: high, complexity: motorcycles-and-congestion, lighting: night}
+    corruption_type: clean
+    severity: 0
+    seed: 4104
+    bag_directory: /mmdetection3d_ros2/data/input_variation/env-scene-1044-clean
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/env-scene-1044-clean/input_variation_manifest.json
+    dataset_manifest_sha256: 0ba665d31ec31fb2b788335336bde85bf91e4456c6caa3b1e79fd97770542803
+  weather-clean:
+    effect: weather
+    scene_name: scene-0252
+    scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+    scene_factors: &weather_factors {road_type: urban-intersection, traffic: high, object_density: very-high, complexity: pedestrians-and-jaywalking, lighting: daylight}
+    corruption_type: clean
+    severity: 0
+    seed: 4200
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-clean
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-clean/input_variation_manifest.json
+    dataset_manifest_sha256: 3f21479c611b0cbe6c8bea93e8c9541c1a4b5e9dda279508fcdb67b7ea974d2b
+  weather-rain-s1:
+    effect: weather
+    scene_name: scene-0252
+    scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+    scene_factors: *weather_factors
+    corruption_type: rain
+    severity: 1
+    seed: 4201
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s1
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s1/input_variation_manifest.json
+    dataset_manifest_sha256: 28950c0b3ccc089f8e02ce15a443534576af4b7cc64d3730aac40bd25812269d
+  weather-rain-s3:
+    effect: weather
+    scene_name: scene-0252
+    scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+    scene_factors: *weather_factors
+    corruption_type: rain
+    severity: 3
+    seed: 4203
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s3
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s3/input_variation_manifest.json
+    dataset_manifest_sha256: e6f9668b9a8a223a29f2eb7f40cb36ab38ae8fb1491a31c5dfc6eaa3757511c0
+  weather-rain-s5:
+    effect: weather
+    scene_name: scene-0252
+    scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+    scene_factors: *weather_factors
+    corruption_type: rain
+    severity: 5
+    seed: 4205
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s5
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s5/input_variation_manifest.json
+    dataset_manifest_sha256: 8ee33462efdb920f458eb99a9a490167afd556693be84e465522026a145fe529
+  weather-snow-s1:
+    effect: weather
+    scene_name: scene-0252
+    scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+    scene_factors: *weather_factors
+    corruption_type: snow
+    severity: 1
+    seed: 4211
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-snow-s1
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-snow-s1/input_variation_manifest.json
+    dataset_manifest_sha256: 853884b7c8366eb421845297f8d721f6f2b2459945164180fea79d45d1391955
+  weather-snow-s3:
+    effect: weather
+    scene_name: scene-0252
+    scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+    scene_factors: *weather_factors
+    corruption_type: snow
+    severity: 3
+    seed: 4213
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-snow-s3
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-snow-s3/input_variation_manifest.json
+    dataset_manifest_sha256: cc0ee585345e518878bf142ff86daff7307b2df14cc50ac5483d1781647f95b5
+  weather-snow-s5:
+    effect: weather
+    scene_name: scene-0252
+    scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+    scene_factors: *weather_factors
+    corruption_type: snow
+    severity: 5
+    seed: 4215
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-snow-s5
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-snow-s5/input_variation_manifest.json
+    dataset_manifest_sha256: 4121baaccb9555aca7e60d877da81d8959da706b4852e725d8c8183f0a2b1a82
+  interaction-low-rain-s3:
+    effect: interaction
+    scene_name: scene-0434
+    scene_token: e0a212aafd574781b122a6ba66599a1e
+    scene_factors: {road_type: urban-crosswalk, traffic: low, object_density: low, complexity: low, lighting: daylight}
+    corruption_type: rain
+    severity: 3
+    seed: 4301
+    bag_directory: /mmdetection3d_ros2/data/input_variation/interaction-scene-0434-rain-s3
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/interaction-scene-0434-rain-s3/input_variation_manifest.json
+    dataset_manifest_sha256: cecfcd4286b857c2804c2d5cdd64b8b9d5b591666b543ff47ed586fda06d2646
+  interaction-low-snow-s3:
+    effect: interaction
+    scene_name: scene-0434
+    scene_token: e0a212aafd574781b122a6ba66599a1e
+    scene_factors: {road_type: urban-crosswalk, traffic: low, object_density: low, complexity: low, lighting: daylight}
+    corruption_type: snow
+    severity: 3
+    seed: 4302
+    bag_directory: /mmdetection3d_ros2/data/input_variation/interaction-scene-0434-snow-s3
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/interaction-scene-0434-snow-s3/input_variation_manifest.json
+    dataset_manifest_sha256: 6342922240884c64bfd872222f3cf22b44bf6b1febfaed25bc7a68e981d413c8
+  interaction-crowded-rain-s3:
+    effect: interaction
+    scene_name: scene-0539
+    scene_token: 2f0e54af35964a3fb347359836bec035
+    scene_factors: {road_type: urban-intersection, traffic: high, object_density: very-high, complexity: jaywalkers-bus-bicycles, lighting: daylight}
+    corruption_type: rain
+    severity: 3
+    seed: 4303
+    bag_directory: /mmdetection3d_ros2/data/input_variation/interaction-scene-0539-rain-s3
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/interaction-scene-0539-rain-s3/input_variation_manifest.json
+    dataset_manifest_sha256: 2db5f0e42a8e7ad3faa47ea59c58bd8cbe7f4c98a2d9efabd26cd0b346cb16ed
+  interaction-crowded-snow-s3:
+    effect: interaction
+    scene_name: scene-0539
+    scene_token: 2f0e54af35964a3fb347359836bec035
+    scene_factors: {road_type: urban-intersection, traffic: high, object_density: very-high, complexity: jaywalkers-bus-bicycles, lighting: daylight}
+    corruption_type: snow
+    severity: 3
+    seed: 4304
+    bag_directory: /mmdetection3d_ros2/data/input_variation/interaction-scene-0539-snow-s3
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/interaction-scene-0539-snow-s3/input_variation_manifest.json
+    dataset_manifest_sha256: 676786764e6da07a981151f1f11fc2817b821b1fbacacfea13631e0ccd7bc908
+
+baseline_map:
+  weather-rain-s1: weather-clean
+  weather-rain-s3: weather-clean
+  weather-rain-s5: weather-clean
+  weather-snow-s1: weather-clean
+  weather-snow-s3: weather-clean
+  weather-snow-s5: weather-clean
+  interaction-low-rain-s3: env-low-urban
+  interaction-low-snow-s3: env-low-urban
+  interaction-crowded-rain-s3: env-crowded-intersection
+  interaction-crowded-snow-s3: env-crowded-intersection

@@ -1,0 +1,55 @@
+schema_version: 2
+run:
+  id: replaced
+  experiment: replaced
+  provenance: replaced
+  timeout_seconds: 900
+ros:
+  distribution: humble
+  middleware: rmw_fastrtps_cpp
+  domain_id: 70
+  launch_package: closeloop_testbed
+  launch_file: testbed.launch.py
+replay:
+  scene_token: replaced
+  metadata_path: replaced
+  bag_directory: replaced
+  rate: 1.0
+  playback_mode: full
+  topics:
+  - /CAM_FRONT/image_rect_compressed
+  - /LIDAR_TOP
+  remappings:
+    /CAM_FRONT/image_rect_compressed: /camera/front
+    /LIDAR_TOP: /lidar/top
+  readiness_timeout_seconds: 240
+  player_startup_timeout_seconds: 15
+  completion_timeout_seconds: 240
+  communication_profile: true
+  cpu_affinity:
+  - 12
+  - 13
+  - 14
+  - 15
+  cpu_thread_count: 4
+gpu:
+  index: 0
+  mps_enabled: false
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+models: []
+recording:
+  level: level1
+  scopes:
+  - model
+  - input
+  nsys:
+    version: 2025.2.1.130
+    trace:
+    - cuda
+    - nvtx
+    - cudnn
+    sample: none
+    backtrace: none
+    cpu_context_switch: false
+    gpu_context_switch: true

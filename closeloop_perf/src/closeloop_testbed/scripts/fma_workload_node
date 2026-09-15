@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+from closeloop_testbed.fma_workload_node import main
+
+raise SystemExit(main())

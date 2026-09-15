@@ -1,0 +1,28 @@
+schema_version: 1
+name: mmdet_two_stage_2d_v1
+accepted_mro: [TwoStageDetector]
+method_bindings:
+  - owner: model
+    target_path: ""
+    method: predict
+    required: true
+  - owner: model
+    target_path: ""
+    method: extract_feat
+    required: false
+module_bindings:
+  - module_path: data_preprocessor
+    required: true
+    entrypoint: forward
+  - module_path: backbone
+    required: true
+    entrypoint: forward
+  - module_path: neck
+    required: false
+    entrypoint: forward
+  - module_path: rpn_head
+    required: true
+    entrypoint: predict
+  - module_path: roi_head
+    required: true
+    entrypoint: predict

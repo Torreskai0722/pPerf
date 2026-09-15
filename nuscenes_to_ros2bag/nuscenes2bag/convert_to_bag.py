@@ -13,7 +13,15 @@ def write_scene(nusc, nusc_can, scene, output_path):
     nusc_map = NuScenesMap(dataroot=data_path, map_name=location)
 
     print(f'Loading bitmap "{nusc_map.map_name}"')
-    image = load_bitmap(nusc_map.dataroot, nusc_map.map_name, "basemap")
+    try:
+        image = load_bitmap(
+            nusc_map.dataroot, nusc_map.map_name, "basemap"
+        )
+    except Exception:
+        print("Basemap unavailable; using semantic prior")
+        image = load_bitmap(
+            nusc_map.dataroot, nusc_map.map_name, "semantic_prior"
+        )
     print(f"Loaded {image.shape} bitmap")
     print(f"vehicle is {log['vehicle']}")
 
@@ -101,12 +109,24 @@ def write_scene(nusc, nusc_can, scene, output_path):
                     pass
             elif sensor_modality == "lidar":
                     msg = get_lidar(data_path, sample_data, sensor_id)
-                    writer.write(topic, serialize_message(msg), to_nano(stamp))
+                    writer.write(
+                        topic,
+                        serialize_message(msg),
+                        to_nano(msg.header.stamp),
+                    )
             elif sensor_modality == "camera":
                     msg = get_camera(data_path, sample_data, sensor_id)
-                    writer.write(topic + "/image_rect_compressed", serialize_message(msg), to_nano(stamp))
+                    writer.write(
+                        topic + "/image_rect_compressed",
+                        serialize_message(msg),
+                        to_nano(msg.header.stamp),
+                    )
                     msg = get_camera_info(nusc, sample_data, sensor_id)
-                    writer.write(topic + "/camera_info", serialize_message(msg), to_nano(stamp))
+                    writer.write(
+                        topic + "/camera_info",
+                        serialize_message(msg),
+                        to_nano(msg.header.stamp),
+                    )
 
             # if sensor_modality == 'camera':
             #         msg = get_lidar_imagemarkers(nusc, sample_lidar, sample_data, sensor_id)
@@ -207,22 +227,7 @@ def convert_all(
     nusc_can: NuScenesCanBus,
     selected_scenes,
 ):
-    scenes = [
-        '2f0e54af35964a3fb347359836bec035_rainrate65',
-        '2f0e54af35964a3fb347359836bec035_rainrate90',
-    ]
-
-    for scene_token in scenes:
-        scene = nusc.get('scene', scene_token)
-        print(f"Scene: {scene['name']}")
-        print(f"Description: {scene['description']}")
-        print(f"Number of samples: {scene['nbr_samples']}")
-        print(f"First sample token: {scene['first_sample_token']}")
-        print(f"Last sample token: {scene['last_sample_token']}")
-        print("-" * 80)
-
-    for scene_token in scenes:
-        scene = nusc.get('scene', scene_token)
+    for scene in nusc.scene:
         scene_name = scene["name"]
         if selected_scenes is not None and scene_name not in selected_scenes:
             continue
@@ -259,8 +264,11 @@ def main():
     nusc_can = NuScenesCanBus(dataroot=args.data_dir)
     
     for name in args.dataset_name:
-        # nusc = NuScenes(version=name, dataroot=str(args.data_dir), verbose=True)
-        nusc = get_nuscenes_instance(version=name, dataroot=str(args.data_dir), verbose=True)
+        nusc = NuScenes(
+            version=name,
+            dataroot=str(args.data_dir),
+            verbose=True,
+        )
         if args.list_only:
             nusc.list_scenes()
             return

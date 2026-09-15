@@ -1,0 +1,54 @@
+/*
+ * Scheduler-state evidence for preprocess_contention_v1.
+ *
+ * The output deliberately contains raw kernel events. Filtering and clock
+ * alignment happen after Nsight export, when model PID/TID ownership is known.
+ */
+
+tracepoint:sched:sched_switch
+/args->prev_pid == (int32)cpid || args->next_pid == (int32)cpid ||
+ @tracked[args->prev_pid] || @tracked[args->next_pid]/
+{
+  printf("%llu,switch,%d,%d,%lld,%d,0,0,0,0,0,%s\n",
+         nsecs, cpu, args->prev_pid, args->prev_state, args->next_pid,
+         args->prev_comm);
+}
+
+tracepoint:sched:sched_wakeup
+/args->pid == (int32)cpid || @tracked[args->pid]/
+{
+  printf("%llu,wakeup,%d,0,0,0,%d,0,0,0,%d,%s\n",
+         nsecs, cpu, args->pid, args->target_cpu, args->comm);
+}
+
+tracepoint:sched:sched_wakeup_new
+/args->pid == (int32)cpid || @tracked[args->pid]/
+{
+  printf("%llu,wakeup_new,%d,0,0,0,%d,0,0,0,%d,%s\n",
+         nsecs, cpu, args->pid, args->target_cpu, args->comm);
+}
+
+tracepoint:sched:sched_migrate_task
+/args->pid == (int32)cpid || @tracked[args->pid]/
+{
+  printf("%llu,migrate,%d,0,0,0,%d,0,0,%d,%d,%s\n",
+         nsecs, cpu, args->pid, args->orig_cpu, args->dest_cpu,
+         args->comm);
+}
+
+tracepoint:sched:sched_process_fork
+/args->parent_pid == (int32)cpid || @tracked[args->parent_pid]/
+{
+  @tracked[args->child_pid] = 1;
+  printf("%llu,fork,%d,0,0,0,0,%d,%d,0,0,%s\n",
+         nsecs, cpu, args->parent_pid, args->child_pid,
+         args->child_comm);
+}
+
+tracepoint:sched:sched_process_exit
+/args->pid == (int32)cpid || @tracked[args->pid]/
+{
+  printf("%llu,exit,%d,0,0,0,%d,0,0,0,0,%s\n",
+         nsecs, cpu, args->pid, args->comm);
+  delete(@tracked[args->pid]);
+}

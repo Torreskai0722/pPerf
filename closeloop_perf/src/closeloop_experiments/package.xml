@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>closeloop_experiments</name>
+  <version>0.2.0</version>
+  <description>Closed-loop run and campaign orchestration.</description>
+  <maintainer email="maintainers@example.com">pPerf maintainers</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>python3-jsonschema</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>bpftrace</exec_depend>
+  <exec_depend>closeloop_analyzer</exec_depend>
+  <exec_depend>closeloop_profiler</exec_depend>
+  <exec_depend>closeloop_testbed</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

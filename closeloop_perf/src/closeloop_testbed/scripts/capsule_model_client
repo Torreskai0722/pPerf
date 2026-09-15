@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+from closeloop_testbed.capsule_model_client import main
+
+raise SystemExit(main())

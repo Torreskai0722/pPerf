@@ -668,7 +668,15 @@ def write_scene_to_mcap(nusc: NuScenes, nusc_can: NuScenesCanBus, scene, filepat
     data_path = Path(nusc.dataroot)
     nusc_map = NuScenesMap(dataroot=data_path, map_name=location)
     print(f'Loading bitmap "{nusc_map.map_name}"')
-    image = load_bitmap(nusc_map.dataroot, nusc_map.map_name, "basemap")
+    try:
+        image = load_bitmap(
+            nusc_map.dataroot, nusc_map.map_name, "basemap"
+        )
+    except Exception:
+        print("Basemap unavailable; using semantic prior")
+        image = load_bitmap(
+            nusc_map.dataroot, nusc_map.map_name, "semantic_prior"
+        )
     print(f"Loaded {image.shape} bitmap")
     print(f"vehicle is {log['vehicle']}")
 
@@ -778,15 +786,27 @@ def write_scene_to_mcap(nusc: NuScenes, nusc_can: NuScenesCanBus, scene, filepat
                 # write the sensor data
                 if sample_data["sensor_modality"] == "radar":
                     msg = get_radar(data_path, sample_data, sensor_id)
-                    protobuf_writer.write_message(topic, msg, stamp.to_nsec())
+                    protobuf_writer.write_message(
+                        topic, msg, msg.timestamp.ToNanoseconds()
+                    )
                 elif sample_data["sensor_modality"] == "lidar":
                     msg = get_lidar(data_path, sample_data, sensor_id)
-                    protobuf_writer.write_message(topic, msg, stamp.to_nsec())
+                    protobuf_writer.write_message(
+                        topic, msg, msg.timestamp.ToNanoseconds()
+                    )
                 elif sample_data["sensor_modality"] == "camera":
                     msg = get_camera(data_path, sample_data, sensor_id)
-                    protobuf_writer.write_message(topic + "/image_rect_compressed", msg, stamp.to_nsec())
+                    protobuf_writer.write_message(
+                        topic + "/image_rect_compressed",
+                        msg,
+                        msg.timestamp.ToNanoseconds(),
+                    )
                     msg = get_camera_info(nusc, sample_data, sensor_id)
-                    protobuf_writer.write_message(topic + "/camera_info", msg, stamp.to_nsec())
+                    protobuf_writer.write_message(
+                        topic + "/camera_info",
+                        msg,
+                        msg.timestamp.ToNanoseconds(),
+                    )
 
                 if sample_data["sensor_modality"] == "camera":
                     msg = get_lidar_image_annotations(nusc, sample_lidar, sample_data, sensor_id)

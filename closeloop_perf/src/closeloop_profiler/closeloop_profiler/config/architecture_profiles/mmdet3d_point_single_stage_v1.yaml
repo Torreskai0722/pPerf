@@ -1,0 +1,22 @@
+schema_version: 1
+name: mmdet3d_point_single_stage_v1
+accepted_mro: [SingleStage3DDetector]
+method_bindings:
+  - owner: model
+    target_path: ""
+    method: predict
+    required: true
+  - owner: model
+    target_path: ""
+    method: extract_feat
+    required: true
+module_bindings:
+  - module_path: data_preprocessor
+    required: true
+    entrypoint: forward
+  - module_path: backbone
+    required: true
+    entrypoint: forward
+  - module_path: bbox_head
+    required: true
+    entrypoint: predict

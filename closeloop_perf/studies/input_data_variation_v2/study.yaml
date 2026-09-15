@@ -1,0 +1,98 @@
+schema_version: 1
+study_id: corrected-input-data-variation-v2
+random_seed: 20260819
+replicates: 3
+output_root: /mmdetection3d_ros2/outputs/clp1
+generated_config_root: generated_configs
+scene:
+  name: scene-0252
+  token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+  metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+  factors:
+    road_type: urban-intersection
+    traffic: high
+    object_density: very-high
+    complexity: pedestrians-and-jaywalking
+    lighting: daylight
+conditions:
+  clear:
+    corruption_type: clean
+    severity: 0
+    seed: 4200
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-clean
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-clean/input_variation_manifest.json
+    dataset_manifest_sha256: 3f21479c611b0cbe6c8bea93e8c9541c1a4b5e9dda279508fcdb67b7ea974d2b
+  rain1:
+    corruption_type: rain
+    severity: 1
+    seed: 4201
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s1
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s1/input_variation_manifest.json
+    dataset_manifest_sha256: 28950c0b3ccc089f8e02ce15a443534576af4b7cc64d3730aac40bd25812269d
+  rain3:
+    corruption_type: rain
+    severity: 3
+    seed: 4203
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s3
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s3/input_variation_manifest.json
+    dataset_manifest_sha256: e6f9668b9a8a223a29f2eb7f40cb36ab38ae8fb1491a31c5dfc6eaa3757511c0
+  rain5:
+    corruption_type: rain
+    severity: 5
+    seed: 4205
+    bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s5
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-s5/input_variation_manifest.json
+    dataset_manifest_sha256: 8ee33462efdb920f458eb99a9a490167afd556693be84e465522026a145fe529
+models:
+  - id: deeplabv3plus
+    node_name: deeplabv3plus
+    task: semantic_segmentation
+    modality: image
+    mmlab_model: deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280
+    architecture_profile: mmseg_encoder_decoder_v1
+    model_config: /usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/deeplabv3plus/deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280.py
+    model_config_sha256: a5b64c57c184e3fb91077595b057df64be15206a77114907bdb2cb82f331d39e
+    checkpoint: /root/.cache/torch/hub/checkpoints/deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280_20230301_110504-655f8e43.pth
+    checkpoint_sha256: 655f8e43c4f5042be122caae888a849c71b8d8d6652033e0a619820c6b50fb99
+    input_topic: /camera/front
+    input_message_type: compressed_image
+    input_queue_depth: 1
+    qos: best_effort
+    warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+    warmup_count: 5
+    inference_resize_scale: [1024, 512]
+    launch_offset_seconds: 0
+    module_annotation_depth: 0
+    quiet_period_seconds: 0.5
+    cpu_affinity: [0, 1, 2, 3, 4, 5]
+    cpu_thread_count: 3
+  - id: centerpoint
+    node_name: centerpoint
+    task: detection
+    modality: lidar
+    mmlab_model: centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d
+    architecture_profile: mmdet3d_voxel_two_stage_v1
+    model_config: /opt/mmdetection3d/configs/centerpoint/centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d.py
+    model_config_sha256: 6475e4e9ea1891cb46823ce5ef62b6f3d3cf54ca79b45743476e986910f43ad5
+    checkpoint: /root/.cache/torch/hub/checkpoints/centerpoint_0075voxel_second_secfpn_dcn_circlenms_4x8_cyclic_20e_nus_20220810_025930-657f67e0.pth
+    checkpoint_sha256: 657f67e049c40d6b3c293133bed0e29693aad4095938904fb4d83dc57dc9aca0
+    input_topic: /lidar/top
+    input_message_type: pointcloud2
+    input_queue_depth: 1
+    qos: best_effort
+    warmup_input: /mmdetection3d_ros2/data/warmup.bin
+    warmup_count: 5
+    launch_offset_seconds: 1
+    module_annotation_depth: 0
+    quiet_period_seconds: 0.5
+    cpu_affinity: [6, 7, 8, 9, 10, 11]
+    cpu_thread_count: 3
+replay_cpu_affinity: [12, 13, 14, 15]
+replay_cpu_thread_count: 4
+graphics_clock_mhz: 3105
+memory_clock_mhz: 10501
+mps_percentage: 100
+nsys_version: 2025.2.1.130
+bootstrap_repetitions: 10000
+confidence_level: 0.95
+mixed_gate_ms: 3.0

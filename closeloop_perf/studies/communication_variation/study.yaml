@@ -1,0 +1,54 @@
+schema_version: 1
+study_id: ros2-communication-variation-v1
+random_seed: 20260820
+replicates: 3
+output_root: /mmdetection3d_ros2/outputs/clp2
+generated_config_root: generated_configs
+scene_tokens:
+  - f634de95cc7043b8b38ceaac67d472cf
+  - e0a212aafd574781b122a6ba66599a1e
+scene_names: [scene-1044, scene-0434]
+metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+bag_directory: /mmdetection3d_ros2/data/bag
+model:
+  id: faster_rcnn
+  node_name: faster_rcnn
+  task: detection
+  modality: image
+  mmlab_model: faster-rcnn_r50_fpn_1x_coco
+  architecture_profile: mmdet_two_stage_2d_v1
+  model_config: /opt/mmdetection/mmdet/configs/faster_rcnn/faster_rcnn_r50_fpn_1x_coco.py
+  model_config_sha256: 85af902fbfc37b5fd20fe10a5dc2c009b8671fc5338ca123f4d97f0ac651bbd1
+  checkpoint: /root/.cache/torch/hub/checkpoints/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth
+  checkpoint_sha256: 047c8118fc5ca88ba5ae1fab72f2cd6b070501fe3af2f3cba5cfa9a89b44b03e
+  input_topic: /camera/front
+  input_message_type: compressed_image
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+  warmup_count: 5
+  launch_offset_seconds: 0
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity: [0, 1, 2, 3, 4, 5]
+conditions:
+  baseline:
+    model_cpu_thread_count: 3
+    replay_cpu_affinity: [12, 13, 14, 15]
+    replay_cpu_thread_count: 4
+  cpu1_intervention:
+    model_cpu_thread_count: 1
+    replay_cpu_affinity: [12, 13, 14, 15]
+    replay_cpu_thread_count: 4
+  reversal:
+    model_cpu_thread_count: 3
+    replay_cpu_affinity: [12, 13, 14, 15]
+    replay_cpu_thread_count: 4
+gpu:
+  index: 0
+  mps_enabled: false
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+nsys_version: 2025.2.1.130
+communication_gate_ms: 3.0
+bootstrap_repetitions: 10000

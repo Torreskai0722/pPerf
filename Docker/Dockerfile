@@ -11,6 +11,7 @@ ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0 7.5 8.0 8.6+PTX 12.0+PTX" \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         apt-transport-https \
+        bpftrace \
         ca-certificates \
         dbus \
         fontconfig \
@@ -29,9 +30,13 @@ RUN apt-get update && \
         vim \
         ffmpeg \
         git \
+        iproute2 \
+        iw \
         ninja-build \
         curl \
         lsb-release \
+        libssl-dev \
+        nlohmann-json3-dev \
         python3-pip \
         python3-venv && \
     apt-get clean && \
@@ -63,8 +68,8 @@ RUN git clone https://github.com/open-mmlab/mmdetection3d.git -b dev-1.x /mmdete
     && cd /mmdetection3d \
     && pip install --no-cache-dir -e .
 
-# Install MMSegmentation
-RUN git clone -b main https://github.com/open-mmlab/mmsegmentation.git /mmsegmentation \
+# Install the MMSegmentation release matching MMCV 2.1 and the configured zoo aliases.
+RUN git clone -b v1.2.2 https://github.com/open-mmlab/mmsegmentation.git /mmsegmentation \
     && cd /mmsegmentation \
     && pip install --no-cache-dir -e .
 
@@ -100,6 +105,10 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install pynvml
 
+# Downstream OpenMMLab/OpenCV installs can upgrade NumPy to 2.x. Torch 2.1,
+# Matplotlib 3.5, and binary MM extensions in this image require NumPy 1.x.
+RUN pip install --no-cache-dir --force-reinstall "numpy==1.26.4"
+
 # Initialize rosdep
 RUN rosdep init && rosdep update
 
@@ -124,3 +133,11 @@ RUN cd /tmp && \
     rm -rf /tmp/*
 # Set working directory
 WORKDIR /mmdetection3d_ros2
+
+# Make the modern tracefs mount visible to the bundled bpftrace 0.14 path.
+# The container still needs --privileged and /sys/kernel/tracing mounted.
+COPY Docker/pperf_entrypoint.sh /usr/local/bin/pperf-entrypoint
+RUN chmod 0755 /usr/local/bin/pperf-entrypoint
+
+ENTRYPOINT ["/usr/local/bin/pperf-entrypoint"]
+CMD ["bash"]

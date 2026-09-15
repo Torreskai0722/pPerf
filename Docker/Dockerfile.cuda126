@@ -1,0 +1,195 @@
+FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu22.04
+
+ARG NSYS_VERSION=2025.2.1.130
+ARG NCU_VERSION=2025.2.1
+ARG NCU_PACKAGE_VERSION=2025.2.1.3-1
+ARG NVBIT_VERSION=1.8
+ARG NVBIT_SHA256=72a2b827f9531dcb86b6be13844f267640fb440929d92944177029da6da2b9e1
+ARG SSD3D_SHA256=b89c8fc42aa86772bf904be06442d39a859d9c62f8dbc7d074922e30f7a3c998
+ARG ASTRA_COMMIT=0a9d8ca739d71d4b09f61567c6f6cea94a79868e
+ARG WEATHER_SIMULATOR_COMMIT=19fa03b419a32902abbf0ec899ff0ca6e77b56fa
+ARG RAIN_STREAK_SHA256=b996db425aa28fee6abda3163fb4d027587bc59e3909daa45da5f495f419fd9d
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=America/New_York \
+    TORCH_CUDA_ARCH_LIST="8.9" \
+    FORCE_CUDA=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential bzip2 ca-certificates cmake curl git gnupg2 lsb-release \
+    libfreetype6-dev libgl1 libgl1-mesa-dev libglu1-mesa-dev \
+    libjpeg-dev libpng-dev libssl-dev libtiff-dev libx11-dev libxi-dev \
+    libxrandr-dev nlohmann-json3-dev pkg-config unzip zlib1g-dev \
+    ninja-build python3-dev python3-pip wget \
+    cuda-cupti-12-6 cuda-cupti-dev-12-6 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+      -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main" \
+      > /etc/apt/sources.list.d/ros2.list && \
+    apt-get update && apt-get install -y --no-install-recommends \
+      python3-colcon-common-extensions python3-rosdep \
+      ros-humble-ros-base ros-humble-rosbag2-storage-mcap \
+      ros-humble-rmw-cyclonedds-cpp ros-humble-rmw-fastrtps-cpp && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --no-cache-dir \
+    torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
+    --index-url https://download.pytorch.org/whl/cu126
+
+RUN python3 -m pip install --no-cache-dir \
+    "numpy<2" "opencv-python==4.11.0.86" \
+    ftfy regex jsonschema pytest PyYAML \
+    imagecorruptions==1.1.2 PyMieScatt==1.8.1.1 \
+    glob2 imageio imutils matplotlib natsort pexpect pillow pyclipper seaborn \
+    scikit-image scikit-learn
+
+# AHLSimulation is an old binary with exact legacy SONAMEs. Keep these
+# libraries out of global linker paths; corrupt_rosbag exposes them only to
+# the particle-simulator subprocess.
+RUN mkdir -p /opt/astra-legacy && cd /tmp && \
+    curl -fsSL \
+      https://archives.boost.io/release/1.62.0/source/boost_1_62_0.tar.bz2 \
+      -o boost_1_62_0.tar.bz2 && \
+    tar -xjf boost_1_62_0.tar.bz2 && cd boost_1_62_0 && \
+    ./bootstrap.sh --prefix=/opt/astra-legacy \
+      --with-libraries=system,thread && \
+    ./b2 -j"$(nproc)" variant=release link=shared runtime-link=shared \
+      install && \
+    rm -rf /tmp/boost_1_62_0 /tmp/boost_1_62_0.tar.bz2
+
+RUN cd /tmp && \
+    curl -fsSL https://github.com/opencv/opencv/archive/3.2.0.tar.gz \
+      -o opencv-3.2.0.tar.gz && \
+    tar -xzf opencv-3.2.0.tar.gz && \
+    sed -i '21,22d' \
+      opencv-3.2.0/cmake/OpenCVCompilerOptions.cmake && \
+    cmake -S opencv-3.2.0 -B opencv-build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/opt/astra-legacy \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTS=OFF \
+      -DBUILD_PERF_TESTS=OFF -DBUILD_opencv_apps=OFF \
+      -DBUILD_opencv_python2=OFF -DBUILD_opencv_python3=OFF \
+      -DBUILD_opencv_java=OFF -DENABLE_PRECOMPILED_HEADERS=OFF \
+      -DWITH_CUDA=OFF -DWITH_FFMPEG=OFF -DWITH_GSTREAMER=OFF \
+      -DWITH_GTK=OFF -DWITH_JASPER=OFF -DWITH_OPENEXR=OFF \
+      -DWITH_QT=OFF -DWITH_V4L=OFF && \
+    cmake --build opencv-build --parallel "$(nproc)" && \
+    cmake --install opencv-build && \
+    rm -rf /tmp/opencv-3.2.0 /tmp/opencv-build /tmp/opencv-3.2.0.tar.gz
+
+RUN cd /tmp && \
+    curl -fsSL \
+      https://github.com/openscenegraph/OpenSceneGraph/archive/OpenSceneGraph-3.4.1.tar.gz \
+      -o OpenSceneGraph-3.4.1.tar.gz && \
+    tar -xzf OpenSceneGraph-3.4.1.tar.gz && \
+    cmake -S OpenSceneGraph-OpenSceneGraph-3.4.1 -B osg-build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/opt/astra-legacy \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DBUILD_OSG_APPLICATIONS=OFF -DBUILD_OSG_EXAMPLES=OFF && \
+    cmake --build osg-build --parallel "$(nproc)" && \
+    cmake --install osg-build && \
+    rm -rf /tmp/OpenSceneGraph-OpenSceneGraph-3.4.1 /tmp/osg-build \
+      /tmp/OpenSceneGraph-3.4.1.tar.gz
+
+RUN git clone https://github.com/astra-vision/rain-rendering.git \
+      /opt/rain-rendering && \
+    git -C /opt/rain-rendering checkout "${ASTRA_COMMIT}" && \
+    git clone https://github.com/astra-vision/weather-particle-simulator.git \
+      /opt/rain-rendering/3rdparty/weather-particle-simulator && \
+    git -C /opt/rain-rendering/3rdparty/weather-particle-simulator \
+      checkout "${WEATHER_SIMULATOR_COMMIT}" && \
+    curl -fsSL \
+      https://cave.cs.columbia.edu/old/databases/rain_streak_db/databases.zip \
+      -o /tmp/rain-streak-database.zip && \
+    echo "${RAIN_STREAK_SHA256}  /tmp/rain-streak-database.zip" \
+      | sha256sum -c - && \
+    mkdir -p /opt/rain-rendering/3rdparty/rainstreakdb && \
+    unzip -q /tmp/rain-streak-database.zip \
+      -d /opt/rain-rendering/3rdparty/rainstreakdb && \
+    echo "${RAIN_STREAK_SHA256}" \
+      > /opt/rain-rendering/3rdparty/rainstreakdb.archive.sha256 && \
+    rm /tmp/rain-streak-database.zip && \
+    sed -i \
+      "s/self.interact('Set the seed for random generator', '0')/self.interact('Set the seed for random generator', str(self.options.get('seed', 0)))/" \
+      /opt/rain-rendering/tools/simulation.py && \
+    sed -i \
+      "s/np.random.seed(f_name_idx)/np.random.seed(self.frame_seeds[i] if hasattr(self, 'frame_seeds') else f_name_idx)/" \
+      /opt/rain-rendering/common/generator.py && \
+    sed -i 's/            blended_drop = None/            raise/' \
+      /opt/rain-rendering/common/generator.py && \
+    sed -i "s/            print('Drop skipped')/            raise/" \
+      /opt/rain-rendering/common/bad_weather.py && \
+    sed -i '456s/            exit()/            raise/;460s/            pass/            raise/' \
+      /opt/rain-rendering/tools/simulation.py && \
+    grep -F "str(self.options.get('seed', 0))" \
+      /opt/rain-rendering/tools/simulation.py && \
+    grep -F 'self.frame_seeds[i]' \
+      /opt/rain-rendering/common/generator.py
+
+RUN cd /tmp && \
+    curl -fsSLO "https://github.com/NVlabs/NVBit/releases/download/v${NVBIT_VERSION}/nvbit-Linux-x86_64-${NVBIT_VERSION}.tar.bz2" && \
+    echo "${NVBIT_SHA256}  nvbit-Linux-x86_64-${NVBIT_VERSION}.tar.bz2" | sha256sum -c - && \
+    tar -xjf "nvbit-Linux-x86_64-${NVBIT_VERSION}.tar.bz2" && \
+    mv nvbit_release_x86_64 /opt/nvbit && \
+    rm "nvbit-Linux-x86_64-${NVBIT_VERSION}.tar.bz2"
+
+RUN python3 -m pip install --no-cache-dir openmim mmengine && \
+    git clone --branch v2.1.0 --depth 1 https://github.com/open-mmlab/mmcv.git /opt/mmcv && \
+    cd /opt/mmcv && python3 -m pip install --no-cache-dir -v . && \
+    git clone --branch v3.3.0 --depth 1 \
+      https://github.com/open-mmlab/mmdetection.git /opt/mmdetection && \
+    cd /opt/mmdetection && python3 -m pip install --no-cache-dir -e . && \
+    git clone --branch v1.4.0 --depth 1 \
+      https://github.com/open-mmlab/mmdetection3d.git /opt/mmdetection3d && \
+    cd /opt/mmdetection3d && python3 -m pip install --no-cache-dir -e . && \
+    python3 -m pip install --no-cache-dir \
+      "mmsegmentation==1.2.2" "spconv-cu120==2.3.6"
+
+RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
+    cd /root/.cache/torch/hub/checkpoints && \
+    curl -fsSLO "https://download.openmmlab.com/mmdetection3d/v1.0.0_models/3dssd/3dssd_4x4_kitti-3d-car/3dssd_4x4_kitti-3d-car_20210818_203828-b89c8fc4.pth" && \
+    echo "${SSD3D_SHA256}  3dssd_4x4_kitti-3d-car_20210818_203828-b89c8fc4.pth" | sha256sum -c -
+
+# Nsight tools are facts-only optional collectors. The run preflight verifies
+# these exact versions and rejects NCU timing as conclusion evidence.
+RUN cd /tmp && \
+    wget -q https://developer.nvidia.com/downloads/assets/tools/secure/nsight-systems/2025_2/nsight-systems-2025.2.1_2025.2.1.130-1_amd64.deb && \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ./nsight-systems-2025.2.1_2025.2.1.130-1_amd64.deb \
+      nsight-compute-${NCU_VERSION}=${NCU_PACKAGE_VERSION} && \
+    ncu --version | grep -F "Version ${NCU_VERSION}.0" && \
+    rm -f ./*.deb && rm -rf /var/lib/apt/lists/*
+
+# The Focal binary segfaults on Jammy before accepting input. The same pinned
+# simulator commit ships this compatible build under the Bionic name.
+RUN chmod +x \
+      /opt/rain-rendering/3rdparty/weather-particle-simulator/lin_x64/AHLSimulation_bionic && \
+    ln -sf AHLSimulation_bionic \
+      /opt/rain-rendering/3rdparty/weather-particle-simulator/lin_x64/AHLSimulation && \
+    sed -i \
+      "s/self.interact_step_menu('1')/(self.interact_step_menu if _steps_menu else self.interact_main_menu)('1')/" \
+      /opt/rain-rendering/tools/simulation.py && \
+    sed -i '391,392s/^    //' /opt/rain-rendering/tools/simulation.py && \
+    sed -i \
+      's/np.array(tmp)/np.array(tmp, dtype=object)/' \
+      /opt/rain-rendering/common/bad_weather.py
+
+LABEL dev.pperf.cuda="12.6.3" \
+      dev.pperf.minimum-driver-validation="565.57.01" \
+      dev.pperf.pytorch="2.6.0+cu126" \
+      dev.pperf.nsight-systems="2025.2.1" \
+      dev.pperf.nsight-compute="2025.2.1" \
+      dev.pperf.nvbit="1.8" \
+      dev.pperf.validation-gpu="Ada RTX 4070 SUPER"
+
+ENV ROS_DISTRO=humble \
+    ROS_ROOT=/opt/ros/humble \
+    PATH=/opt/ros/humble/bin:${PATH} \
+    LD_LIBRARY_PATH=/opt/ros/humble/lib:${LD_LIBRARY_PATH} \
+    PYTHONPATH=/opt/ros/humble/lib/python3.10/site-packages \
+    CMAKE_PREFIX_PATH=/opt/ros/humble
+
+WORKDIR /mmdetection3d_ros2

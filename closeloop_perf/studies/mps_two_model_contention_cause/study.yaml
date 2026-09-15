@@ -1,0 +1,70 @@
+schema_version: 1
+study_id: mps-two-model-contention-cause-v1
+random_seed: 20260821
+replicates: 3
+bootstrap_repetitions: 10000
+output_root: /mmdetection3d_ros2/outputs/clp4
+generated_config_root: generated_configs
+scene_tokens:
+  - f634de95cc7043b8b38ceaac67d472cf
+  - e0a212aafd574781b122a6ba66599a1e
+scene_names: [scene-1044, scene-0434]
+metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+bag_directory: /mmdetection3d_ros2/data/bag
+models:
+  - id: faster_rcnn
+    node_name: faster_rcnn
+    task: detection
+    modality: image
+    mmlab_model: faster-rcnn_r50_fpn_1x_coco
+    architecture_profile: mmdet_two_stage_2d_v1
+    model_config: /opt/mmdetection/mmdet/configs/faster_rcnn/faster_rcnn_r50_fpn_1x_coco.py
+    model_config_sha256: 85af902fbfc37b5fd20fe10a5dc2c009b8671fc5338ca123f4d97f0ac651bbd1
+    checkpoint: /root/.cache/torch/hub/checkpoints/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth
+    checkpoint_sha256: 047c8118fc5ca88ba5ae1fab72f2cd6b070501fe3af2f3cba5cfa9a89b44b03e
+    input_topic: /camera/front
+    input_message_type: compressed_image
+    input_queue_depth: 1
+    qos: best_effort
+    warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+    warmup_count: 3
+    launch_offset_seconds: 0
+    module_annotation_depth: 0
+    quiet_period_seconds: 0.5
+    cpu_affinity: [0, 1, 2, 3, 4, 5]
+    cpu_thread_count: 3
+  - id: deeplabv3plus
+    node_name: deeplabv3plus
+    task: semantic_segmentation
+    modality: image
+    mmlab_model: deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280
+    architecture_profile: mmseg_encoder_decoder_v1
+    model_config: /usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/deeplabv3plus/deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280.py
+    model_config_sha256: a5b64c57c184e3fb91077595b057df64be15206a77114907bdb2cb82f331d39e
+    checkpoint: /root/.cache/torch/hub/checkpoints/deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280_20230301_110504-655f8e43.pth
+    checkpoint_sha256: 655f8e43c4f5042be122caae888a849c71b8d8d6652033e0a619820c6b50fb99
+    input_topic: /camera/front
+    input_message_type: compressed_image
+    input_queue_depth: 1
+    qos: best_effort
+    warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+    warmup_count: 3
+    inference_resize_scale: [1024, 512]
+    launch_offset_seconds: 1
+    module_annotation_depth: 0
+    quiet_period_seconds: 0.5
+    cpu_affinity: [6, 7, 8, 9, 10, 11]
+    cpu_thread_count: 3
+replay_cpu_affinity: [12, 13, 14, 15]
+replay_cpu_thread_count: 4
+conditions:
+  discovery: [80, 80]
+  intervention: [80, 40]
+  reversal: [80, 80]
+  negative_control: [40, 80]
+gpu:
+  index: 0
+  mps_enabled: true
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+nsys_version: 2025.2.1.130
