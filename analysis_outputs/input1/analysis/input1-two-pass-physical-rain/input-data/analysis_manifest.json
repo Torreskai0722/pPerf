@@ -1,0 +1,30 @@
+{
+  "analysis_scope": "single-run exploratory descriptive",
+  "comparison_row_count": 336,
+  "complete": true,
+  "controlled_input_response_row_count": 0,
+  "extractable_run_count": 210,
+  "input_record_count": 3065,
+  "invalid_or_missing_run_count": 0,
+  "isolated_3dssd_planned_run_count": 0,
+  "isolated_3dssd_valid_run_count": 0,
+  "isolated_controls_included": false,
+  "isolated_extractable_run_count": 0,
+  "isolated_goal1_planned_run_count": 0,
+  "isolated_goal1_valid_run_count": 0,
+  "isolated_planned_run_count": 0,
+  "isolated_reused_section4_1_run_count": 0,
+  "isolated_valid_run_count": 0,
+  "latency_summary_row_count": 420,
+  "mechanism_comparison_row_count": 2064,
+  "module_comparison_row_count": 1680,
+  "pair_context_response_row_count": 0,
+  "planned_run_count": 210,
+  "predictability_table_row_counts": {
+    "off": 42,
+    "on": 42
+  },
+  "study_id": "input1-two-pass-physical-rain",
+  "study_sha256": "945f8b29ad82e26ac8d398649d443cf214bb4626ac9a1d4adab9385093916ae4",
+  "valid_run_count": 210
+}

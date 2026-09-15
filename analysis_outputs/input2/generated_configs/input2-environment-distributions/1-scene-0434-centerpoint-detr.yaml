@@ -1,0 +1,132 @@
+schema_version: 1
+run:
+  id: 1-scene-0434-centerpoint-detr
+  experiment: descriptive cross-modal input-data variation
+  provenance: study=eec0e542381bd3e9d0952c14410c2550ad745971e6c99e2d7103ee3254d3c16c
+  timeout_seconds: 900
+  output_root: /mmdetection3d_ros2/closeloop_perf/input2
+ros:
+  distribution: humble
+  middleware: rmw_fastrtps_cpp
+  domain_id: 86
+  launch_package: closeloop_testbed
+  launch_file: testbed.launch.py
+replay:
+  scene_token: e0a212aafd574781b122a6ba66599a1e
+  metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+  bag_directory: /mmdetection3d_ros2/data/input_variation/environment-scene-0434-clean-full
+  rate: 1.0
+  playback_mode: full
+  topics:
+  - /CAM_FRONT/image_rect_compressed
+  - /LIDAR_TOP
+  remappings:
+    /CAM_FRONT/image_rect_compressed: /camera/front
+    /LIDAR_TOP: /lidar/top
+  readiness_timeout_seconds: 240
+  player_startup_timeout_seconds: 15
+  completion_timeout_seconds: 240
+  communication_profile: true
+  cpu_affinity:
+  - 12
+  - 13
+  - 14
+  - 15
+  cpu_thread_count: 4
+  repeat_count: 1
+gpu:
+  index: 0
+  mps_enabled: true
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+models:
+- task: detection
+  modality: image
+  mmlab_model: detr_r50_8xb2-150e_coco
+  architecture_profile: mmdet_detr_2d_v1
+  model_config: /opt/mmdetection/configs/detr/detr_r50_8xb2-150e_coco.py
+  model_config_sha256: 9474db908e12cd0cf27d8fc0925929ed224f077b25d35dfb70df240e3edb1863
+  checkpoint: /root/.cache/torch/hub/checkpoints/detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth
+  checkpoint_sha256: 436d03e8871a50b012994c43782c02662c791110f1f71e023db7f15538f52f5f
+  id: detr
+  node_name: model_detr
+  input_topic: /camera/front
+  input_message_type: compressed_image
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+  warmup_count: 5
+  launch_offset_seconds: 0
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  cpu_thread_count: 3
+  mps_percentage: 100
+- task: detection
+  modality: lidar
+  mmlab_model: centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d
+  architecture_profile: mmdet3d_voxel_two_stage_v1
+  model_config: /opt/mmdetection3d/configs/centerpoint/centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d.py
+  model_config_sha256: 6475e4e9ea1891cb46823ce5ef62b6f3d3cf54ca79b45743476e986910f43ad5
+  checkpoint: /root/.cache/torch/hub/checkpoints/centerpoint_0075voxel_second_secfpn_dcn_circlenms_4x8_cyclic_20e_nus_20220810_025930-657f67e0.pth
+  checkpoint_sha256: 657f67e049c40d6b3c293133bed0e29693aad4095938904fb4d83dc57dc9aca0
+  id: centerpoint
+  node_name: model_centerpoint
+  input_topic: /lidar/top
+  input_message_type: pointcloud2
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.bin
+  warmup_count: 5
+  launch_offset_seconds: 1
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  cpu_thread_count: 3
+  mps_percentage: 100
+nsys:
+  version: 2025.2.1.130
+  trace:
+  - cuda
+  - nvtx
+  - cudnn
+  sample: none
+  backtrace: none
+  cpu_context_switch: false
+  gpu_context_switch: false
+instrumentation:
+  profiler:
+    id: model_level1_v1
+  analyzer:
+    id: none_v1
+input_variation:
+  condition_id: scene-0434
+  effect: surrounding_environment
+  source_scene_name: scene-0434
+  scene_factors:
+    road_type: urban-crosswalk
+    traffic: low
+    object_density: low
+    complexity: crosswalk-and-speed-bump
+    lighting: daylight
+  corruption:
+    type: clean
+    severity: 0
+    seed: 4434
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/environment-scene-0434-clean-full/input_variation_manifest.json
+    dataset_manifest_sha256: bd0ab9a0557b8990f929a6de8a6eadcef0b08306d8d4013a7c4d1796836bae58
+    full_duration: true
+  replicate: 1
+  tenancy: two_model

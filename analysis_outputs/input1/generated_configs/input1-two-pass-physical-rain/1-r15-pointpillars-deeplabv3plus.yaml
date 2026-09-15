@@ -1,0 +1,136 @@
+schema_version: 1
+run:
+  id: 1-r15-pointpillars-deeplabv3plus
+  experiment: descriptive cross-modal input-data variation
+  provenance: study=945f8b29ad82e26ac8d398649d443cf214bb4626ac9a1d4adab9385093916ae4
+  timeout_seconds: 900
+  output_root: /mmdetection3d_ros2/closeloop_perf/input1
+ros:
+  distribution: humble
+  middleware: rmw_fastrtps_cpp
+  domain_id: 131
+  launch_package: closeloop_testbed
+  launch_file: testbed.launch.py
+replay:
+  scene_token: 7ca5e90766dc4b7bb6a9b3b0d95c99da
+  metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+  bag_directory: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-15mmh-full
+  rate: 1.0
+  playback_mode: full
+  topics:
+  - /CAM_FRONT/image_rect_compressed
+  - /LIDAR_TOP
+  remappings:
+    /CAM_FRONT/image_rect_compressed: /camera/front
+    /LIDAR_TOP: /lidar/top
+  readiness_timeout_seconds: 240
+  player_startup_timeout_seconds: 15
+  completion_timeout_seconds: 240
+  communication_profile: true
+  cpu_affinity:
+  - 12
+  - 13
+  - 14
+  - 15
+  cpu_thread_count: 4
+  repeat_count: 2
+gpu:
+  index: 0
+  mps_enabled: true
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+models:
+- task: semantic_segmentation
+  modality: image
+  mmlab_model: deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280
+  architecture_profile: mmseg_encoder_decoder_v1
+  model_config: /usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/deeplabv3plus/deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280.py
+  model_config_sha256: a5b64c57c184e3fb91077595b057df64be15206a77114907bdb2cb82f331d39e
+  checkpoint: /root/.cache/torch/hub/checkpoints/deeplabv3plus_r50-d8_4xb2-300k_mapillay_v1_65-1280x1280_20230301_110504-655f8e43.pth
+  checkpoint_sha256: 655f8e43c4f5042be122caae888a849c71b8d8d6652033e0a619820c6b50fb99
+  inference_resize_scale:
+  - 1024
+  - 512
+  id: deeplabv3plus
+  node_name: model_deeplabv3plus
+  input_topic: /camera/front
+  input_message_type: compressed_image
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+  warmup_count: 5
+  launch_offset_seconds: 0
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  cpu_thread_count: 3
+  mps_percentage: 100
+- task: detection
+  modality: lidar
+  mmlab_model: pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d
+  architecture_profile: mmdet3d_voxel_two_stage_v1
+  model_config: /opt/mmdetection3d/configs/pointpillars/pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d.py
+  model_config_sha256: 1ffe085179a48b1bf47e15c12674fe0d58d518cb117ce7a2b7fa10dbbdbd4db1
+  checkpoint: /root/.cache/torch/hub/checkpoints/hv_pointpillars_secfpn_sbn-all_4x8_2x_nus-3d_20210826_225857-f19d00a3.pth
+  checkpoint_sha256: f19d00a38e6b775f38a45a9a3ca3ecaec20a5585a3caf44622423e2d5f75d5d0
+  id: pointpillars
+  node_name: model_pointpillars
+  input_topic: /lidar/top
+  input_message_type: pointcloud2
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.bin
+  warmup_count: 5
+  launch_offset_seconds: 1
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  cpu_thread_count: 3
+  mps_percentage: 100
+nsys:
+  version: 2025.2.1.130
+  trace:
+  - cuda
+  - nvtx
+  - cudnn
+  sample: none
+  backtrace: none
+  cpu_context_switch: false
+  gpu_context_switch: false
+instrumentation:
+  profiler:
+    id: model_level1_v1
+  analyzer:
+    id: none_v1
+input_variation:
+  condition_id: r15
+  effect: weather
+  source_scene_name: scene-0252
+  scene_factors:
+    road_type: urban-intersection
+    traffic: high
+    object_density: very-high
+    complexity: pedestrians-and-jaywalking
+    lighting: daylight
+  corruption:
+    type: rain
+    severity: null
+    seed: 4200
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/weather-scene-0252-rain-15mmh-full/input_variation_manifest.json
+    dataset_manifest_sha256: 01c47794426c9608bd024c1c3aaf6d3451fd242b009ba2d1bfd56e3e150bb44d
+    full_duration: true
+    rain_rate_mm_per_hour: 15
+  replicate: 1
+  tenancy: two_model

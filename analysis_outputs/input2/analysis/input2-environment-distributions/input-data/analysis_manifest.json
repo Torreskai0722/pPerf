@@ -1,0 +1,33 @@
+{
+  "analysis_scope": "single-run exploratory descriptive",
+  "comparison_row_count": 0,
+  "complete": true,
+  "controlled_input_response_row_count": 0,
+  "extractable_run_count": 252,
+  "input_record_count": 4376,
+  "invalid_or_missing_run_count": 0,
+  "isolated_3dssd_planned_run_count": 0,
+  "isolated_3dssd_valid_run_count": 0,
+  "isolated_controls_included": false,
+  "isolated_extractable_run_count": 0,
+  "isolated_goal1_planned_run_count": 0,
+  "isolated_goal1_valid_run_count": 0,
+  "isolated_planned_run_count": 0,
+  "isolated_reused_section4_1_run_count": 0,
+  "isolated_valid_run_count": 0,
+  "latency_summary_row_count": 504,
+  "mechanism_comparison_row_count": 0,
+  "module_comparison_row_count": 0,
+  "pair_context_response_row_count": 0,
+  "planned_run_count": 252,
+  "predictability_table_row_counts": {
+    "off": 36,
+    "on": 36
+  },
+  "study_id": "input2-environment-distributions",
+  "study_sha256": "57ac5175f011ab3f8b915387f9b58d01851ecc168997b581a2c514f9ec8346d1",
+  "valid_run_count": 252,
+  "violin_references": [
+    "scene-0252=clear:/mmdetection3d_ros2/analysis_outputs/input1/analysis/input1-two-pass-physical-rain/input-data/frame_metrics.csv"
+  ]
+}

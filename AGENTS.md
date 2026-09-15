@@ -1,5 +1,23 @@
 # Repository Guidelines
 
+## Research Goals & Working Principles
+
+This repository supports a research and engineering project targeting an IPDPS paper. The central research goal is to close the gap in profilers' ability to diagnose the root causes of inference time variation across execution levels. Treat research insight and engineering implementation as joint objectives.
+
+The paper has two major contributions:
+
+1. **Root-cause characterization:** systematically characterize how input data, data preprocessing, memory-copy (`memcpy`) synchronization in time-slicing mode, and leftover policy and resource contention in MPS mode contribute to inference time variation, including interactions across these levels.
+2. **Closed-loop profiling tool:** build a tool that automatically diagnoses inference time variation by using collected evidence to identify candidate causes, select follow-up profiling experiments, and refine the diagnosis.
+
+Guide work by the research question as well as the software requirement:
+
+- State the hypothesis or diagnostic gap an experiment or capability addresses and the evidence needed to assess it. Distinguish observed correlations, candidate explanations, and experimentally supported root causes.
+- Use controlled comparisons to separate causes and account for confounders. Preserve the configurations, input identities, execution conditions, and artifacts needed to reproduce findings; record uncertainty and limitations when evidence is inconclusive.
+- Evaluate characterization by the mechanisms it explains and automated diagnosis by its correctness, ability to distinguish competing causes, and profiling cost. Passing software tests alone does not validate a research claim.
+- Prefer the smallest implementation and experiment that answer the current research question. Retain controls, measurements, and analysis needed for scientific validity even when they add engineering work; follow the repetition limits below.
+
+Implement the feedback loop through experiment orchestration while preserving the package boundaries below: the profiler collects evidence, the analyzer diagnoses completed artifacts offline, and experiments coordinate follow-up runs.
+
 ## Project Structure & Module Organization
 
 The main ROS 2 colcon workspace is `closeloop_perf/`, with four packages under `closeloop_perf/src/`:
@@ -35,7 +53,7 @@ These commands are a reference, not a checklist to run for every task. Provide e
 
 ## Engineering Principles
 
-- Solve today's immediate problem with the simplest implementation. Do not add speculative features, configuration, or abstractions for possible future needs.
+- Solve today's immediate research or engineering problem with the simplest implementation that preserves scientific validity. Do not add speculative features, configuration, or abstractions for possible future needs.
 - Do not preserve backward compatibility through unnecessary compatibility layers, fallbacks, or historical migrations. Add or retain them only for a concrete current requirement.
 - Build in layers: first establish a minimal end-to-end working version, then add capabilities incrementally until the requested scope is complete.
 - Keep components modular and enforce strict separation of concerns, including the package boundaries above.
