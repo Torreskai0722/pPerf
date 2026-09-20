@@ -12,19 +12,21 @@ from closeloop_analyzer.input_data.crossed_analysis import (
 from closeloop_analyzer.input_data.crossed_evidence import coverage_rows, inspect_execution, metrics
 
 
-def test_untrimmed_linear_R_and_fragile_tail_are_explicit():
+def test_filtered_linear_R_and_fragile_tail_are_explicit():
     values = [1, 2, 3, 100]
     result = metrics(values, 3, 20)
-    p50, p99 = np.percentile(values, [50, 99], method="linear")
+    p50, p99 = np.percentile([2, 3], [50, 99], method="linear")
     assert result["R"] == (p99 - p50) / p50
     assert result["P99_minus_P50_ms"] == p99 - p50
-    assert result["throughput_hz"] == .2
+    assert result["throughput_hz"] == .1
+    assert result["observed_throughput_hz"] == .2
+    assert result["completed_count"] == 4 and result["analysis_count"] == 2
     assert result["unique_source_count"] == 3
     assert "fragile" in result["sample_warning"]
-    from closeloop_analyzer.input_data.corrected_input_analysis import distribution_metrics
-    existing = distribution_metrics(values)
-    assert existing["R"] == result["R"]
-    assert existing["normalized_range"] == (p99 - min(values)) / p50
+    assert result["sample_filter"]["excluded_below_P1"] == 1
+    assert result["sample_filter"]["excluded_above_P99"] == 1
+    # Matched retained samples are not filtered a second time.
+    assert metrics([2, 3], 2, 20, filtered=True)["R"] == result["R"]
 
 
 def test_selection_ties_and_freeze(tmp_path):
@@ -84,7 +86,8 @@ def test_excluded_attempts_remain_in_archive_index(tmp_path, monkeypatch):
 
 def test_modes_require_identical_actual_scene_combinations():
     row = dict(phase="confirmation", pair=["lidar", "camera"], model_id="lidar", lidar_scene="A", camera_scene="B",
-               mps_enabled=False, R=1, P50_ms=2, P99_ms=4, throughput_hz=5, unique_source_count=20)
+               mps_enabled=False, R=1, P50_ms=2, P99_ms=4, P99_minus_P50_ms=2,
+               throughput_hz=5, analysis_unique_source_count=20)
     assert mode_comparisons([row, {**row, "mps_enabled": True, "camera_scene": "C"}]) == []
     matched = mode_comparisons([row, {**row, "mps_enabled": True, "R": 2}])
     assert matched[0]["on_minus_off_mean"] == 1
@@ -142,7 +145,7 @@ def test_selection_keeps_authored_scene_order_after_sorted_json_roundtrip(tmp_pa
     assert (selected["A"], selected["B"], selected["selected_model"]) == (scenes[0], scenes[1], "lidar")
 
 
-def test_baseline_violins_group_modes_and_limit_only_display_to_p99(tmp_path, monkeypatch):
+def test_baseline_violins_group_modes_and_use_p1_p99(tmp_path, monkeypatch):
     import csv
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
@@ -153,10 +156,10 @@ def test_baseline_violins_group_modes_and_limit_only_display_to_p99(tmp_path, mo
     for mode in (False, True):
         for i, scene in enumerate(scenes):
             slot = f"{int(mode)}-{scene}"
-            values = [1 + i + 10 * mode, 2 + i + 10 * mode, 1000 + i + 10 * mode]
-            expected.append(values[:-1])
+            values = [v + i + 10 * mode for v in (1, 2, 3, 4, 1000)]
+            expected.append(values[1:-1])
             summaries.append(dict(phase="isolated", slot_id=slot, execution_id=slot, model_id="lidar",
-                                  mps_enabled=mode, scene_id=scene, completed_count=3, unique_source_count=3))
+                                  mps_enabled=mode, scene_id=scene, completed_count=5, unique_source_count=5))
             frames[slot] = [dict(model_id="lidar", scene_id=scene, latency_ms=value,
                                  source_frame_id=f"{scene}:{n}") for n, value in enumerate(values)]
             frames[slot].append(dict(model_id="other", latency_ms=99999))
@@ -181,14 +184,15 @@ def test_baseline_violins_group_modes_and_limit_only_display_to_p99(tmp_path, mo
     monkeypatch.setattr(Axes, "violinplot", capture_violin)
     monkeypatch.setattr(Figure, "savefig", check_figure)
     result = isolated_violin_plots(manifest, summaries, frames, tmp_path)
-    assert observed == expected  # Keeps the lower tail and omits only observations above each P99.
+    assert observed == expected
     assert frames == original_frames and summaries == original_summaries
     assert np.allclose(positions, [i + offset for offset in (-.18, .18) for i in range(4)])
     counts = list(csv.DictReader((tmp_path / "isolated_violin_display.csv").open()))
-    assert len(counts) == 8 and all(r["displayed_count"] == "2" and r["omitted_above_P99"] == "1" for r in counts)
+    assert len(counts) == 8 and all(r["displayed_count"] == "3" and r["excluded_above_P99"] == "1" and r["excluded_below_P1"] == "1" for r in counts)
     for record in counts:
         values = [r["latency_ms"] for r in original_frames[record["execution_id"]] if r["model_id"] == "lidar"]
-        assert float(record["P99_ms"]) == np.percentile(values, 99, method="linear")
+        assert float(record["cutoff_P99_ms"]) == np.percentile(values, 99, method="linear")
+        assert float(record["cutoff_P1_ms"]) == np.percentile(values, 1, method="linear")
     assert (tmp_path / result["plots"][0]).is_file()
     assert (tmp_path / "plots/isolated/isolated_baselines.pdf").read_bytes().startswith(b"%PDF")
     with pytest.raises(ValueError, match="one execution"):

@@ -19,3 +19,6 @@ __pycache__/
 
 # OS metadata
 .DS_Store
+
+# Local agent instructions
+/AGENTS.md

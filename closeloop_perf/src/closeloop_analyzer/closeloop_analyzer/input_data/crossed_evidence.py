@@ -16,6 +16,7 @@ import numpy as np
 import yaml
 
 from .._common import nvtx_ranges, runtime_events, tables
+from ..sample_filter import filter_frames, p1_p99
 
 
 def read_json(path):
@@ -224,19 +225,26 @@ def inspect_execution(run, expected, hardware):
     return {"accepted": not reasons, "reasons": reasons, **evidence}
 
 
-def metrics(values, unique_count, elapsed_seconds):
-    """Use linear, untrimmed percentiles; repetitions remain separate."""
+def metrics(values, unique_count, elapsed_seconds, *, filtered=False):
+    """Recompute linear statistics after one P1–P99 crop per execution/model."""
     values = np.asarray(values, dtype=float)
     if not len(values) or np.any(~np.isfinite(values)) or np.any(values <= 0):
         raise ValueError("completed inference latencies must be positive and finite")
+    original_count = len(values)
+    audit = None
+    if not filtered:
+        mask, audit = p1_p99(values)
+        values = values[mask]
     p50, p99 = map(float, np.percentile(values, [50, 99], method="linear"))
     count = len(values)
     lag1 = (float(np.corrcoef(values[:-1], values[1:])[0, 1])
             if count > 2 and np.std(values[:-1]) > 0 and np.std(values[1:]) > 0 else None)
     return {"P50_ms": p50, "P99_ms": p99, "P99_minus_P50_ms": p99 - p50,
-            "R": (p99 - p50) / p50, "completed_count": count,
+            "R": (p99 - p50) / p50, "completed_count": original_count,
+            "analysis_count": count, "sample_filter": audit,
             "unique_source_count": unique_count, "elapsed_seconds": elapsed_seconds,
             "throughput_hz": count / elapsed_seconds if elapsed_seconds else None,
+            "observed_throughput_hz": original_count / elapsed_seconds if elapsed_seconds else None,
             "sample_warning": "especially fragile P99 (<100)" if count < 100 else
             "sparse-tail P99 (<1000)" if count < 1000 else "",
             "latency_lag1_autocorrelation": lag1,
@@ -422,11 +430,15 @@ def analyze_execution(entry, output_root):
                 completed.append(row)
             last = max((r["completion_monotonic_ns"] for r in completed), default=end)
             elapsed = (max(end, last) - resume) / 1e9
+            selected, audit = filter_frames(completed)
             summary = {"run_id": run.name, "model_id": model_id, "scene_id": own_scene["scene_id"],
-                       **metrics([r["latency_ms"] for r in completed], len({r["source_frame_id"] for r in completed}), elapsed),
+                       **metrics([r["latency_ms"] for r in selected], len({r["source_frame_id"] for r in completed}), elapsed, filtered=True),
+                       "completed_count": len(completed), "sample_filter": audit,
+                       "analysis_unique_source_count": audit["retained_unique_source_count"],
+                       "observed_throughput_hz": len(completed) / elapsed,
                        "drain_seconds": max(0, last - end) / 1e9,
-                       "decode_median_ms": float(np.median([r["decode_ms"] for r in completed])),
-                       "preprocess_median_ms": float(np.median([r["preprocess_ms"] for r in completed])),
+                       "decode_median_ms": float(np.median([r["decode_ms"] for r in selected])),
+                       "preprocess_median_ms": float(np.median([r["preprocess_ms"] for r in selected])),
                        "coverage": {key: sum(r[key] for r in cover) for key in (
                            "expected_bag_inputs", "relay_received", "relay_published", "relay_publication_failed", "model_received",
                            "completed_inferences", "upstream_missing", "dropped_or_overwritten", "failed",

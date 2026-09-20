@@ -1,11 +1,11 @@
-"""Pool inference observations without averaging, trimming, or deduplication."""
+"""Apply per-execution filtering before pooling inference observations."""
 
 import pytest
 
 from closeloop_analyzer.input_data.pooled_violins import pool_confirmation, plot_pooled
 
 
-def test_three_executions_form_one_untrimmed_violin_per_cell(tmp_path, monkeypatch):
+def test_three_executions_are_cropped_before_pooling(tmp_path, monkeypatch):
     from matplotlib.axes import Axes
     summaries, frames, expected = [], {}, {}
     for cell in ("AA", "AB", "BA", "BB"):
@@ -13,8 +13,8 @@ def test_three_executions_form_one_untrimmed_violin_per_cell(tmp_path, monkeypat
         for repetition in (1, 2, 3):
             slot = f"{cell}-{repetition}"
             values = [float(n + repetition) for n in range(repetition + 2)]
-            values[-1] = 1000000.0  # A tail that must remain in every pool.
-            expected[cell].extend(values)
+            values[-1] = 1000000.0  # An upper-tail outlier excluded separately in every run.
+            expected[cell].extend(values[1:-1])
             row = dict(phase="confirmation", pair=["lidar", "camera"], model_id="lidar",
                        mps_enabled=False, cell=cell, repetition=repetition, slot_id=slot,
                        execution_id=slot, lidar_scene=cell[0], camera_scene=cell[1],
@@ -28,7 +28,8 @@ def test_three_executions_form_one_untrimmed_violin_per_cell(tmp_path, monkeypat
     cells = pooled[(("lidar", "camera"), False, "lidar")]
     for cell, record in cells.items():
         assert record["values"] == expected[cell]
-        assert len(record["values"]) == 12 and record["unique_source_count"] == 5
+        assert len(record["values"]) == 6 and record["unique_source_count"] == 3
+        assert all(a["excluded_below_P1"] == a["excluded_above_P99"] == 1 for a in record["sample_filters"])
     observed = []
     original = Axes.violinplot
 
@@ -39,7 +40,7 @@ def test_three_executions_form_one_untrimmed_violin_per_cell(tmp_path, monkeypat
     monkeypatch.setattr(Axes, "violinplot", capture)
     result = plot_pooled(pooled, tmp_path)
     assert observed == list(expected.values())
-    assert result["conditions"] == 4 and result["inference_observations"] == 48
+    assert result["conditions"] == 4 and result["inference_observations"] == 24
     assert (tmp_path / result["plots"][0]).is_file()
     assert (tmp_path / "plots/pooled_confirmation/pooled_inference_times.pdf").read_bytes().startswith(b"%PDF")
     with pytest.raises(ValueError, match="three distinct"):

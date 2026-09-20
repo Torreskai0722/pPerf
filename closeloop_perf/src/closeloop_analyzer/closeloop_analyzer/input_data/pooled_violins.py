@@ -12,10 +12,11 @@ import numpy as np
 
 from .crossed_analysis import PdfPages, plt
 from .crossed_evidence import read_json, sha256, write_csv, write_json
+from ..sample_filter import POLICY, filter_frames
 
 
 def pool_confirmation(summaries, frames):
-    """Concatenate observations, retaining repeated source frames across runs."""
+    """Crop each execution once before concatenating its retained observations."""
     grouped = defaultdict(lambda: defaultdict(list))
     for row in summaries:
         if row["phase"] != "confirmation":
@@ -27,7 +28,8 @@ def pool_confirmation(summaries, frames):
                 or any(r["scene_id"] != row["scene_id"] for r in samples)
                 or len({r["source_frame_id"] for r in samples}) != row["unique_source_count"]):
             raise ValueError(f"inference evidence differs from summary: {row['slot_id']}")
-        grouped[(tuple(row["pair"]), row["mps_enabled"], row["model_id"])][row["cell"]].append((row, samples))
+        samples, audit = filter_frames(samples)
+        grouped[(tuple(row["pair"]), row["mps_enabled"], row["model_id"])][row["cell"]].append(({**row, "sample_filter": audit}, samples))
     result = {}
     for key, cells in grouped.items():
         if set(cells) != {"AA", "AB", "BA", "BB"}:
@@ -46,6 +48,7 @@ def pool_confirmation(summaries, frames):
                 "execution_ids": [r["execution_id"] for r, _ in runs],
                 "lidar_scene": runs[0][0]["lidar_scene"],
                 "camera_scene": runs[0][0]["camera_scene"],
+                "sample_filters": [r["sample_filter"] for r, _ in runs],
             }
     return result
 
@@ -75,16 +78,17 @@ def plot_pooled(pooled, destination):
             labels = []
             for cell in cells:
                 record = data[cell]
-                labels.append(f"{cell}\n{record['lidar_scene'].removeprefix('scene-')} / "
-                              f"{record['camera_scene'].removeprefix('scene-')}\nn={len(record['values'])}")
+                labels.append(f"{record['lidar_scene'].removeprefix('scene-')} / "
+                              f"{record['camera_scene'].removeprefix('scene-')}")
                 counts.append({"pair": "+".join(pair), "model_id": model, "mps_enabled": mode,
-                               "cell": cell, "completed_count": len(record["values"]),
+                               "cell": cell, "analysis_count": len(record["values"]),
+                               "completed_count": sum(a["original_count"] for a in record["sample_filters"]),
                                **{k: record[k] for k in ("lidar_scene", "camera_scene", "unique_source_count")},
                                "execution_ids": ";".join(record["execution_ids"])})
             axis.set_xticks(range(4), labels)
             axis.set_xlabel("Input scenes (LiDAR / camera)")
             axis.set_ylabel("Inference time (ms)")
-            axis.set_title(f"{'+'.join(pair)} | {model} | MPS {'on' if mode else 'off'}")
+            axis.set_title(f"{'+'.join(pair)} | {model} | MPS {'on' if mode else 'off'} | P1–P99 filtered")
             axis.grid(axis="y", alpha=.2)
             figure.tight_layout()
             path = directory / f"{'+'.join(pair)}-{int(mode)}-{model}.png"
@@ -96,7 +100,7 @@ def plot_pooled(pooled, destination):
     index = destination / "pooled_confirmation_violins.md"
     lines = ["# Pooled inference-time violin plots", "",
              "Each violin treats the three executions of one confirmation condition as one combined sample. "
-             "Every completed non-warmup inference is included once, with no tail trimming. "
+             "Each execution/model is filtered to its original inclusive P1–P99 latency interval before pooling, matching the reported per-run metrics. "
              "Repeated source frames across executions retain their separate latency observations. "
              "Models, MPS modes, and actual input-scene combinations remain separate. "
              "Inference time includes CUDA completion; external decode/preprocessing are excluded. "
@@ -107,7 +111,7 @@ def plot_pooled(pooled, destination):
         lines.extend([f"## {Path(path).stem}", "", f"![Pooled inference times]({path})", ""])
     index.write_text("\n".join(lines))
     return {"index": str(index), "pdf": str(pdf_path), "plots": outputs,
-            "conditions": len(counts), "inference_observations": sum(r["completed_count"] for r in counts)}
+            "conditions": len(counts), "inference_observations": sum(r["analysis_count"] for r in counts)}
 
 
 def main(argv=None):
@@ -148,7 +152,8 @@ def main(argv=None):
     result = plot_pooled(pooled, destination)
     write_json(destination / "pooled_violin_provenance.json", {
         "manifest_sha256": sha256(args.manifest), "source_exports": sources,
-        "plotter_sha256": sha256(__file__), "pooling": "concatenate all three executions without trimming or deduplication",
+        "plotter_sha256": sha256(__file__), "sample_filter_policy": POLICY,
+        "pooling": "filter each execution to P1–P99 once, then concatenate without deduplication or another crop",
         **result,
     })
     print(result)

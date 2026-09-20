@@ -13,6 +13,8 @@ from .crossed_evidence import (
     write_csv, write_json,
 )
 from . import crossed_evidence
+from .. import sample_filter
+from ..sample_filter import POLICY, filter_frames, p1_p99
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -90,6 +92,7 @@ def collect(manifest, output_root, phases):
                 destination = Path(output_root) / "analysis/runs" / Path(actual).name / "input-data"
                 provenance_path = destination / "analysis_provenance.json"
                 identity = {"evidence_hashes": evidence["file_hashes"],
+                            "sample_filter_sha256": sha256(sample_filter.__file__),
                             "analyzer_sha256": sha256(crossed_evidence.__file__)}
                 prior = read_json(provenance_path) if provenance_path.is_file() else {}
                 if (prior.get("identity") == identity and prior.get("outputs")
@@ -116,12 +119,13 @@ def collect(manifest, output_root, phases):
     return summaries, frames, blockers, archives
 
 
-def select(manifest, summaries, destination):
+def select(manifest, summaries, destination, filename="selection.json"):
     """Require all forty screening executions before freezing ten selections."""
     # JSON object key sorting must not change the authored tie-break order.
     scenes = list(yaml.safe_load(Path(manifest["study_path"]).read_text())["conditions"])
     selection = {"schema": "input2_crossed_selection_v1", "study_sha256": manifest["study_sha256"],
-                 "window_ns": manifest["window_ns"], "percentile_method": "numpy.linear, untrimmed",
+                 "window_ns": manifest["window_ns"], "percentile_method": "numpy.linear after P1–P99 filtering",
+                 "sample_filter_policy": POLICY,
                  "R_definition": "(P99-P50)/P50", "selections": {}}
     for mode in manifest["study"]["mps_modes"]:
         for pair in manifest["study"]["pairs"]:
@@ -147,7 +151,7 @@ def select(manifest, summaries, destination):
                 "source_run_hashes": hashes,
                 "source_evidence_hashes": {run_id: next(e["evidence"]["file_hashes"] for e in manifest["executions"] if e["run_id"] == run_id)
                                            for run_id in hashes}}
-    return freeze_selection(destination / "selection.json", selection)
+    return freeze_selection(destination / filename, selection)
 
 
 def distribution(values):
@@ -176,7 +180,7 @@ def report_tables(manifest, summaries, frames, selection):
         elif row["phase"] == "isolated":
             isolated[(row["model_id"], row["mps_enabled"], row["scene_id"])] = row
     effects, common = [], []
-    fields = ("R", "P50_ms", "P99_ms", "P99_minus_P50_ms", "throughput_hz", "completed_count", "unique_source_count")
+    fields = ("R", "P50_ms", "P99_ms", "P99_minus_P50_ms", "throughput_hz", "analysis_count", "analysis_unique_source_count")
     for (pair, mode, model, repetition), cells in grouped.items():
         if set(cells) != {"AA", "AB", "BA", "BB"}:
             continue
@@ -199,9 +203,9 @@ def report_tables(manifest, summaries, frames, selection):
             duplicates = set()
             for cell in (a, b):
                 by_source = defaultdict(list)
-                for row in frames[cells[cell]["slot_id"]]:
-                    if row["model_id"] == model:
-                        by_source[row["source_frame_id"]].append(row)
+                selected_frames, _ = filter_frames([r for r in frames[cells[cell]["slot_id"]] if r["model_id"] == model])
+                for row in selected_frames:
+                    by_source[row["source_frame_id"]].append(row)
                 duplicates.update(source for source, records in by_source.items() if len(records) != 1)
                 streams.append({source: records[0] for source, records in by_source.items() if len(records) == 1})
             left, right = streams
@@ -211,8 +215,8 @@ def report_tables(manifest, summaries, frames, selection):
                    "right_only_source_ids": sorted(right.keys() - left.keys()), "source_frame_ids": shared,
                    "excluded_duplicate_source_ids": sorted(duplicates)}
             if shared:
-                lm = metrics([left[s]["latency_ms"] for s in shared], len(shared), cells[a]["elapsed_seconds"])
-                rm = metrics([right[s]["latency_ms"] for s in shared], len(shared), cells[b]["elapsed_seconds"])
+                lm = metrics([left[s]["latency_ms"] for s in shared], len(shared), cells[a]["elapsed_seconds"], filtered=True)
+                rm = metrics([right[s]["latency_ms"] for s in shared], len(shared), cells[b]["elapsed_seconds"], filtered=True)
                 row.update(common_R_difference=rm["R"] - lm["R"], common_P50_difference_ms=rm["P50_ms"] - lm["P50_ms"],
                            sample_warning=lm["sample_warning"],
                            paired_frame_mean_difference_ms=float(np.mean([right[s]["latency_ms"] - left[s]["latency_ms"] for s in shared])))
@@ -228,6 +232,39 @@ def aggregate(rows, keys, metric="value"):
     return [{**dict(zip(keys, key)), **distribution(values)} for key, values in grouped.items()]
 
 
+def write_findings(summaries, destination):
+    """Keep the narrative synchronized with the current filtered measurements."""
+    baselines = {(r["model_id"], r["scene_id"], r["mps_enabled"]): r
+                 for r in summaries if r["phase"] == "isolated"}
+    lines = ["# Input2-crossed findings — P1–P99 filtered", "",
+             "All current latency statistics and plots use the same retained per-execution/model frames. "
+             "P50/P99 are recomputed after filtering; original cutoffs and exclusions are retained. "
+             "Full evidence and the historical selection remain unchanged. "
+             "See [complete tables and contrasts](report.md), [baseline violins](isolated_baselines.md), "
+             "[CenterPoint diagnosis](centerpoint_diagnosis/report.md), and [DINO diagnosis](dino_diagnosis/report.md).", "",
+             "The practical predictability threshold is an absolute change of approximately 1 ms in P99−P50. "
+             "The table uses a strict ≤1 ms comparison. Isolated mode comparisons have one execution per condition "
+             "and are observations, not statistical equivalence tests. 3DSSD and YOLOv3 are assessed separately.", "",
+             "| Model | Scene | MPS-off P99−P50 ms | MPS-on P99−P50 ms | On−off ms | Within 1 ms |",
+             "|---|---|---:|---:|---:|---|"]
+    for model, scene in sorted({(m, s) for m, s, _ in baselines}):
+        off, on = baselines.get((model, scene, False)), baselines.get((model, scene, True))
+        if not off or not on:
+            continue
+        a, b = off["P99_minus_P50_ms"], on["P99_minus_P50_ms"]
+        lines.append(f"| {model} | {scene} | {a:.3f} | {b:.3f} | {b-a:+.3f} | {abs(b-a) <= 1} |")
+    lines += ["", "Crossed contrasts compare actual executed input combinations at fixed co-runner or own input. "
+              "Their execution-level means, standard deviations and ranges preserve independent repetitions. "
+              "Common-frame comparisons intersect the retained source identities. Completion coverage and "
+              "observed throughput remain evidence about the full run; filtered throughput uses retained count "
+              "over the original elapsed duration. Mechanism correlations are descriptive and do not establish causation.", "",
+              "Historical selection.json identifies the actual completed matrix. Revised P1–P99 screening choices "
+              "are in selection_p1_p99.json; no confirmation runs are relabeled to match revised choices. "
+              "Filtered samples remain temporally dependent; P99 with fewer than 100 retained observations is "
+              "especially fragile and fewer than 1,000 is sparse-tail. No additional runs were scheduled."]
+    (destination / "findings.md").write_text("\n".join(lines) + "\n")
+
+
 def mode_comparisons(summaries):
     """Compare modes only when actual ordered scene combinations coincide."""
     grouped = defaultdict(lambda: defaultdict(list))
@@ -240,7 +277,7 @@ def mode_comparisons(summaries):
     for key, modes in grouped.items():
         if set(modes) != {False, True}:
             continue
-        for field in ("R", "P50_ms", "P99_ms", "throughput_hz", "unique_source_count"):
+        for field in ("R", "P50_ms", "P99_ms", "P99_minus_P50_ms", "throughput_hz", "analysis_unique_source_count"):
             off = distribution([r[field] for r in modes[False]])
             on = distribution([r[field] for r in modes[True]])
             result.append({**dict(zip(("pair", "model_id", "lidar_scene", "camera_scene"), key)),
@@ -268,7 +305,7 @@ def plots(summaries, destination):
             axis.set_xticks(range(4), cells)
             axis.set_ylabel(field)
             axis.grid(axis="y", alpha=.2)
-        figure.suptitle(f"{'+'.join(pair)} | {model} | MPS {'on' if mode else 'off'}")
+        figure.suptitle(f"{'+'.join(pair)} | {model} | MPS {'on' if mode else 'off'} | P1–P99 filtered")
         figure.tight_layout()
         path = destination / "plots" / f"{'+'.join(pair)}-{int(mode)}-{model}.png"
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -277,7 +314,7 @@ def plots(summaries, destination):
 
 
 def isolated_violin_plots(manifest, summaries, frames, destination):
-    """Compare isolated MPS modes by scene, limiting only the display to P99."""
+    """Use the same P1–P99 sample for baseline plots and reported metrics."""
     scenes = manifest["scene_order"]
     modes = manifest["study"]["mps_modes"]
     grouped = {}
@@ -309,12 +346,12 @@ def isolated_violin_plots(manifest, summaries, frames, destination):
                     if sample is None:
                         continue
                     row, values = sample
-                    cutoff = float(np.percentile(values, 99, method="linear"))
-                    displayed = values[values <= cutoff]
+                    mask, audit = p1_p99(values)
+                    displayed = values[mask]
                     display_counts.append({"model_id": model, "mps_enabled": mode, "scene_id": scene,
                                            "execution_id": row["execution_id"], "completed_count": len(values),
-                                           "unique_source_count": row["unique_source_count"], "P99_ms": cutoff,
-                                           "displayed_count": len(displayed), "omitted_above_P99": len(values) - len(displayed)})
+                                           "unique_source_count": row["unique_source_count"], **audit,
+                                           "displayed_count": len(displayed)})
                     violin = axis.violinplot(
                         [displayed], positions=[position + (.18 if mode else -.18)], widths=.32, showmedians=True,
                         showextrema=True, quantiles=[[.25, .75]], points=200,
@@ -330,7 +367,7 @@ def isolated_violin_plots(manifest, summaries, frames, destination):
             axis.set_xlim(-.6, len(scenes) - .4)
             axis.set_xlabel("Scene")
             axis.set_ylabel("Inference time (ms)")
-            axis.set_title(f"{model} — single-model baseline (≤P99)")
+            axis.set_title(f"{model} — single-model baseline (P1–P99 filtered)")
             axis.grid(axis="y", alpha=.2)
             axis.legend(handles=[Patch(facecolor=colors[mode], edgecolor="#333333", alpha=.65,
                                        label=f"MPS {'on' if mode else 'off'}") for mode in modes], frameon=False)
@@ -346,10 +383,10 @@ def isolated_violin_plots(manifest, summaries, frames, destination):
     lines = ["# Single-model baseline inference times", "",
              "Scenes are on the x-axis; CUDA-complete inference time in milliseconds is on the y-axis. "
              "Each model has one plot with MPS-off (blue, left) and MPS-on (orange, right) next to each other at each scene. "
-             "Each violin displays completed non-warmup observations from the minimum through that execution's P99, "
-             "computed using NumPy's linear percentile method. Values above P99 are omitted only from the visualization; "
-             "the density and bars describe displayed samples. Stored samples, full-data statistics, and selections are unchanged. "
-             "Decode and preprocessing are excluded from this inference range. "
+             "Each violin uses the same P1–P99-filtered observations as the analysis metrics. "
+             "Original per-execution cutoffs use NumPy linear percentiles; metrics are recomputed after filtering. "
+             "Raw recordings and the historical execution selection remain unchanged. "
+             "External decode and preprocessing are excluded from this inference range. "
              "Counts, unique source-frame counts, cutoffs, and omitted counts are retained in the linked table; missing evidence is left empty. "
              "Within-execution frames are temporally dependent and are not independent repetitions.", "",
              "[Download all models as a multipage PDF](plots/isolated/isolated_baselines.pdf) · "
@@ -387,25 +424,34 @@ def analyze(source, output_root, options):
         {"execution_id": execution_id, **read_json(
             Path(output_root) / "analysis/runs" / execution_id / "input-data/summary.json")["kernel_attribution"]}
         for execution_id in sorted({row["execution_id"] for row in summaries})])
-    write_csv(destination / "per_run_summaries.csv", [{**r, "pair": "+".join(r["pair"] or []), "coverage": json.dumps(r["coverage"], sort_keys=True)} for r in summaries])
+    write_csv(destination / "per_run_summaries.csv", [{**r, "pair": "+".join(r["pair"] or []),
+        "sample_filter": json.dumps(r["sample_filter"], sort_keys=True),
+        "coverage": json.dumps(r["coverage"], sort_keys=True)} for r in summaries])
     write_csv(destination / "frame_coverage_summary.csv", [
         {**{k: r[k] for k in ("slot_id", "execution_id", "phase", "model_id", "mps_enabled", "lidar_scene", "camera_scene", "cell", "repetition")},
          **r["coverage"], "unique_source_count": r["unique_source_count"], "unmatched_count": r["unmatched_count"]}
         for r in summaries])
     if phase == "select":
-        selected = select(manifest, summaries, destination)
-        return {"selection": str(destination / "selection.json"), "selections": len(selected["selections"]), "blockers": blockers}
+        name = "selection.json"
+        if (destination / name).exists() and read_json(destination / name).get("sample_filter_policy") != POLICY:
+            name = "selection_p1_p99.json"
+        selected = select(manifest, summaries, destination, name)
+        return {"selection": str(destination / name), "selections": len(selected["selections"]), "blockers": blockers}
     selection_path = destination / "selection.json"
     if not manifest.get("selection") or sha256(selection_path) != manifest["selection"]["sha256"]:
         raise ValueError("report requires the frozen selection used by confirmation")
     selection = read_json(selection_path)
+    # The completed matrix keeps its actual historical A/B identities.
+    # Revised screening choices are reported separately, never substituted.
+    if selection.get("sample_filter_policy") != POLICY:
+        select(manifest, summaries, destination, "selection_p1_p99.json")
     effects, common = report_tables(manifest, summaries, frames, selection)
     write_csv(destination / "four_cell_contrasts.csv", effects)
     aggregate_effects = aggregate(effects, ("pair", "mps_enabled", "model_id", "A", "B", "metric", "effect", "contrast"))
     write_csv(destination / "four_cell_contrast_summary.csv", aggregate_effects)
     cells = [{**r, "pair": "+".join(r["pair"])} for r in summaries if r["phase"] == "confirmation"]
     four_cells = []
-    for metric in ("R", "P50_ms", "P99_ms", "throughput_hz", "unique_source_count"):
+    for metric in ("R", "P50_ms", "P99_ms", "P99_minus_P50_ms", "throughput_hz", "analysis_unique_source_count"):
         four_cells.extend({**r, "metric": metric} for r in aggregate(cells, ("pair", "mps_enabled", "model_id", "cell", "lidar_scene", "camera_scene"), metric))
     write_csv(destination / "four_cell_summary.csv", four_cells)
     write_json(destination / "common_processed_frames.json", common)
@@ -428,16 +474,17 @@ def analyze(source, output_root, options):
              f"Validated analysis rows: {len(summaries)}. Blocked execution slots: {len(blockers)}.", "",
              "[Single-model baseline violin plots by scene](isolated_baselines.md) "
              "([all models as PDF](plots/isolated/isolated_baselines.pdf)).", "",
-             "R=(P99−P50)/P50 uses NumPy linear percentiles with no trimming. Each execution remains a separate observation; means, sample standard deviations, and ranges summarize executions, never pooled frames.", "",
+             "All plots and performance statistics use one inclusive P1–P99 latency filter per execution/model, with original cutoffs computed using NumPy linear percentiles. P50, P99, P99−P50, and R=(P99−P50)/P50 are recomputed on the retained sample. Each execution remains a separate observation; means, sample standard deviations, and ranges summarize executions. Raw coverage and archive evidence remain intact. Per-run summaries record cutoffs and excluded source/input IDs.", "",
+             "The frozen selection.json records the historical decisions used to execute this matrix. selection_p1_p99.json records revised screening choices under the new policy; it does not change the actual A/B scenes of completed executions.", "",
              "The first cell letter selects LiDAR input and the second selects camera input. LiDAR co-runner contrasts are AB−AA and BB−BA; camera co-runner contrasts are BA−AA and BB−AB. Own-input contrasts are compared with the corresponding single isolated A/B measurements. Isolation has one execution per scene/mode, so its uncertainty cannot be estimated from repetitions.", "",
              "Observed associations are the same-scene screening differences. The crossed contrasts support input effects under the fixed replay/resource protocol; changes in processed-frame coverage can mediate these effects. Common-processed-frame comparisons are supplementary and condition on completion. They do not establish an internal GPU mechanism.", "",
              "Expected bag records are not observed publications. Relay publication is the measured publication boundary. Missing bag-to-relay coverage is upstream missing coverage; published inputs absent from callbacks are dropped/overwritten without a queue-internal mechanism claim.", "",
-             "Inference NVTX ranges include recorded CUDA completion; decode and preprocessing remain separate. Throughput uses completed count divided by time from replay resume to max(common-window end, last model completion), with elapsed and drain durations retained.", "",
+             "Inference NVTX ranges include recorded CUDA completion; decode and preprocessing use the same retained frame identities and remain separate. throughput_hz is the filtered inference count divided by the original replay-resume-to-max(window-end,last-completion) duration. observed_throughput_hz and completed_count retain actual completion evidence; elapsed and drain boundaries are unchanged.", "",
              "Sequential frames are temporally dependent. P99 with <100 observations is especially fragile; <1,000 is a sparse-tail estimate. Unique-source counts and individual-run warnings are retained. Targeted longer common-window measurements are recommended for unstable tails; this study does not automatically add repetitions.", "",
              "Kernel exports retain names, timing, process/context/stream IDs, launch correlations, and supported model/input/module attribution. Coverage includes unresolved kernel counts and summed GPU kernel duration (overlap is not collapsed). Depth-zero annotations cannot resolve individual layers; module/layer hooks with correlated launches would be needed. No layer-detail runs were scheduled.", "",
              "MPS comparisons include only identical actual ordered scene combinations. Selection evidence reused in AA/BB is marked; selection-conditioned comparisons may be optimistic.", "",
              "## 3DSSD and YOLOv3 assessed separately", "",
-             "No insensitivity/equivalence margin was specified. Small measured effects alone do not establish an insensitive control.", "",
+             "Use the requested approximately 1 ms margin for absolute changes in P99−P50. Small observed effects do not establish statistical equivalence with one isolated execution per condition.", "",
              "| Model | MPS | Effect | Contrast | Mean ΔR | SD | Range |", "|---|---|---|---|---:|---:|---:|"]
     for r in controls:
         lines.append(f"| {r['model_id']} | {r['mps_enabled']} | {r['effect']} | {r['contrast']} | {r['mean']:.5g} | {r['std']} | {r['range']:.5g} |")
@@ -449,16 +496,18 @@ def analyze(source, output_root, options):
         if r["metric"] == "R":
             lines.append(f"| {r['pair']} | {r['model_id']} | {r['mps_enabled']} | {r['effect']} | {r['contrast']} | {r['mean']:.5g} | {r['std']} | {r['minimum']:.5g} | {r['maximum']:.5g} |")
     (destination / "report.md").write_text("\n".join(lines) + "\n")
+    write_findings(summaries, destination)
     write_json(destination / "sample_warnings.json", warnings)
     write_json(destination / "longer_measurement_candidates.json", [
         {"pair": row["pair"], "model_id": row["model_id"], "mps_enabled": row["mps_enabled"],
          "lidar_scene": row["lidar_scene"], "camera_scene": row["camera_scene"],
          "cell": row["cell"], "repetition": row["repetition"],
-         "completed_count": row["completed_count"], "unique_source_count": row["unique_source_count"],
-         "priority": "especially fragile" if row["completed_count"] < 100 else "sparse tail",
+         "analysis_count": row["analysis_count"], "analysis_unique_source_count": row["analysis_unique_source_count"],
+         "priority": "especially fragile" if row["analysis_count"] < 100 else "sparse tail",
          "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix."}
-        for row in summaries if row["phase"] == "confirmation" and row["completed_count"] < 1000])
+        for row in summaries if row["phase"] == "confirmation" and row["analysis_count"] < 1000])
     result = {"report": str(destination / "report.md"), "validated_execution_slots": len(frames),
+              "sample_filter_policy": POLICY,
               "isolated_baselines": baselines,
               "unique_executions": len({row["execution_id"] for row in summaries}),
               "blocked_execution_slots": len(blockers), "complete": not blockers,

@@ -12,6 +12,7 @@ import numpy as np
 from .._common import intersection_duration, merge_intervals, nvtx_ranges, runtime_events
 from .centerpoint_diagnosis import correlation, endpoint_gap
 from .crossed_evidence import profile_connection, read_json, sha256, write_csv, write_json
+from ..sample_filter import POLICY, filter_frames
 
 
 def component_stats(values, latency):
@@ -43,6 +44,8 @@ def diagnose(root):
         by_input = {r["input_id"]: r for r in frames}
         if len(by_input) != len(frames) or len(frames) != summary["completed_count"]:
             raise ValueError("Completed frame count/identity differs")
+        frames, sample_audit = filter_frames(frames)
+        by_input = {r["input_id"]: r for r in frames}
         modules, kernels, counts = defaultdict(Counter), defaultdict(Counter), defaultdict(Counter)
         intervals, streams, excluded = defaultdict(list), set(), 0
         with gzip.open(folder / "kernels.csv.gz", "rt") as source:
@@ -99,8 +102,9 @@ def diagnose(root):
                 count=len(rows), calls_min=min(number), calls_max=max(number),
                 **component_stats(values, latency)))
         runs.append(dict(identity, completed_count=len(rows),
+            sample_filter=sample_audit,
             unique_source_count=len({r["source_frame_id"] for r in rows}),
-            P50_ms=summary["P50_ms"], P99_minus_P50_ms=gap,
+            P50_ms=float(np.percentile(latency, 50, method="linear")), P99_minus_P50_ms=gap,
             kernel_count_min=min(r["kernel_count"] for r in rows),
             kernel_count_max=max(r["kernel_count"] for r in rows), streams=sorted(streams),
             pre_inference_kernels_excluded=excluded))
@@ -114,6 +118,7 @@ def diagnose(root):
     write_csv(destination / "module_associations.csv", associations)
     write_csv(destination / "kernel_associations.csv", kernel_stats)
     write_json(destination / "summary.json", dict(runs=runs, sources_sha256=evidence,
+        sample_filter_policy=POLICY,
         analyzer_sha256=sha256(__file__), helper_sha256=sha256(Path(__file__).with_name("centerpoint_diagnosis.py")),
         limitations=["One execution per condition; temporally dependent frames; sparse-tail P99",
                      "Correlations with latency components are descriptive, not causal proof",
@@ -153,6 +158,7 @@ def host_diagnosis(root):
         run = root / "runs" / run_id
         frames = sorted(read_json(root / "analysis/runs" / run_id / "input-data/frames.json"),
                         key=lambda r: r["inference_start_ns"])
+        frames, _ = filter_frames(frames)
         starts = [r["inference_start_ns"] for r in frames]
         pid = int(read_json(run / "model_dino.json")["pid"])
         gpu, copies, api, modules = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
@@ -225,17 +231,17 @@ def host_diagnosis(root):
     write_csv(destination / "host_frames.csv", rows)
     write_csv(destination / "host_associations.csv", associations)
     write_json(destination / "host_provenance.json", dict(sources_sha256=evidence,
+        sample_filter_policy=POLICY,
         analyzer_sha256=sha256(__file__), kernel_launch_signatures=signatures))
 
 
 def report(root):
-    """Summarize observed associations without assigning unmeasured causes."""
+    """Report only statistics and plots derived from retained inference frames."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    root = Path(root)
-    destination = root / "analysis/input2-crossed/input-data/dino_diagnosis"
+    destination = Path(root) / "analysis/input2-crossed/input-data/dino_diagnosis"
     def rows(name):
         with (destination / name).open() as source:
             return list(csv.DictReader(source))
@@ -244,61 +250,80 @@ def report(root):
     host_stats = rows("host_associations.csv")
     summary = read_json(destination / "summary.json")
     detailed, sensitivity, comparisons = [], [], []
-    lines = ["# DINO isolated inference diagnosis", "",
-        "Scope: eight executions, four scenes and two MPS modes; 1,848 completed non-warmup inferences. No additional GPU runs or profiling changes. All percentile statistics use every completed observation and NumPy's linear method.", "",
-        "DINO's variation cannot be assigned to one dominant GPU kernel. Time outside GPU kernels is the largest additive covariance contributor in all eight executions (60–88%). The largest host-module-localized part of that time occurs while the decoder's NVTX range is active. This locates a scheduling/dispatch interval; it does not measure CPU execution or prove the decoder's mathematical operations caused it.", "",
-        "| Scene | MPS | P50 ms | P99-P50 ms | Nonkernel r | Decoder-localized gap r | Encoder GPU r |",
-        "|---|---|---:|---:|---:|---:|---:|"]
+    def fmt(value):
+        return "undefined" if value is None else f"{float(value):.3f}"
+    lines = ["# DINO isolated inference diagnosis — P1–P99 filtered", "",
+        f"Eight executions, four scenes, two MPS modes; {len(frames)} retained inference observations. "
+        "Cutoffs are computed once per execution from original completed non-warmup latencies. "
+        "All statistics, including P50/P99, are recomputed after filtering. Module, kernel and host "
+        "measurements use the same retained frames. Original cutoffs and excluded source/input IDs "
+        "are in summary.json. No additional GPU runs were performed.", "",
+        "| Scene | MPS | Retained | P50 ms | P99−P50 ms | Nonkernel r | Decoder host-gap r | Encoder GPU r |",
+        "|---|---|---:|---:|---:|---:|---:|---:|"]
     for run in summary["runs"]:
         key = run["execution_id"]
         a = {r["component"]: r for r in modules if r["execution_id"] == key}
         h = {r["component"]: r for r in host_stats if r["execution_id"] == key}
         n, d, e = a["nonkernel_ms"], h["host_module_gap:decoder"], a["module:encoder"]
-        lines.append(f"| {run['scene_id']} | {'on' if run['mps_enabled'] else 'off'} | {run['P50_ms']:.3f} | {run['P99_minus_P50_ms']:.3f} | {float(n['pearson']):.3f} | {float(d['pearson']):.3f} | {float(e['pearson']):.3f} |")
+        lines.append(f"| {run['scene_id']} | {run['mps_enabled']} | {run['completed_count']} | {run['P50_ms']:.3f} | {run['P99_minus_P50_ms']:.3f} | {fmt(n['pearson'])} | {fmt(d['pearson'])} | {fmt(e['pearson'])} |")
         detailed.append(dict(run, nonkernel_gap_ms=float(n["total_latency_endpoint_gap_ms"]),
             gpu_gap_ms=float(a["gpu_ms"]["total_latency_endpoint_gap_ms"]),
             decoder_localized_gap_ms=float(d["total_latency_endpoint_gap_ms"])))
-        records = sorted([r for r in frames if r["run_id"] == key], key=lambda r: int(r["input_id"]))
-        host_by_input = {r["input_id"]: r for r in host if r["run_id"] == key}
-        after_first = records[1:]
-        latency = [float(r["latency_ms"]) for r in after_first]
-        sensitivity.append(dict(execution_id=key, count=len(after_first),
-            first_latency_ms=float(records[0]["latency_ms"]),
-            first_malloc_gap_ms=float(host_by_input[records[0]["input_id"]]["api_gap:cudaMalloc"]),
-            nonkernel_r=correlation([float(r["nonkernel_ms"]) for r in after_first], latency),
-            encoder_r=correlation([float(r["module:encoder"]) for r in after_first], latency),
-            decoder_localized_gap_r=correlation([float(host_by_input[r["input_id"]]["host_module_gap:decoder"]) for r in after_first], latency)))
-    lines += ["", "## Which kernels?", "",
-        "Among individual exact-name kernel families, encoder `ampere_sgemm_128x64_tn` has the largest positive covariance contribution in every execution. It is called 36 times per inference, totaling approximately 18.3–18.5 ms, but contributes only 2–15% of total latency variance under the additive covariance accounting. Its Pearson r is 0.18–0.49. This is a kernel family aggregated within the encoder, not one launch or one identified neural-network layer.", "",
-        "The decoder's own GPU time is approximately 6.23–6.33 ms and correlates weakly with total latency (r=0.04–0.18). Its host-side gaps are much more strongly associated (r=0.59–0.84). GPU deformable-attention kernels are not dominant variability contributors: encoder aggregate standard deviations are about 0.017–0.023 ms. Every completed inference has 1,280 kernels; all eight runs have the same 272 distinct kernel-name/grid/block/shared-memory signatures. This supports stable launch structure, but does not by itself prove identical memory-access behavior.", "",
-        "## Tail accounting in milliseconds", "",
-        "Components are evaluated on the same interpolated frames defining total P50 and P99. GPU + nonkernel contributions add to the total gap. The decoder-localized column is part of nonkernel time, not an additional component. Values can be negative; these are not independent module percentiles.", "",
-        "| Scene | MPS | Total gap | GPU contribution | Nonkernel contribution | Decoder-localized portion |",
+        records = [r for r in frames if r["run_id"] == key]
+        sensitivity.append(dict(execution_id=key, retained_count=len(records),
+            original_first_frame_retained=any(r["input_id"] == "0" for r in records),
+            earliest_retained_input=min(int(r["input_id"]) for r in records)))
+    lines += ["", "## Kernel and host associations", "",
+        "Covariance shares are descriptive additive contributions to observed latency variance; "
+        "correlation with a component of total latency does not establish causation. "
+        "A kernel family aggregates exact-name launches inside one recorded module, not one layer.", "",
+        "| Scene | MPS | Nonkernel covariance share | Largest kernel-family covariance share | Module | Kernel |",
+        "|---|---|---:|---:|---|---|"]
+    for run in summary["runs"]:
+        key = run["execution_id"]
+        n = next(r for r in modules if r["execution_id"] == key and r["component"] == "nonkernel_ms")
+        k = max((r for r in kernels if r["execution_id"] == key), key=lambda r: float(r["covariance_share"]))
+        lines.append(f"| {run['scene_id']} | {run['mps_enabled']} | {fmt(n['covariance_share'])} | {fmt(k['covariance_share'])} | {k['module']} | `{k['kernel_name']}` |")
+    lines += ["", "Kernel-free intervals include host work, dispatch gaps, CUDA API waits, and device copies. "
+        "Host NVTX ranges locate these intervals; they do not identify CPU execution time. "
+        "The external decode/preprocess measurements remain outside inference. Internal data_preprocessor "
+        "work is inside inference and is reported separately from decoder/encoder gaps.", "",
+        "| Scene | MPS | Outside CUDA API ms | Launch API ms | Stream synchronize ms | Copy/memset in gaps ms | Internal preprocessing gap ms | Decoder gap ms |",
+        "|---|---|---:|---:|---:|---:|---:|---:|"]
+    for run in summary["runs"]:
+        h = {r["component"]: r for r in host_stats if r["execution_id"] == run["execution_id"]}
+        fields = ("gap_outside_cuda_api_ms", "api_gap:cudaLaunchKernel", "api_gap:cudaStreamSynchronize",
+                  "copy_in_gap_ms", "host_module_gap:data_preprocessor", "host_module_gap:decoder")
+        values = [fmt(h[f]["mean_ms"]) if f in h else "0.000" for f in fields]
+        lines.append(f"| {run['scene_id']} | {run['mps_enabled']} | " + " | ".join(values) + " |")
+    lines += ["", "These categories overlap: copy duration and host-module locations must not be added to the CUDA API partition.", "",
+        "## Tail accounting", "", "All components use the same interpolated retained frames defining total P50/P99. "
+        "GPU + nonkernel contributions add to the total gap; the decoder portion is included in nonkernel time. "
+        "Contributions can be negative and are not independently computed component percentile gaps.", "",
+        "| Scene | MPS | Total gap ms | GPU contribution ms | Nonkernel contribution ms | Decoder portion ms |",
         "|---|---|---:|---:|---:|---:|"]
-    for row in detailed:
-        lines.append(f"| {row['scene_id']} | {'on' if row['mps_enabled'] else 'off'} | {row['P99_minus_P50_ms']:.3f} | {row['gpu_gap_ms']:.3f} | {row['nonkernel_gap_ms']:.3f} | {row['decoder_localized_gap_ms']:.3f} |")
-    lines += ["", "## Concrete startup mechanism", "",
-        "The harness calls `profiler.release_cached_memory()` after its five warmups, and that method calls `torch.cuda.empty_cache()`. Every run shows approximately 3.0–3.5 ms of kernel-free time inside cudaMalloc on its first measured inference, plus approximately 0.10–0.13 ms on the second. This explains a startup allocation contribution despite warmup. The inspected warmup image and the first images of all four scenes are each 1600×900, so this is not evidence of a different warmup image resolution.", "",
-        "This allocation contribution is zero at the interpolated P50/P99 endpoint frames in all eight runs: it explains the first-frame spike, not the reported P99-P50 gaps. `startup_sensitivity.csv` reports correlations with only the first measured frame excluded as a diagnostic; stored samples and official percentiles remain unchanged. Excluding that frame reduces decoder-gap correlations to 0.38–0.79, showing that startup amplifies the full-sample association.", "",
-        "PyTorch documents that empty_cache releases unused allocator cache: https://docs.pytorch.org/docs/main/generated/torch.cuda.memory.empty_cache.html", "",
-        "## Across scenes and matching inputs", "",
-        "The scene-to-scene P50 spread is only 0.362 ms with MPS off and 0.442 ms with MPS on. Tail-gap spreads are 1.623 and 1.402 ms respectively. The largest tail gap occurs in 0184 with MPS off and 0245 with MPS on, rather than one consistently slow input scene.", "",
-        "| Scene | Matching source frames | Cross-mode latency r | Cross-mode r excluding first frame |",
-        "|---|---:|---:|---:|"]
+    for r in detailed:
+        lines.append(f"| {r['scene_id']} | {r['mps_enabled']} | {r['P99_minus_P50_ms']:.3f} | {r['gpu_gap_ms']:.3f} | {r['nonkernel_gap_ms']:.3f} | {r['decoder_localized_gap_ms']:.3f} |")
     scenes = ["scene-0770", "scene-0398", "scene-0184", "scene-0245"]
+    lines += ["", "## Matching retained source frames", "",
+              "| Scene | Common retained frames | Cross-mode latency r |", "|---|---:|---:|"]
     for scene in scenes:
         off = {r["source_frame_id"]: r for r in frames if r["scene_id"] == scene and r["mps_enabled"] == "False"}
         on = {r["source_frame_id"]: r for r in frames if r["scene_id"] == scene and r["mps_enabled"] == "True"}
         common = sorted(off.keys() & on.keys())
-        later = [k for k in common if off[k]["input_id"] != "0" and on[k]["input_id"] != "0"]
         corr = correlation([float(off[k]["latency_ms"]) for k in common], [float(on[k]["latency_ms"]) for k in common])
-        after = correlation([float(off[k]["latency_ms"]) for k in later], [float(on[k]["latency_ms"]) for k in later])
-        comparisons.append(dict(scene_id=scene, common_source_frames=len(common), latency_r=corr, after_first_latency_r=after))
-        lines.append(f"| {scene} | {len(common)} | {corr:.3f} | {after:.3f} |")
-    lines += ["", "## What remains unresolved", "",
-        "Observed location: kernel-free intervals, most strongly localized to the decoder's host range. Candidate mechanisms include Python/framework dispatch, allocator behavior, CPU scheduling and driver launch pacing. CUDA copies/memsets occupy only about 0.32–0.33 ms per inference; their covariance contribution is about 0.2–1.2%, providing little support for GPU copy duration as the dominant source. Most variable kernel-free time lies outside recorded CUDA API calls.", "",
-        "The primary traces disable CPU sampling, backtraces and CPU context-switch collection. They cannot distinguish those host mechanisms or resolve finer decoder operations. One execution per scene/mode and temporally dependent frames do not establish an image-content-induced effect. All P99 estimates here are sparse-tail estimates (<1,000 observations). Correlation with a component of total latency is not causal proof. Multiple kernel comparisons are descriptive, with no significance claim.", "",
-        "A causal follow-up would hold the exact image sequence fixed across independent executions and collect CPU stacks/context switches alongside existing CUDA launches. A separately authorized allocator-cache control would test the startup mechanism. No such runs or configuration changes were made.", "",
+        comparisons.append(dict(scene_id=scene, common_source_frames=len(common), latency_r=corr))
+        lines.append(f"| {scene} | {len(common)} | {fmt(corr)} |")
+    lines += ["", "The harness releases unused allocator cache after warmups. Historical startup spikes "
+        "and their allocation evidence are preserved in the pre-filter archive. Frames outside P1–P99 "
+        "do not contribute to current correlations or plots; startup_sensitivity.csv records whether "
+        "the original first input remains in each retained sample.", "",
+        "Primary traces lack CPU sampling, backtraces and CPU context switches. Python/framework dispatch, "
+        "CPU scheduling and driver launch pacing remain possible mechanisms, not resolved causes. "
+        "One execution per scene/mode and temporally dependent frames do not establish an image-content effect. "
+        "P99 estimates remain sparse (<1,000 retained observations); fewer than 100 are especially fragile. "
+        "First-difference correlations use successive retained observations. Individual-layer attribution "
+        "would need finer annotations; no additional layer-detail runs were scheduled.", "",
         "Reproduce after sourcing ROS and the workspace:", "", "```bash",
         "python3 -m closeloop_analyzer.input_data.dino_diagnosis /mmdetection3d_ros2/analysis_outputs/input2",
         "python3 -m closeloop_analyzer.input_data.dino_diagnosis /mmdetection3d_ros2/analysis_outputs/input2 --host-only",
@@ -316,11 +341,10 @@ def report(root):
                        marker=marker, color=color, linewidths=.2, edgecolors="#333333",
                        label=scene[6:]+(" MPS off" if mode == "False" else " MPS on"))
     ax.set(xlabel="Kernel-free time inside the decoder host range (ms)",
-           ylabel="Completed inference time (ms)", title="DINO: decoder host gaps track latency variation")
+           ylabel="Completed inference time (ms)", title="DINO: decoder host gaps — P1–P99 filtered")
     ax.grid(axis="y", alpha=.2)
     ax.legend(ncol=2, fontsize=8)
-    fig.text(.5, .015, "All completed non-warmup frames, including initial allocations. Gap location is not CPU execution time.", ha="center", fontsize=8)
-    fig.tight_layout(rect=(0, .035, 1, 1))
+    fig.tight_layout()
     fig.savefig(destination / "decoder_gap_correlation.png", dpi=180)
     fig.savefig(destination / "decoder_gap_correlation.pdf")
     plt.close(fig)

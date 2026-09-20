@@ -94,7 +94,7 @@ hashes, and SQLite integrity. SQLite restoration for analysis uses temporary
 files outside retained run directories.
 
 `selection.json` requires both models' valid four-scene screening results.
-It records their untrimmed linear-percentile P50, P99, P99−P50, explicit
+The original campaign froze untrimmed linear-percentile P50, P99, P99−P50, explicit
 `R=(P99−P50)/P50`, counts, throughput, warnings, model ranges, and source-run
 hashes. It selects the larger model R range, then that model's minimum/maximum
 scenes. Exact ties follow authored model/scene order, with distinct A/B when
@@ -116,8 +116,13 @@ comparisons for matching actual scenes, archive indexes, warnings, and report.
 `isolated_baselines.md` displays the single-model baseline violin plots: scene
 on the x-axis and CUDA-complete inference time (ms) on the y-axis, with adjacent
 MPS-off/on violins on a single plot for each model. Tick labels show only scene
-names. Each distribution is displayed from its minimum through its own linear
-P99; this display filtering never changes retained samples or reported metrics.
+names. All current plots and analysis metrics use the inclusive original
+P1–P99 latency interval per execution/model/actual scene combination. Cutoffs
+use NumPy's linear method; P50, P99, P99−P50, R, means, variability, and
+correlations are recomputed on retained frames. Components use those same
+frame identities. Filter once before pooling; matched comparisons intersect
+the retained frame sets without another percentile crop. Execution-level
+replicates are not trimmed. Raw recordings and full exports remain intact.
 Sample/unique-frame counts and cutoffs are in `isolated_violin_display.csv`. Plots are
 exported under `plots/isolated/` as seven PNGs and one multipage PDF. The normal
 `--options '{"phase":"report"}'` command regenerates them from validated evidence.
@@ -127,8 +132,20 @@ publications. Missing bag-to-relay records are upstream missing coverage;
 published inputs absent from callbacks are dropped/overwritten, without
 claiming an unobserved queue mechanism. Completed non-warmup inference NVTX
 ranges must contain CUDA synchronization. Decode/preprocessing stay separate.
-Throughput is completed count divided by replay-resume-to-later-of-window-end
-or last CUDA-completed inference; elapsed and drain times are retained.
+`throughput_hz` now uses retained count divided by the original
+replay-resume-to-later-of-window-end-or-last-completion duration;
+`observed_throughput_hz` and `completed_count` preserve actual execution
+coverage. Elapsed and drain times remain unchanged. Summaries record
+`analysis_count`, `analysis_unique_source_count`, original cutoffs, and excluded
+source/input IDs. Empty retained samples block statistical analysis.
+
+Historical `selection.json` and the experiment manifest remain immutable:
+they identify the A/B scenes actually executed. `selection_p1_p99.json`
+records screening choices recomputed under the new policy, without changing
+completed condition identities or scheduling new executions. Superseded
+reports and per-run exports are retained in
+`generated_configs/input2-crossed/validation/before-p1-p99/`. The shared
+`closeloop_analyzer.sample_filter` implements this policy for future analysis.
 
 Kernel exports retain process/context/stream identity, launch correlations,
 and only supported model/input/module labels, with attribution coverage by

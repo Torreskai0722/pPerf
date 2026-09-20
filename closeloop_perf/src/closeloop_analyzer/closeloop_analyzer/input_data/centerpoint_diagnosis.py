@@ -14,6 +14,7 @@ import numpy as np
 
 from .._common import merge_intervals
 from .crossed_evidence import read_json, read_jsonl, sha256, write_csv, write_json
+from ..sample_filter import POLICY, filter_frames
 
 
 def correlation(x, y):
@@ -53,6 +54,7 @@ def diagnose(root):
         if (len(frames) != summary["completed_count"] or
                 len({r["source_frame_id"] for r in frames}) != summary["unique_source_count"]):
             raise ValueError("Frame coverage differs from the accepted run summary")
+        frames, sample_audit = filter_frames(frames)
         inputs = {str(r["input_id"]): r for r in read_jsonl(raw / "model_centerpoint_inputs.jsonl")}
         by_input = {r["input_id"]: r for r in frames}
         if len(by_input) != len(frames):
@@ -119,6 +121,7 @@ def diagnose(root):
         if not np.isclose(gap_sum, gap):
             raise ValueError("Tail-gap components do not sum to total")
         runs.append(dict(identity, completed_count=len(rows),
+                         sample_filter=sample_audit,
                          unique_source_count=len({r["source_frame_id"] for r in rows}),
                          P50_ms=float(np.percentile(latency, 50, method="linear")),
                          P99_minus_P50_ms=gap, streams=sorted(streams),
@@ -142,6 +145,7 @@ def diagnose(root):
     write_csv(destination / "matched_frame_deltas.csv", matched)
     write_json(destination / "summary.json", {
         "scope": "Eight isolated CenterPoint executions; completed non-warmup inference through CUDA completion",
+        "sample_filter_policy": POLICY,
         "runs": runs, "sources_sha256": evidence, "analyzer_sha256": sha256(__file__),
         "limitations": ["One execution per condition; temporally dependent frames; sparse-tail P99",
                         "Module/kernel GPU time is a component of latency: correlation is not causal proof",
@@ -167,7 +171,7 @@ def report(destination):
     geometry_rows, comparisons = [], []
     lines = ["# CenterPoint isolated inference diagnosis", "",
              "The strongest measured module association in every scene and both MPS modes is GPU hard voxelization inside `data_preprocessor`. This is inside the CUDA-completed inference boundary; the separately logged CPU preprocessing and message decoding are outside it.", "",
-             "Correlations below are per execution, across completed non-warmup source frames. No percentile trimming is applied. GPU module durations use existing correlated launch attribution. All included kernels lie inside their inference boundaries and do not overlap, allowing additive duration accounting.", "",
+             "All plots and metrics use each execution's P1–P99-filtered inference frames. Cutoffs and exclusions are recorded in summary.json; P50/P99 are recomputed on retained frames. Components share the same frame mask. GPU module durations use existing correlated launch attribution. Included kernels lie inside their inference boundaries and do not overlap, allowing additive accounting. Difference correlations use successive retained observations.", "",
              "| Scene | MPS | Frames | P50 ms | P99-P50 ms | Voxelization mean ms | Pearson r | Consecutive-difference r |",
              "|---|---|---:|---:|---:|---:|---:|---:|"]
     for run in runs:
@@ -196,7 +200,7 @@ def report(destination):
         lines.append(f"| {run['scene_id']} | {'on' if run['mps_enabled'] else 'off'} | {point['mean']:.0f} | {occupied['mean']:.0f} | {scan['pearson']:.3f} |")
     lines += ["", "Input geometry explains substantially more variation in scenes 0398, 0184 and 0245 than in 0770. In 0770, voxelization still tracks inference closely while reconstructed work is relatively stable; input geometry alone does not explain its runtime variation. Kernel timing fluctuations on identical source frames also remain between modes.", "",
         "## Matching actual source frames between modes", "",
-        "| Scene | Common frames | Full-sample gap change ms | Common-frame gap change ms | Correlation of voxelization and total per-frame mode changes |",
+        "| Scene | Common retained frames | Filtered-sample gap change ms | Common-frame gap change ms | Correlation of voxelization and total per-frame mode changes |",
         "|---|---:|---:|---:|---:|"]
     scenes = ["scene-0770", "scene-0398", "scene-0184", "scene-0245"]
     for scene in scenes:
@@ -251,7 +255,7 @@ def report(destination):
            ylabel="Completed inference time (ms)", title="CenterPoint: voxelization tracks inference variation")
     ax.grid(axis="y", alpha=.2)
     ax.legend(ncol=2, fontsize=8)
-    fig.text(.5, .015, "All completed non-warmup frames; one execution per scene/mode. Per-run correlations in the report.", ha="center", fontsize=8)
+    fig.text(.5, .015, "P1–P99 filtered; one execution per scene/mode. Per-run correlations in the report.", ha="center", fontsize=8)
     fig.tight_layout(rect=(0, .035, 1, 1))
     fig.savefig(destination / "voxelization_correlation.png", dpi=180)
     fig.savefig(destination / "voxelization_correlation.pdf")
