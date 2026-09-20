@@ -1,6 +1,6 @@
 # Pooled inference-time violin plots
 
-Each violin treats the three executions of one confirmation condition as one combined sample. Every completed non-warmup inference is included once, with no tail trimming. Repeated source frames across executions retain their separate latency observations. Models, MPS modes, and actual input-scene combinations remain separate. Inference time includes CUDA completion; external decode/preprocessing are excluded. These are pooled descriptive distributions, not estimates of between-execution uncertainty.
+Each violin treats the three executions of one confirmation condition as one combined sample. Each execution/model is filtered to its original inclusive P1–P99 latency interval before pooling, matching the reported per-run metrics. Repeated source frames across executions retain their separate latency observations. Models, MPS modes, and actual input-scene combinations remain separate. Inference time includes CUDA completion; external decode/preprocessing are excluded. These are pooled descriptive distributions, not estimates of between-execution uncertainty.
 
 [All plots as a multipage PDF](plots/pooled_confirmation/pooled_inference_times.pdf) · [Sample counts and source executions](pooled_inference_counts.csv)
 

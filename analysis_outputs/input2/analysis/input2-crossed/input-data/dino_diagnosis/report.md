@@ -1,67 +1,75 @@
-# DINO isolated inference diagnosis
+# DINO isolated inference diagnosis — P1–P99 filtered
 
-Scope: eight executions, four scenes and two MPS modes; 1,848 completed non-warmup inferences. No additional GPU runs or profiling changes. All percentile statistics use every completed observation and NumPy's linear method.
+Eight executions, four scenes, two MPS modes; 1800 retained inference observations. Cutoffs are computed once per execution from original completed non-warmup latencies. All statistics, including P50/P99, are recomputed after filtering. Module, kernel and host measurements use the same retained frames. Original cutoffs and excluded source/input IDs are in summary.json. No additional GPU runs were performed.
 
-DINO's variation cannot be assigned to one dominant GPU kernel. Time outside GPU kernels is the largest additive covariance contributor in all eight executions (60–88%). The largest host-module-localized part of that time occurs while the decoder's NVTX range is active. This locates a scheduling/dispatch interval; it does not measure CPU execution or prove the decoder's mathematical operations caused it.
+| Scene | MPS | Retained | P50 ms | P99−P50 ms | Nonkernel r | Decoder host-gap r | Encoder GPU r |
+|---|---|---:|---:|---:|---:|---:|---:|
+| scene-0770 | False | 226 | 62.805 | 1.885 | 0.686 | 0.408 | 0.599 |
+| scene-0398 | False | 223 | 62.605 | 1.159 | 0.602 | 0.452 | 0.343 |
+| scene-0184 | False | 226 | 62.639 | 1.620 | 0.746 | 0.653 | 0.356 |
+| scene-0245 | False | 225 | 62.967 | 2.004 | 0.817 | 0.762 | 0.430 |
+| scene-0770 | True | 226 | 63.135 | 1.643 | 0.666 | 0.479 | 0.401 |
+| scene-0398 | True | 223 | 63.001 | 2.068 | 0.762 | 0.675 | 0.418 |
+| scene-0184 | True | 226 | 62.776 | 1.425 | 0.618 | 0.515 | 0.528 |
+| scene-0245 | True | 225 | 62.692 | 1.053 | 0.660 | 0.628 | 0.313 |
 
-| Scene | MPS | P50 ms | P99-P50 ms | Nonkernel r | Decoder-localized gap r | Encoder GPU r |
-|---|---|---:|---:|---:|---:|---:|
-| scene-0770 | off | 62.805 | 2.374 | 0.771 | 0.594 | 0.526 |
-| scene-0398 | off | 62.605 | 2.002 | 0.740 | 0.686 | 0.417 |
-| scene-0184 | off | 62.639 | 3.624 | 0.884 | 0.784 | 0.253 |
-| scene-0245 | off | 62.967 | 2.771 | 0.889 | 0.840 | 0.398 |
-| scene-0770 | on | 63.135 | 2.454 | 0.823 | 0.762 | 0.192 |
-| scene-0398 | on | 63.001 | 2.449 | 0.843 | 0.758 | 0.392 |
-| scene-0184 | on | 62.776 | 1.960 | 0.773 | 0.726 | 0.432 |
-| scene-0245 | on | 62.692 | 3.362 | 0.808 | 0.759 | 0.406 |
+## Kernel and host associations
 
-## Which kernels?
+Covariance shares are descriptive additive contributions to observed latency variance; correlation with a component of total latency does not establish causation. A kernel family aggregates exact-name launches inside one recorded module, not one layer.
 
-Among individual exact-name kernel families, encoder `ampere_sgemm_128x64_tn` has the largest positive covariance contribution in every execution. It is called 36 times per inference, totaling approximately 18.3–18.5 ms, but contributes only 2–15% of total latency variance under the additive covariance accounting. Its Pearson r is 0.18–0.49. This is a kernel family aggregated within the encoder, not one launch or one identified neural-network layer.
+| Scene | MPS | Nonkernel covariance share | Largest kernel-family covariance share | Module | Kernel |
+|---|---|---:|---:|---|---|
+| scene-0770 | False | 0.466 | 0.102 | encoder | `ampere_sgemm_128x64_tn` |
+| scene-0398 | False | 0.523 | 0.057 | backbone | `void at::native::vectorized_elementwise_kernel<(int)4, at::native::<unnamed>::launch_clamp_scalar(at::TensorIteratorBase &, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::[lambda() (instance 1)]::operator ()() const::[lambda() (instance 7)]::operator ()() const::[lambda(float) (instance 1)], std::array<char *, (unsigned long)2>>(int, T2, T3)` |
+| scene-0184 | False | 0.723 | 0.056 | encoder | `ampere_sgemm_128x64_tn` |
+| scene-0245 | False | 0.715 | 0.088 | encoder | `ampere_sgemm_128x64_tn` |
+| scene-0770 | True | 0.611 | 0.109 | encoder | `ampere_sgemm_128x64_tn` |
+| scene-0398 | True | 0.673 | 0.120 | encoder | `ampere_sgemm_128x64_tn` |
+| scene-0184 | True | 0.550 | 0.118 | encoder | `ampere_sgemm_128x64_tn` |
+| scene-0245 | True | 0.566 | 0.050 | encoder | `ampere_sgemm_128x64_tn` |
 
-The decoder's own GPU time is approximately 6.23–6.33 ms and correlates weakly with total latency (r=0.04–0.18). Its host-side gaps are much more strongly associated (r=0.59–0.84). GPU deformable-attention kernels are not dominant variability contributors: encoder aggregate standard deviations are about 0.017–0.023 ms. Every completed inference has 1,280 kernels; all eight runs have the same 272 distinct kernel-name/grid/block/shared-memory signatures. This supports stable launch structure, but does not by itself prove identical memory-access behavior.
+Kernel-free intervals include host work, dispatch gaps, CUDA API waits, and device copies. Host NVTX ranges locate these intervals; they do not identify CPU execution time. The external decode/preprocess measurements remain outside inference. Internal data_preprocessor work is inside inference and is reported separately from decoder/encoder gaps.
 
-## Tail accounting in milliseconds
+| Scene | MPS | Outside CUDA API ms | Launch API ms | Stream synchronize ms | Copy/memset in gaps ms | Internal preprocessing gap ms | Decoder gap ms |
+|---|---|---:|---:|---:|---:|---:|---:|
+| scene-0770 | False | 5.953 | 1.366 | 0.553 | 0.332 | 0.898 | 3.552 |
+| scene-0398 | False | 5.861 | 1.349 | 0.547 | 0.332 | 0.865 | 3.497 |
+| scene-0184 | False | 6.009 | 1.400 | 0.541 | 0.326 | 0.886 | 3.599 |
+| scene-0245 | False | 6.186 | 1.430 | 0.543 | 0.329 | 0.915 | 3.727 |
+| scene-0770 | True | 6.079 | 1.399 | 0.548 | 0.320 | 0.875 | 3.645 |
+| scene-0398 | True | 6.081 | 1.417 | 0.549 | 0.333 | 0.886 | 3.671 |
+| scene-0184 | True | 5.996 | 1.440 | 0.546 | 0.325 | 0.906 | 3.626 |
+| scene-0245 | True | 5.933 | 1.384 | 0.549 | 0.328 | 0.936 | 3.546 |
 
-Components are evaluated on the same interpolated frames defining total P50 and P99. GPU + nonkernel contributions add to the total gap. The decoder-localized column is part of nonkernel time, not an additional component. Values can be negative; these are not independent module percentiles.
+These categories overlap: copy duration and host-module locations must not be added to the CUDA API partition.
 
-| Scene | MPS | Total gap | GPU contribution | Nonkernel contribution | Decoder-localized portion |
+## Tail accounting
+
+All components use the same interpolated retained frames defining total P50/P99. GPU + nonkernel contributions add to the total gap; the decoder portion is included in nonkernel time. Contributions can be negative and are not independently computed component percentile gaps.
+
+| Scene | MPS | Total gap ms | GPU contribution ms | Nonkernel contribution ms | Decoder portion ms |
 |---|---|---:|---:|---:|---:|
-| scene-0770 | off | 2.374 | 1.236 | 1.138 | 0.023 |
-| scene-0398 | off | 2.002 | 1.404 | 0.598 | 0.363 |
-| scene-0184 | off | 3.624 | 0.034 | 3.590 | 3.019 |
-| scene-0245 | off | 2.771 | -0.024 | 2.796 | 1.203 |
-| scene-0770 | on | 2.454 | 1.454 | 1.000 | 0.056 |
-| scene-0398 | on | 2.449 | 0.722 | 1.727 | 0.665 |
-| scene-0184 | on | 1.960 | 0.768 | 1.192 | 0.662 |
-| scene-0245 | on | 3.362 | 0.161 | 3.201 | 2.024 |
+| scene-0770 | False | 1.885 | 1.062 | 0.824 | 0.007 |
+| scene-0398 | False | 1.159 | 0.656 | 0.503 | 0.131 |
+| scene-0184 | False | 1.620 | -0.041 | 1.660 | 0.910 |
+| scene-0245 | False | 2.004 | -0.229 | 2.233 | 1.532 |
+| scene-0770 | True | 1.643 | -0.036 | 1.679 | 1.008 |
+| scene-0398 | True | 2.068 | 1.368 | 0.700 | 0.284 |
+| scene-0184 | True | 1.425 | 0.605 | 0.820 | 0.415 |
+| scene-0245 | True | 1.053 | 0.428 | 0.625 | 0.344 |
 
-## Concrete startup mechanism
+## Matching retained source frames
 
-The harness calls `profiler.release_cached_memory()` after its five warmups, and that method calls `torch.cuda.empty_cache()`. Every run shows approximately 3.0–3.5 ms of kernel-free time inside cudaMalloc on its first measured inference, plus approximately 0.10–0.13 ms on the second. This explains a startup allocation contribution despite warmup. The inspected warmup image and the first images of all four scenes are each 1600×900, so this is not evidence of a different warmup image resolution.
+| Scene | Common retained frames | Cross-mode latency r |
+|---|---:|---:|
+| scene-0770 | 222 | 0.302 |
+| scene-0398 | 219 | 0.058 |
+| scene-0184 | 222 | 0.021 |
+| scene-0245 | 220 | 0.265 |
 
-This allocation contribution is zero at the interpolated P50/P99 endpoint frames in all eight runs: it explains the first-frame spike, not the reported P99-P50 gaps. `startup_sensitivity.csv` reports correlations with only the first measured frame excluded as a diagnostic; stored samples and official percentiles remain unchanged. Excluding that frame reduces decoder-gap correlations to 0.38–0.79, showing that startup amplifies the full-sample association.
+The harness releases unused allocator cache after warmups. Historical startup spikes and their allocation evidence are preserved in the pre-filter archive. Frames outside P1–P99 do not contribute to current correlations or plots; startup_sensitivity.csv records whether the original first input remains in each retained sample.
 
-PyTorch documents that empty_cache releases unused allocator cache: https://docs.pytorch.org/docs/main/generated/torch.cuda.memory.empty_cache.html
-
-## Across scenes and matching inputs
-
-The scene-to-scene P50 spread is only 0.362 ms with MPS off and 0.442 ms with MPS on. Tail-gap spreads are 1.623 and 1.402 ms respectively. The largest tail gap occurs in 0184 with MPS off and 0245 with MPS on, rather than one consistently slow input scene.
-
-| Scene | Matching source frames | Cross-mode latency r | Cross-mode r excluding first frame |
-|---|---:|---:|---:|
-| scene-0770 | 232 | 0.568 | 0.378 |
-| scene-0398 | 229 | 0.346 | 0.026 |
-| scene-0184 | 232 | 0.313 | 0.031 |
-| scene-0245 | 231 | 0.402 | 0.196 |
-
-## What remains unresolved
-
-Observed location: kernel-free intervals, most strongly localized to the decoder's host range. Candidate mechanisms include Python/framework dispatch, allocator behavior, CPU scheduling and driver launch pacing. CUDA copies/memsets occupy only about 0.32–0.33 ms per inference; their covariance contribution is about 0.2–1.2%, providing little support for GPU copy duration as the dominant source. Most variable kernel-free time lies outside recorded CUDA API calls.
-
-The primary traces disable CPU sampling, backtraces and CPU context-switch collection. They cannot distinguish those host mechanisms or resolve finer decoder operations. One execution per scene/mode and temporally dependent frames do not establish an image-content-induced effect. All P99 estimates here are sparse-tail estimates (<1,000 observations). Correlation with a component of total latency is not causal proof. Multiple kernel comparisons are descriptive, with no significance claim.
-
-A causal follow-up would hold the exact image sequence fixed across independent executions and collect CPU stacks/context switches alongside existing CUDA launches. A separately authorized allocator-cache control would test the startup mechanism. No such runs or configuration changes were made.
+Primary traces lack CPU sampling, backtraces and CPU context switches. Python/framework dispatch, CPU scheduling and driver launch pacing remain possible mechanisms, not resolved causes. One execution per scene/mode and temporally dependent frames do not establish an image-content effect. P99 estimates remain sparse (<1,000 retained observations); fewer than 100 are especially fragile. First-difference correlations use successive retained observations. Individual-layer attribution would need finer annotations; no additional layer-detail runs were scheduled.
 
 Reproduce after sourcing ROS and the workspace:
 

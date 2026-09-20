@@ -2,18 +2,18 @@
 
 The strongest measured module association in every scene and both MPS modes is GPU hard voxelization inside `data_preprocessor`. This is inside the CUDA-completed inference boundary; the separately logged CPU preprocessing and message decoding are outside it.
 
-Correlations below are per execution, across completed non-warmup source frames. No percentile trimming is applied. GPU module durations use existing correlated launch attribution. All included kernels lie inside their inference boundaries and do not overlap, allowing additive duration accounting.
+All plots and metrics use each execution's P1–P99-filtered inference frames. Cutoffs and exclusions are recorded in summary.json; P50/P99 are recomputed on retained frames. Components share the same frame mask. GPU module durations use existing correlated launch attribution. Included kernels lie inside their inference boundaries and do not overlap, allowing additive accounting. Difference correlations use successive retained observations.
 
 | Scene | MPS | Frames | P50 ms | P99-P50 ms | Voxelization mean ms | Pearson r | Consecutive-difference r |
 |---|---|---:|---:|---:|---:|---:|---:|
-| scene-0770 | off | 147 | 119.813 | 8.099 | 74.298 | 0.944 | 0.955 |
-| scene-0398 | off | 146 | 120.088 | 8.211 | 74.363 | 0.967 | 0.909 |
-| scene-0184 | off | 142 | 125.465 | 11.043 | 78.910 | 0.968 | 0.945 |
-| scene-0245 | off | 188 | 92.529 | 14.294 | 48.883 | 0.983 | 0.784 |
-| scene-0770 | on | 146 | 120.048 | 7.736 | 74.223 | 0.944 | 0.945 |
-| scene-0398 | on | 146 | 119.916 | 6.133 | 74.305 | 0.977 | 0.854 |
-| scene-0184 | on | 141 | 125.259 | 8.002 | 78.819 | 0.956 | 0.906 |
-| scene-0245 | on | 186 | 92.578 | 12.875 | 48.987 | 0.990 | 0.937 |
+| scene-0770 | off | 143 | 119.813 | 4.609 | 74.182 | 0.891 | 0.909 |
+| scene-0398 | off | 142 | 120.088 | 5.992 | 74.363 | 0.960 | 0.854 |
+| scene-0184 | off | 138 | 125.465 | 5.502 | 78.822 | 0.963 | 0.905 |
+| scene-0245 | off | 184 | 92.529 | 13.950 | 48.836 | 0.980 | 0.782 |
+| scene-0770 | on | 142 | 120.048 | 4.352 | 74.105 | 0.872 | 0.878 |
+| scene-0398 | on | 142 | 119.916 | 4.967 | 74.309 | 0.975 | 0.784 |
+| scene-0184 | on | 137 | 125.259 | 5.965 | 78.773 | 0.947 | 0.781 |
+| scene-0245 | on | 182 | 92.578 | 12.352 | 48.944 | 0.989 | 0.939 |
 
 ## Mechanism and scope
 
@@ -23,25 +23,25 @@ The actual inferencer pipeline pads nine missing sweeps with copies of the curre
 
 | Scene | MPS | Mean voxel input points | Mean occupied voxels | Logical point-scan work vs inference r |
 |---|---|---:|---:|---:|
-| scene-0770 | off | 259348 | 17702 | 0.197 |
-| scene-0398 | off | 263806 | 16980 | 0.843 |
-| scene-0184 | off | 272275 | 18277 | 0.757 |
-| scene-0245 | off | 198487 | 11424 | 0.948 |
-| scene-0770 | on | 259335 | 17701 | 0.185 |
-| scene-0398 | on | 263800 | 16977 | 0.862 |
-| scene-0184 | on | 272208 | 18286 | 0.749 |
-| scene-0245 | on | 198494 | 11427 | 0.934 |
+| scene-0770 | off | 259346 | 17701 | 0.203 |
+| scene-0398 | off | 263751 | 17055 | 0.848 |
+| scene-0184 | off | 272279 | 18294 | 0.778 |
+| scene-0245 | off | 198384 | 11391 | 0.942 |
+| scene-0770 | on | 259346 | 17702 | 0.247 |
+| scene-0398 | on | 263747 | 17036 | 0.868 |
+| scene-0184 | on | 272388 | 18299 | 0.812 |
+| scene-0245 | on | 198398 | 11393 | 0.926 |
 
 Input geometry explains substantially more variation in scenes 0398, 0184 and 0245 than in 0770. In 0770, voxelization still tracks inference closely while reconstructed work is relatively stable; input geometry alone does not explain its runtime variation. Kernel timing fluctuations on identical source frames also remain between modes.
 
 ## Matching actual source frames between modes
 
-| Scene | Common frames | Full-sample gap change ms | Common-frame gap change ms | Correlation of voxelization and total per-frame mode changes |
+| Scene | Common retained frames | Filtered-sample gap change ms | Common-frame gap change ms | Correlation of voxelization and total per-frame mode changes |
 |---|---:|---:|---:|---:|
-| scene-0770 | 105 | -0.363 | -3.540 | 0.969 |
-| scene-0398 | 94 | -2.078 | -2.605 | 0.867 |
-| scene-0184 | 45 | -3.042 | -2.997 | 0.922 |
-| scene-0245 | 103 | -1.419 | -1.769 | 0.750 |
+| scene-0770 | 99 | -0.257 | -0.784 | 0.829 |
+| scene-0398 | 92 | -1.025 | -1.701 | 0.758 |
+| scene-0184 | 41 | 0.462 | -3.583 | 0.904 |
+| scene-0245 | 100 | -1.598 | -1.997 | 0.770 |
 
 ## Accounting for the observed tail-gap change
 
@@ -49,10 +49,10 @@ Entries are MPS-on minus MPS-off, in milliseconds. For each run, each component 
 
 | Scene | Total gap change | Voxelization contribution change | Other kernels contribution change | Nonkernel contribution change |
 |---|---:|---:|---:|---:|
-| scene-0770 | -0.363 | 0.312 | -0.131 | -0.544 |
-| scene-0398 | -2.078 | -3.480 | 0.151 | 1.251 |
-| scene-0184 | -3.042 | -6.150 | 1.254 | 1.854 |
-| scene-0245 | -1.419 | 0.226 | -0.320 | -1.325 |
+| scene-0770 | -0.257 | -2.243 | 0.102 | 1.884 |
+| scene-0398 | -1.025 | -1.531 | 0.110 | 0.396 |
+| scene-0184 | 0.462 | -0.306 | 0.579 | 0.189 |
+| scene-0245 | -1.598 | -0.068 | -0.019 | -1.512 |
 
 Each condition has one execution and temporally dependent observations. All full-sample P99 estimates have fewer than 1,000 observations; common-frame subsets below 100 are especially fragile. Mode differences remain observational because execution order, runtime state and frame timing are not independently replicated. A module's contribution is part of total latency, so high correlation alone is not causal proof.
 

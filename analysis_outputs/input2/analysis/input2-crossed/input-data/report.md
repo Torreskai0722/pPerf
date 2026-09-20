@@ -4,7 +4,9 @@ Validated analysis rows: 376. Blocked execution slots: 0.
 
 [Single-model baseline violin plots by scene](isolated_baselines.md) ([all models as PDF](plots/isolated/isolated_baselines.pdf)).
 
-R=(P99−P50)/P50 uses NumPy linear percentiles with no trimming. Each execution remains a separate observation; means, sample standard deviations, and ranges summarize executions, never pooled frames.
+All plots and performance statistics use one inclusive P1–P99 latency filter per execution/model, with original cutoffs computed using NumPy linear percentiles. P50, P99, P99−P50, and R=(P99−P50)/P50 are recomputed on the retained sample. Each execution remains a separate observation; means, sample standard deviations, and ranges summarize executions. Raw coverage and archive evidence remain intact. Per-run summaries record cutoffs and excluded source/input IDs.
+
+The frozen selection.json records the historical decisions used to execute this matrix. selection_p1_p99.json records revised screening choices under the new policy; it does not change the actual A/B scenes of completed executions.
 
 The first cell letter selects LiDAR input and the second selects camera input. LiDAR co-runner contrasts are AB−AA and BB−BA; camera co-runner contrasts are BA−AA and BB−AB. Own-input contrasts are compared with the corresponding single isolated A/B measurements. Isolation has one execution per scene/mode, so its uncertainty cannot be estimated from repetitions.
 
@@ -12,7 +14,7 @@ Observed associations are the same-scene screening differences. The crossed cont
 
 Expected bag records are not observed publications. Relay publication is the measured publication boundary. Missing bag-to-relay coverage is upstream missing coverage; published inputs absent from callbacks are dropped/overwritten without a queue-internal mechanism claim.
 
-Inference NVTX ranges include recorded CUDA completion; decode and preprocessing remain separate. Throughput uses completed count divided by time from replay resume to max(common-window end, last model completion), with elapsed and drain durations retained.
+Inference NVTX ranges include recorded CUDA completion; decode and preprocessing use the same retained frame identities and remain separate. throughput_hz is the filtered inference count divided by the original replay-resume-to-max(window-end,last-completion) duration. observed_throughput_hz and completed_count retain actual completion evidence; elapsed and drain boundaries are unchanged.
 
 Sequential frames are temporally dependent. P99 with <100 observations is especially fragile; <1,000 is a sparse-tail estimate. Unique-source counts and individual-run warnings are retained. Targeted longer common-window measurements are recommended for unstable tails; this study does not automatically add repetitions.
 
@@ -22,30 +24,30 @@ MPS comparisons include only identical actual ordered scene combinations. Select
 
 ## 3DSSD and YOLOv3 assessed separately
 
-No insensitivity/equivalence margin was specified. Small measured effects alone do not establish an insensitive control.
+Use the requested approximately 1 ms margin for absolute changes in P99−P50. Small observed effects do not establish statistical equivalence with one isolated execution per condition.
 
 | Model | MPS | Effect | Contrast | Mean ΔR | SD | Range |
 |---|---|---|---|---:|---:|---:|
-| yolov3 | False | co_runner | BA-AA | 0.010441 | 0.005826050215688002 | 0.011651 |
-| yolov3 | False | co_runner | BB-AB | -0.041408 | 0.009076203496464035 | 0.018055 |
-| yolov3 | False | own_input | AB-AA | 0.092811 | 0.007114429370870979 | 0.013324 |
-| yolov3 | False | own_input | BB-BA | 0.040962 | 0.01282219033008125 | 0.025449 |
-| yolov3 | False | interaction | BB-BA-AB+AA | -0.051849 | 0.007305348277577922 | 0.013123 |
-| 3dssd | False | co_runner | AB-AA | 0.0063177 | 0.004014580895989894 | 0.00795 |
-| 3dssd | False | co_runner | BB-BA | 0.00016141 | 0.012464895056059027 | 0.024276 |
-| 3dssd | False | own_input | BA-AA | 0.0093082 | 0.012479355290735742 | 0.023728 |
-| 3dssd | False | own_input | BB-AB | 0.0031519 | 0.007469924233884728 | 0.01489 |
-| 3dssd | False | interaction | BB-BA-AB+AA | -0.0061563 | 0.016272564429764918 | 0.032226 |
-| yolov3 | True | co_runner | BA-AA | 0.023297 | 0.10463355538224263 | 0.18686 |
-| yolov3 | True | co_runner | BB-AB | 0.022221 | 0.11502267740832521 | 0.22841 |
-| yolov3 | True | own_input | AB-AA | 0.081957 | 0.10543403267341568 | 0.18813 |
-| yolov3 | True | own_input | BB-BA | 0.080881 | 0.1194026741978874 | 0.23872 |
-| yolov3 | True | interaction | BB-BA-AB+AA | -0.0010756 | 0.21635562650493137 | 0.41527 |
-| 3dssd | True | co_runner | AB-AA | 0.015833 | 0.004661061194689981 | 0.0086246 |
-| 3dssd | True | co_runner | BB-BA | -0.0063219 | 0.00820965063235419 | 0.016242 |
-| 3dssd | True | own_input | BA-AA | 0.01754 | 0.0023044253360599404 | 0.0045659 |
-| 3dssd | True | own_input | BB-AB | -0.0046148 | 0.0030562688797617283 | 0.0058786 |
-| 3dssd | True | interaction | BB-BA-AB+AA | -0.022154 | 0.0048308490494579975 | 0.0089556 |
+| yolov3 | False | co_runner | BA-AA | 0.01058 | 0.009163084026641984 | 0.018292 |
+| yolov3 | False | co_runner | BB-AB | -0.045423 | 0.014310146430442655 | 0.027779 |
+| yolov3 | False | own_input | AB-AA | 0.091968 | 0.0036559549890422724 | 0.0071028 |
+| yolov3 | False | own_input | BB-BA | 0.035966 | 0.017156430454482466 | 0.032014 |
+| yolov3 | False | interaction | BB-BA-AB+AA | -0.056002 | 0.015218035472895306 | 0.029966 |
+| 3dssd | False | co_runner | AB-AA | 0.0039171 | 0.00607024291284159 | 0.01121 |
+| 3dssd | False | co_runner | BB-BA | 0.0053333 | 0.0069119055475395175 | 0.013747 |
+| 3dssd | False | own_input | BA-AA | -0.001466 | 0.006602258921769894 | 0.013174 |
+| 3dssd | False | own_input | BB-AB | -4.9835e-05 | 0.006467335982884537 | 0.01198 |
+| 3dssd | False | interaction | BB-BA-AB+AA | 0.0014162 | 0.012500862662728637 | 0.023388 |
+| yolov3 | True | co_runner | BA-AA | 0.023436 | 0.06555682724556783 | 0.12065 |
+| yolov3 | True | co_runner | BB-AB | 0.031121 | 0.0685571535015953 | 0.11999 |
+| yolov3 | True | own_input | AB-AA | 0.097731 | 0.0598022667551258 | 0.11496 |
+| yolov3 | True | own_input | BB-BA | 0.10542 | 0.06727694164093681 | 0.12568 |
+| yolov3 | True | interaction | BB-BA-AB+AA | 0.0076856 | 0.12055356758715985 | 0.24064 |
+| 3dssd | True | co_runner | AB-AA | 0.012486 | 0.0024165635652364705 | 0.0043213 |
+| 3dssd | True | co_runner | BB-BA | 0.0042067 | 0.0030866105493180503 | 0.0060311 |
+| 3dssd | True | own_input | BA-AA | 0.0082068 | 0.007914734338225187 | 0.014585 |
+| 3dssd | True | own_input | BB-AB | -7.2858e-05 | 0.0043761655236128315 | 0.0087508 |
+| 3dssd | True | interaction | BB-BA-AB+AA | -0.0082797 | 0.005077764646818601 | 0.010066 |
 
 ## Remaining evidence blockers
 
@@ -54,103 +56,103 @@ No insensitivity/equivalence margin was specified. Small measured effects alone 
 
 | Pair | Model | MPS | Effect | Contrast | Mean ΔR | SD | Min | Max |
 |---|---|---|---|---|---:|---:|---:|---:|
-| 3dssd+yolov3 | yolov3 | False | co_runner | BA-AA | 0.010441 | 0.005826050215688002 | 0.0046501 | 0.016302 |
-| 3dssd+yolov3 | yolov3 | False | co_runner | BB-AB | -0.041408 | 0.009076203496464035 | -0.049894 | -0.031838 |
-| 3dssd+yolov3 | yolov3 | False | own_input | AB-AA | 0.092811 | 0.007114429370870979 | 0.087591 | 0.10091 |
-| 3dssd+yolov3 | yolov3 | False | own_input | BB-BA | 0.040962 | 0.01282219033008125 | 0.027326 | 0.052775 |
-| 3dssd+yolov3 | yolov3 | False | interaction | BB-BA-AB+AA | -0.051849 | 0.007305348277577922 | -0.060265 | -0.047142 |
-| 3dssd+yolov3 | 3dssd | False | co_runner | AB-AA | 0.0063177 | 0.004014580895989894 | 0.0026674 | 0.010617 |
-| 3dssd+yolov3 | 3dssd | False | co_runner | BB-BA | 0.00016141 | 0.012464895056059027 | -0.010339 | 0.013937 |
-| 3dssd+yolov3 | 3dssd | False | own_input | BA-AA | 0.0093082 | 0.012479355290735742 | -0.00032137 | 0.023407 |
-| 3dssd+yolov3 | 3dssd | False | own_input | BB-AB | 0.0031519 | 0.007469924233884728 | -0.0039423 | 0.010948 |
-| 3dssd+yolov3 | 3dssd | False | interaction | BB-BA-AB+AA | -0.0061563 | 0.016272564429764918 | -0.020957 | 0.011269 |
-| centerpoint+dino | dino | False | co_runner | BA-AA | 0.30344 | 0.025023370284752534 | 0.28089 | 0.33036 |
-| centerpoint+dino | dino | False | co_runner | BB-AB | 0.33942 | 0.05249779171034572 | 0.30519 | 0.39986 |
-| centerpoint+dino | dino | False | own_input | AB-AA | -0.029418 | 0.04862344408055096 | -0.085391 | 0.0023766 |
-| centerpoint+dino | dino | False | own_input | BB-BA | 0.0065542 | 0.02137998733876654 | -0.015893 | 0.026678 |
-| centerpoint+dino | dino | False | interaction | BB-BA-AB+AA | 0.035972 | 0.02947779385441989 | 0.014117 | 0.069499 |
-| centerpoint+dino | centerpoint | False | co_runner | AB-AA | -0.019016 | 0.11295417257720344 | -0.13069 | 0.095176 |
-| centerpoint+dino | centerpoint | False | co_runner | BB-BA | -0.0019614 | 0.02298571798650305 | -0.02724 | 0.017685 |
-| centerpoint+dino | centerpoint | False | own_input | BA-AA | -0.071859 | 0.052417429795613736 | -0.12691 | -0.022546 |
-| centerpoint+dino | centerpoint | False | own_input | BB-AB | -0.054804 | 0.07895474896957248 | -0.14361 | 0.007452 |
-| centerpoint+dino | centerpoint | False | interaction | BB-BA-AB+AA | 0.017055 | 0.10774426735111942 | -0.077491 | 0.13436 |
-| centerpoint+yolov3 | yolov3 | False | co_runner | BA-AA | 0.54888 | 0.4213382639951492 | 0.064307 | 0.82886 |
-| centerpoint+yolov3 | yolov3 | False | co_runner | BB-AB | 0.08022 | 0.1318740936765096 | -0.010344 | 0.23152 |
-| centerpoint+yolov3 | yolov3 | False | own_input | AB-AA | 0.33 | 0.4961144204284708 | -0.24013 | 0.66349 |
-| centerpoint+yolov3 | yolov3 | False | own_input | BB-BA | -0.13865 | 0.057084842604921755 | -0.17571 | -0.072914 |
-| centerpoint+yolov3 | yolov3 | False | interaction | BB-BA-AB+AA | -0.46866 | 0.5531840091705388 | -0.8392 | 0.16721 |
-| centerpoint+yolov3 | centerpoint | False | co_runner | AB-AA | 0.0056601 | 0.01807662736063314 | -0.013939 | 0.021678 |
-| centerpoint+yolov3 | centerpoint | False | co_runner | BB-BA | -0.0010639 | 0.020191020350346076 | -0.019226 | 0.020677 |
-| centerpoint+yolov3 | centerpoint | False | own_input | BA-AA | 0.1131 | 0.019922267874128576 | 0.096147 | 0.13504 |
-| centerpoint+yolov3 | centerpoint | False | own_input | BB-AB | 0.10637 | 0.01272810737440893 | 0.094137 | 0.11954 |
-| centerpoint+yolov3 | centerpoint | False | interaction | BB-BA-AB+AA | -0.006724 | 0.029620586216924483 | -0.040905 | 0.011437 |
-| pointpillars+vit-upernet | vit-upernet | False | co_runner | BA-AA | 0.08427 | 0.021122435476583136 | 0.062449 | 0.10462 |
-| pointpillars+vit-upernet | vit-upernet | False | co_runner | BB-AB | -0.02688 | 0.05012310031029925 | -0.067133 | 0.029262 |
-| pointpillars+vit-upernet | vit-upernet | False | own_input | AB-AA | 0.089978 | 0.022204354831571568 | 0.064849 | 0.10695 |
-| pointpillars+vit-upernet | vit-upernet | False | own_input | BB-BA | -0.021172 | 0.04578565075254681 | -0.049251 | 0.031662 |
-| pointpillars+vit-upernet | vit-upernet | False | interaction | BB-BA-AB+AA | -0.11115 | 0.06757362602695732 | -0.15288 | -0.033187 |
-| pointpillars+vit-upernet | pointpillars | False | co_runner | AB-AA | -0.0003064 | 0.005244341164226269 | -0.0037817 | 0.005726 |
-| pointpillars+vit-upernet | pointpillars | False | co_runner | BB-BA | 0.0011809 | 0.011354063981064364 | -0.010909 | 0.011619 |
-| pointpillars+vit-upernet | pointpillars | False | own_input | BA-AA | -0.01151 | 0.0038484328405403254 | -0.015914 | -0.008793 |
-| pointpillars+vit-upernet | pointpillars | False | own_input | BB-AB | -0.010023 | 0.00599718030724201 | -0.01592 | -0.0039303 |
-| pointpillars+vit-upernet | pointpillars | False | interaction | BB-BA-AB+AA | 0.0014873 | 0.007460761233676249 | -0.0071269 | 0.0058926 |
-| pointpillars+mask-rcnn | mask-rcnn | False | co_runner | BA-AA | -0.0085855 | 0.01371339434958667 | -0.024362 | 0.00048368 |
-| pointpillars+mask-rcnn | mask-rcnn | False | co_runner | BB-AB | -0.015771 | 0.016025618695842285 | -0.033786 | -0.0031001 |
-| pointpillars+mask-rcnn | mask-rcnn | False | own_input | AB-AA | 0.051819 | 0.009928879231636174 | 0.042317 | 0.062126 |
-| pointpillars+mask-rcnn | mask-rcnn | False | own_input | BB-BA | 0.044633 | 0.01323958663297941 | 0.030218 | 0.05625 |
-| pointpillars+mask-rcnn | mask-rcnn | False | interaction | BB-BA-AB+AA | -0.0071858 | 0.02313174292721095 | -0.031907 | 0.013934 |
-| pointpillars+mask-rcnn | pointpillars | False | co_runner | AB-AA | -0.0085028 | 0.017926801108298605 | -0.028492 | 0.0061496 |
-| pointpillars+mask-rcnn | pointpillars | False | co_runner | BB-BA | 0.085142 | 0.04000210404778243 | 0.039867 | 0.1157 |
-| pointpillars+mask-rcnn | pointpillars | False | own_input | BA-AA | 0.28201 | 0.057436535191742244 | 0.22416 | 0.33902 |
-| pointpillars+mask-rcnn | pointpillars | False | own_input | BB-AB | 0.37565 | 0.0068950626597124075 | 0.36835 | 0.38206 |
-| pointpillars+mask-rcnn | pointpillars | False | interaction | BB-BA-AB+AA | 0.093645 | 0.05058112693535921 | 0.043032 | 0.14419 |
-| 3dssd+yolov3 | yolov3 | True | co_runner | BA-AA | 0.023297 | 0.10463355538224263 | -0.042941 | 0.14392 |
-| 3dssd+yolov3 | yolov3 | True | co_runner | BB-AB | 0.022221 | 0.11502267740832521 | -0.099894 | 0.12851 |
-| 3dssd+yolov3 | yolov3 | True | own_input | AB-AA | 0.081957 | 0.10543403267341568 | 0.015384 | 0.20352 |
-| 3dssd+yolov3 | yolov3 | True | own_input | BB-BA | 0.080881 | 0.1194026741978874 | -0.040299 | 0.19842 |
-| 3dssd+yolov3 | yolov3 | True | interaction | BB-BA-AB+AA | -0.0010756 | 0.21635562650493137 | -0.24382 | 0.17145 |
-| 3dssd+yolov3 | 3dssd | True | co_runner | AB-AA | 0.015833 | 0.004661061194689981 | 0.012542 | 0.021166 |
-| 3dssd+yolov3 | 3dssd | True | co_runner | BB-BA | -0.0063219 | 0.00820965063235419 | -0.015137 | 0.001105 |
-| 3dssd+yolov3 | 3dssd | True | own_input | BA-AA | 0.01754 | 0.0023044253360599404 | 0.015075 | 0.019641 |
-| 3dssd+yolov3 | 3dssd | True | own_input | BB-AB | -0.0046148 | 0.0030562688797617283 | -0.0080376 | -0.002159 |
-| 3dssd+yolov3 | 3dssd | True | interaction | BB-BA-AB+AA | -0.022154 | 0.0048308490494579975 | -0.027679 | -0.018723 |
-| centerpoint+dino | dino | True | co_runner | BA-AA | 0.21164 | 0.04109571009832647 | 0.18361 | 0.25882 |
-| centerpoint+dino | dino | True | co_runner | BB-AB | 0.23553 | 0.035958468008582906 | 0.19944 | 0.27135 |
-| centerpoint+dino | dino | True | own_input | AB-AA | -0.025834 | 0.022642160173317744 | -0.04252 | -5.9832e-05 |
-| centerpoint+dino | dino | True | own_input | BB-BA | -0.0019406 | 0.021530138227714664 | -0.026689 | 0.012478 |
-| centerpoint+dino | dino | True | interaction | BB-BA-AB+AA | 0.023894 | 0.016897446703507086 | 0.012537 | 0.043312 |
-| centerpoint+dino | centerpoint | True | co_runner | AB-AA | -0.00629 | 0.003994091549633876 | -0.010893 | -0.0037401 |
-| centerpoint+dino | centerpoint | True | co_runner | BB-BA | -0.0079985 | 0.0362856710932422 | -0.04975 | 0.015917 |
-| centerpoint+dino | centerpoint | True | own_input | BA-AA | -0.053444 | 0.0023515807960534743 | -0.056079 | -0.051557 |
-| centerpoint+dino | centerpoint | True | own_input | BB-AB | -0.055153 | 0.040854624721121224 | -0.10159 | -0.024747 |
-| centerpoint+dino | centerpoint | True | interaction | BB-BA-AB+AA | -0.0017085 | 0.03850882259859314 | -0.045514 | 0.02681 |
-| centerpoint+yolov3 | yolov3 | True | co_runner | BA-AA | 1.4539 | 0.2451822292185793 | 1.1708 | 1.5962 |
-| centerpoint+yolov3 | yolov3 | True | co_runner | BB-AB | 1.4531 | 0.3976271962710244 | 0.99436 | 1.6998 |
-| centerpoint+yolov3 | yolov3 | True | own_input | AB-AA | 0.0056958 | 0.48597045724736215 | -0.472 | 0.49953 |
-| centerpoint+yolov3 | yolov3 | True | own_input | BB-BA | 0.0048101 | 0.09153551125616176 | -0.10088 | 0.058375 |
-| centerpoint+yolov3 | yolov3 | True | interaction | BB-BA-AB+AA | -0.00088574 | 0.5678971476298299 | -0.60042 | 0.52894 |
-| centerpoint+yolov3 | centerpoint | True | co_runner | AB-AA | 0.0086758 | 0.007728909813913095 | 0.0032599 | 0.017527 |
-| centerpoint+yolov3 | centerpoint | True | co_runner | BB-BA | 0.0088932 | 0.012688560859443102 | -0.0042447 | 0.021079 |
-| centerpoint+yolov3 | centerpoint | True | own_input | BA-AA | -0.12846 | 0.006003078257932784 | -0.13398 | -0.12207 |
-| centerpoint+yolov3 | centerpoint | True | own_input | BB-AB | -0.12824 | 0.014170885180325448 | -0.14384 | -0.11616 |
-| centerpoint+yolov3 | centerpoint | True | interaction | BB-BA-AB+AA | 0.00021743 | 0.02015655430504857 | -0.021772 | 0.017819 |
-| pointpillars+vit-upernet | vit-upernet | True | co_runner | BA-AA | -0.075618 | 0.004698257658194251 | -0.08044 | -0.071055 |
-| pointpillars+vit-upernet | vit-upernet | True | co_runner | BB-AB | -0.062045 | 0.00790030859914138 | -0.069315 | -0.053638 |
-| pointpillars+vit-upernet | vit-upernet | True | own_input | AB-AA | -0.002665 | 0.007450116280920836 | -0.010546 | 0.0042629 |
-| pointpillars+vit-upernet | vit-upernet | True | own_input | BB-BA | 0.010908 | 0.013658459774299758 | -0.0045012 | 0.021522 |
-| pointpillars+vit-upernet | vit-upernet | True | interaction | BB-BA-AB+AA | 0.013573 | 0.0065207522205076255 | 0.0060445 | 0.017417 |
-| pointpillars+vit-upernet | pointpillars | True | co_runner | AB-AA | 0.016467 | 0.047457796426894426 | -0.037291 | 0.052556 |
-| pointpillars+vit-upernet | pointpillars | True | co_runner | BB-BA | 0.13137 | 0.021453881088542247 | 0.10905 | 0.15183 |
-| pointpillars+vit-upernet | pointpillars | True | own_input | BA-AA | 0.055125 | 0.04139397431354127 | 0.0073278 | 0.079211 |
-| pointpillars+vit-upernet | pointpillars | True | own_input | BB-AB | 0.17003 | 0.031160453768699484 | 0.1357 | 0.19653 |
-| pointpillars+vit-upernet | pointpillars | True | interaction | BB-BA-AB+AA | 0.1149 | 0.05706282754741781 | 0.05649 | 0.17051 |
-| pointpillars+mask-rcnn | mask-rcnn | True | co_runner | BA-AA | -0.057792 | 0.025796175765540327 | -0.087552 | -0.041817 |
-| pointpillars+mask-rcnn | mask-rcnn | True | co_runner | BB-AB | 0.039966 | 0.010443496825561354 | 0.028328 | 0.048521 |
-| pointpillars+mask-rcnn | mask-rcnn | True | own_input | AB-AA | -0.13159 | 0.028552256651119146 | -0.16259 | -0.10637 |
-| pointpillars+mask-rcnn | mask-rcnn | True | own_input | BB-BA | -0.033827 | 0.006458459670089238 | -0.038746 | -0.026513 |
-| pointpillars+mask-rcnn | mask-rcnn | True | interaction | BB-BA-AB+AA | 0.097758 | 0.034241897167936276 | 0.070145 | 0.13607 |
-| pointpillars+mask-rcnn | pointpillars | True | co_runner | AB-AA | 0.12168 | 0.016892724598753732 | 0.10248 | 0.13423 |
-| pointpillars+mask-rcnn | pointpillars | True | co_runner | BB-BA | 0.19535 | 0.027152969432319787 | 0.17771 | 0.22662 |
-| pointpillars+mask-rcnn | pointpillars | True | own_input | BA-AA | 0.0061809 | 0.008555436812424735 | -0.0036326 | 0.012071 |
-| pointpillars+mask-rcnn | pointpillars | True | own_input | BB-AB | 0.079845 | 0.035709944080713825 | 0.053587 | 0.12051 |
-| pointpillars+mask-rcnn | pointpillars | True | interaction | BB-BA-AB+AA | 0.073664 | 0.04399197443811357 | 0.043484 | 0.12414 |
+| 3dssd+yolov3 | yolov3 | False | co_runner | BA-AA | 0.01058 | 0.009163084026641984 | 0.0011116 | 0.019404 |
+| 3dssd+yolov3 | yolov3 | False | co_runner | BB-AB | -0.045423 | 0.014310146430442655 | -0.061301 | -0.033521 |
+| 3dssd+yolov3 | yolov3 | False | own_input | AB-AA | 0.091968 | 0.0036559549890422724 | 0.088918 | 0.096021 |
+| 3dssd+yolov3 | yolov3 | False | own_input | BB-BA | 0.035966 | 0.017156430454482466 | 0.016394 | 0.048408 |
+| 3dssd+yolov3 | yolov3 | False | interaction | BB-BA-AB+AA | -0.056002 | 0.015218035472895306 | -0.072524 | -0.042558 |
+| 3dssd+yolov3 | 3dssd | False | co_runner | AB-AA | 0.0039171 | 0.00607024291284159 | -0.0030334 | 0.008177 |
+| 3dssd+yolov3 | 3dssd | False | co_runner | BB-BA | 0.0053333 | 0.0069119055475395175 | -0.0011188 | 0.012628 |
+| 3dssd+yolov3 | 3dssd | False | own_input | BA-AA | -0.001466 | 0.006602258921769894 | -0.0083131 | 0.0048606 |
+| 3dssd+yolov3 | 3dssd | False | own_input | BB-AB | -4.9835e-05 | 0.006467335982884537 | -0.0046317 | 0.0073481 |
+| 3dssd+yolov3 | 3dssd | False | interaction | BB-BA-AB+AA | 0.0014162 | 0.012500862662728637 | -0.0077265 | 0.015661 |
+| centerpoint+dino | dino | False | co_runner | BA-AA | 0.3402 | 0.021442911494230162 | 0.32577 | 0.36484 |
+| centerpoint+dino | dino | False | co_runner | BB-AB | 0.36084 | 0.06634379983019494 | 0.32226 | 0.43744 |
+| centerpoint+dino | dino | False | own_input | AB-AA | -0.013383 | 0.06731746725610405 | -0.0911 | 0.026771 |
+| centerpoint+dino | dino | False | own_input | BB-BA | 0.0072525 | 0.0223270012521853 | -0.018498 | 0.021214 |
+| centerpoint+dino | dino | False | interaction | BB-BA-AB+AA | 0.020636 | 0.04506740415618977 | -0.0077294 | 0.072602 |
+| centerpoint+dino | centerpoint | False | co_runner | AB-AA | 0.018719 | 0.08298272978631428 | -0.04803 | 0.11163 |
+| centerpoint+dino | centerpoint | False | co_runner | BB-BA | -0.0036779 | 0.0269758680724278 | -0.034081 | 0.017391 |
+| centerpoint+dino | centerpoint | False | own_input | BA-AA | -0.025812 | 0.03383883456597983 | -0.047254 | 0.013198 |
+| centerpoint+dino | centerpoint | False | own_input | BB-AB | -0.048209 | 0.07806591155676464 | -0.13762 | 0.0064332 |
+| centerpoint+dino | centerpoint | False | interaction | BB-BA-AB+AA | -0.022397 | 0.07405438035541712 | -0.094239 | 0.053687 |
+| centerpoint+yolov3 | yolov3 | False | co_runner | BA-AA | 0.54551 | 0.4199969060375696 | 0.062188 | 0.82178 |
+| centerpoint+yolov3 | yolov3 | False | co_runner | BB-AB | 0.080244 | 0.13599285304847503 | -0.014032 | 0.23614 |
+| centerpoint+yolov3 | yolov3 | False | own_input | AB-AA | 0.3292 | 0.49862266617513445 | -0.24405 | 0.66233 |
+| centerpoint+yolov3 | yolov3 | False | own_input | BB-BA | -0.13606 | 0.05729989301799423 | -0.17349 | -0.070097 |
+| centerpoint+yolov3 | yolov3 | False | interaction | BB-BA-AB+AA | -0.46527 | 0.5559161540427351 | -0.83581 | 0.17395 |
+| centerpoint+yolov3 | centerpoint | False | co_runner | AB-AA | 0.0087361 | 0.0170085186376291 | -0.010646 | 0.021175 |
+| centerpoint+yolov3 | centerpoint | False | co_runner | BB-BA | 0.010155 | 0.013803945637473903 | -0.0056498 | 0.019849 |
+| centerpoint+yolov3 | centerpoint | False | own_input | BA-AA | 0.099321 | 0.029602867882737086 | 0.067073 | 0.12526 |
+| centerpoint+yolov3 | centerpoint | False | own_input | BB-AB | 0.10074 | 0.00475940140134697 | 0.097568 | 0.10621 |
+| centerpoint+yolov3 | centerpoint | False | interaction | BB-BA-AB+AA | 0.0014185 | 0.028668839382942405 | -0.026825 | 0.030495 |
+| pointpillars+vit-upernet | vit-upernet | False | co_runner | BA-AA | 0.084541 | 0.02874096204658307 | 0.053308 | 0.10987 |
+| pointpillars+vit-upernet | vit-upernet | False | co_runner | BB-AB | -0.026151 | 0.04103981928443247 | -0.056169 | 0.020614 |
+| pointpillars+vit-upernet | vit-upernet | False | own_input | AB-AA | 0.082135 | 0.031709948684325605 | 0.046822 | 0.10818 |
+| pointpillars+vit-upernet | vit-upernet | False | own_input | BB-BA | -0.028557 | 0.038704383601174897 | -0.061366 | 0.014129 |
+| pointpillars+vit-upernet | vit-upernet | False | interaction | BB-BA-AB+AA | -0.11069 | 0.06761861580547426 | -0.15277 | -0.032694 |
+| pointpillars+vit-upernet | pointpillars | False | co_runner | AB-AA | 0.0018816 | 0.00510560972815472 | -0.0040008 | 0.0051628 |
+| pointpillars+vit-upernet | pointpillars | False | co_runner | BB-BA | 0.0048017 | 0.00667301160438903 | -0.0024107 | 0.010756 |
+| pointpillars+vit-upernet | pointpillars | False | own_input | BA-AA | -0.016295 | 0.005147277956205644 | -0.021202 | -0.010937 |
+| pointpillars+vit-upernet | pointpillars | False | own_input | BB-AB | -0.013375 | 0.009349189626999549 | -0.023638 | -0.0053438 |
+| pointpillars+vit-upernet | pointpillars | False | interaction | BB-BA-AB+AA | 0.0029201 | 0.00878733406096865 | -0.0068935 | 0.01006 |
+| pointpillars+mask-rcnn | mask-rcnn | False | co_runner | BA-AA | -0.010201 | 0.018858042572059617 | -0.031904 | 0.0021921 |
+| pointpillars+mask-rcnn | mask-rcnn | False | co_runner | BB-AB | -0.0057572 | 0.017528085459864562 | -0.022918 | 0.012116 |
+| pointpillars+mask-rcnn | mask-rcnn | False | own_input | AB-AA | 0.042142 | 0.020450468056391582 | 0.019067 | 0.058026 |
+| pointpillars+mask-rcnn | mask-rcnn | False | own_input | BB-BA | 0.046586 | 0.015283645703067176 | 0.032916 | 0.063087 |
+| pointpillars+mask-rcnn | mask-rcnn | False | interaction | BB-BA-AB+AA | 0.0044443 | 0.035638075394509604 | -0.02511 | 0.04402 |
+| pointpillars+mask-rcnn | pointpillars | False | co_runner | AB-AA | -0.0018349 | 0.009907594781212658 | -0.010585 | 0.0089225 |
+| pointpillars+mask-rcnn | pointpillars | False | co_runner | BB-BA | 0.035645 | 0.008869235721459433 | 0.025505 | 0.041958 |
+| pointpillars+mask-rcnn | pointpillars | False | own_input | BA-AA | 0.24964 | 0.04395839608749184 | 0.21917 | 0.30003 |
+| pointpillars+mask-rcnn | pointpillars | False | own_input | BB-AB | 0.28712 | 0.056989929496025174 | 0.24852 | 0.35258 |
+| pointpillars+mask-rcnn | pointpillars | False | interaction | BB-BA-AB+AA | 0.03748 | 0.013059192276780453 | 0.029346 | 0.052543 |
+| 3dssd+yolov3 | yolov3 | True | co_runner | BA-AA | 0.023436 | 0.06555682724556783 | -0.022074 | 0.098577 |
+| 3dssd+yolov3 | yolov3 | True | co_runner | BB-AB | 0.031121 | 0.0685571535015953 | -0.0097161 | 0.11027 |
+| 3dssd+yolov3 | yolov3 | True | own_input | AB-AA | 0.097731 | 0.0598022667551258 | 0.049784 | 0.16474 |
+| 3dssd+yolov3 | yolov3 | True | own_input | BB-BA | 0.10542 | 0.06727694164093681 | 0.056448 | 0.18213 |
+| 3dssd+yolov3 | yolov3 | True | interaction | BB-BA-AB+AA | 0.0076856 | 0.12055356758715985 | -0.10829 | 0.13234 |
+| 3dssd+yolov3 | 3dssd | True | co_runner | AB-AA | 0.012486 | 0.0024165635652364705 | 0.0097009 | 0.014022 |
+| 3dssd+yolov3 | 3dssd | True | co_runner | BB-BA | 0.0042067 | 0.0030866105493180503 | 0.00081101 | 0.0068421 |
+| 3dssd+yolov3 | 3dssd | True | own_input | BA-AA | 0.0082068 | 0.007914734338225187 | 0.0026905 | 0.017275 |
+| 3dssd+yolov3 | 3dssd | True | own_input | BB-AB | -7.2858e-05 | 0.0043761655236128315 | -0.0044005 | 0.0043502 |
+| 3dssd+yolov3 | 3dssd | True | interaction | BB-BA-AB+AA | -0.0082797 | 0.005077764646818601 | -0.012925 | -0.0028588 |
+| centerpoint+dino | dino | True | co_runner | BA-AA | 0.23541 | 0.028392243925905298 | 0.21482 | 0.26779 |
+| centerpoint+dino | dino | True | co_runner | BB-AB | 0.24202 | 0.030926392680042263 | 0.20869 | 0.2698 |
+| centerpoint+dino | dino | True | own_input | AB-AA | -0.0083327 | 0.0034056441989176044 | -0.01121 | -0.0045726 |
+| centerpoint+dino | dino | True | own_input | BB-BA | -0.0017196 | 0.02284552510962605 | -0.024128 | 0.02154 |
+| centerpoint+dino | dino | True | interaction | BB-BA-AB+AA | 0.0066131 | 0.024163274844910407 | -0.014912 | 0.03275 |
+| centerpoint+dino | centerpoint | True | co_runner | AB-AA | -0.021567 | 0.05383422502701278 | -0.070307 | 0.036216 |
+| centerpoint+dino | centerpoint | True | co_runner | BB-BA | -0.0061331 | 0.03502146348196102 | -0.046293 | 0.018053 |
+| centerpoint+dino | centerpoint | True | own_input | BA-AA | -0.027705 | 0.013992432783271296 | -0.040915 | -0.013043 |
+| centerpoint+dino | centerpoint | True | own_input | BB-AB | -0.012271 | 0.024378262202655054 | -0.039418 | 0.0077495 |
+| centerpoint+dino | centerpoint | True | interaction | BB-BA-AB+AA | 0.015434 | 0.03824833489247763 | -0.026375 | 0.048664 |
+| centerpoint+yolov3 | yolov3 | True | co_runner | BA-AA | 1.5432 | 0.22870526095812746 | 1.2794 | 1.6858 |
+| centerpoint+yolov3 | yolov3 | True | co_runner | BB-AB | 1.5116 | 0.20554059938367308 | 1.3182 | 1.7274 |
+| centerpoint+yolov3 | yolov3 | True | own_input | AB-AA | -0.079324 | 0.29517371714638235 | -0.40722 | 0.1652 |
+| centerpoint+yolov3 | yolov3 | True | own_input | BB-BA | -0.11089 | 0.13589313935305322 | -0.19736 | 0.045746 |
+| centerpoint+yolov3 | yolov3 | True | interaction | BB-BA-AB+AA | -0.031564 | 0.285198508811214 | -0.34625 | 0.20986 |
+| centerpoint+yolov3 | centerpoint | True | co_runner | AB-AA | 0.0062055 | 0.007543902389178824 | -0.00058741 | 0.014325 |
+| centerpoint+yolov3 | centerpoint | True | co_runner | BB-BA | 0.0064299 | 0.010612671822502728 | -0.0057894 | 0.013343 |
+| centerpoint+yolov3 | centerpoint | True | own_input | BA-AA | -0.12554 | 0.011107208357891656 | -0.13667 | -0.11445 |
+| centerpoint+yolov3 | centerpoint | True | own_input | BB-AB | -0.12531 | 0.012141042325428614 | -0.13457 | -0.11157 |
+| centerpoint+yolov3 | centerpoint | True | interaction | BB-BA-AB+AA | 0.00022445 | 0.017965083960548363 | -0.020114 | 0.01393 |
+| pointpillars+vit-upernet | vit-upernet | True | co_runner | BA-AA | -0.066446 | 0.012723575045984734 | -0.081105 | -0.058269 |
+| pointpillars+vit-upernet | vit-upernet | True | co_runner | BB-AB | -0.064624 | 0.011990617537812855 | -0.075798 | -0.051957 |
+| pointpillars+vit-upernet | vit-upernet | True | own_input | AB-AA | 0.011237 | 0.004579801992469434 | 0.0076341 | 0.016391 |
+| pointpillars+vit-upernet | vit-upernet | True | own_input | BB-BA | 0.013058 | 0.0028828841479104344 | 0.010236 | 0.015998 |
+| pointpillars+vit-upernet | vit-upernet | True | interaction | BB-BA-AB+AA | 0.0018213 | 0.006926037937176094 | -0.0061551 | 0.0063124 |
+| pointpillars+vit-upernet | pointpillars | True | co_runner | AB-AA | 0.013948 | 0.0238641967290893 | -0.0015144 | 0.041433 |
+| pointpillars+vit-upernet | pointpillars | True | co_runner | BB-BA | 0.14015 | 0.0061197983099606 | 0.13314 | 0.14442 |
+| pointpillars+vit-upernet | pointpillars | True | own_input | BA-AA | 0.050956 | 0.013308377813759117 | 0.03581 | 0.060781 |
+| pointpillars+vit-upernet | pointpillars | True | own_input | BB-AB | 0.17716 | 0.024864593807898086 | 0.15249 | 0.20221 |
+| pointpillars+vit-upernet | pointpillars | True | interaction | BB-BA-AB+AA | 0.1262 | 0.029977016805261873 | 0.091709 | 0.14594 |
+| pointpillars+mask-rcnn | mask-rcnn | True | co_runner | BA-AA | -0.049397 | 0.012866908695897378 | -0.063026 | -0.037459 |
+| pointpillars+mask-rcnn | mask-rcnn | True | co_runner | BB-AB | 0.030479 | 0.011858450484643866 | 0.016853 | 0.038465 |
+| pointpillars+mask-rcnn | mask-rcnn | True | own_input | AB-AA | -0.11471 | 0.006077416847310777 | -0.1183 | -0.1077 |
+| pointpillars+mask-rcnn | mask-rcnn | True | own_input | BB-BA | -0.034838 | 0.01729396835004001 | -0.053384 | -0.019153 |
+| pointpillars+mask-rcnn | mask-rcnn | True | interaction | BB-BA-AB+AA | 0.079876 | 0.023069430924530787 | 0.054313 | 0.099145 |
+| pointpillars+mask-rcnn | pointpillars | True | co_runner | AB-AA | 0.12817 | 0.01950892521897135 | 0.10635 | 0.14393 |
+| pointpillars+mask-rcnn | pointpillars | True | co_runner | BB-BA | 0.19143 | 0.03368324094286254 | 0.17092 | 0.23031 |
+| pointpillars+mask-rcnn | pointpillars | True | own_input | BA-AA | 0.01016 | 0.013674042596900174 | -0.0056115 | 0.018695 |
+| pointpillars+mask-rcnn | pointpillars | True | own_input | BB-AB | 0.073425 | 0.03925940840435569 | 0.045684 | 0.11835 |
+| pointpillars+mask-rcnn | pointpillars | True | interaction | BB-BA-AB+AA | 0.063265 | 0.05289474181857098 | 0.026989 | 0.12396 |

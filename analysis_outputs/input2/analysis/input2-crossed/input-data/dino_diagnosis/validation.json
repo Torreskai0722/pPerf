@@ -1,31 +1,24 @@
 {
-  "completed_inferences": 1848,
-  "unique_source_frames": 924,
-  "focused_tests": "14 passed",
-  "source_hashes_verified": true,
-  "archive_hashes_verified": true,
-  "gap_and_additive_accounting_verified": true,
-  "kernel_count": 1280,
-  "kernel_signature_sets_identical": true,
-  "plot_visually_inspected": true,
-  "supporting_source_sha256": {
-    "/mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/closeloop_testbed/model_node.py": "f12ac2bf03c008d66b61f86b1d0b8b1a0435d02a817de214d8432e6f6be74e1b",
-    "/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/closeloop_profiler/profiler.py": "47b5d96f97b33078a13874c9ded4edc89de654c223e4ca776b2749cd227eb080",
-    "/mmdetection3d_ros2/data/warmup.jpg": "45ef408e590446d5b0d7dbac1ad5439c6002ffdaa1bbcc0dbb6a6386dbbde955"
-  },
+  "additive_timing_reconstruction_verified": true,
   "artifacts_sha256": {
-    "decoder_gap_correlation.pdf": "a753bfa62bb601382997dd8f3d4a8616ed4721b7545b117e7783556db7c38c24",
-    "decoder_gap_correlation.png": "1d9a740593146102d50b9e9b4dda0b32f64464ae9e14d0a2923544983d3a51d6",
-    "frames.csv": "15c539d21f7f2a3024acb21d2aef6b05fbc4d76c69e73ff5e1055379c3507579",
-    "host_associations.csv": "6f10d48bf8dbc6a9504a91a930a6939eb8281954699fa1dc0b07bd78d391d0c5",
-    "host_frames.csv": "60ffd78c6f7d83ad990a94b7d4e1ad832615a546e9eca75e889c482cc63f6496",
-    "host_provenance.json": "b7ad8af3c21e0dd107eab48cace7e0b539c362c120e0cfac817caa99b98f51ad",
-    "kernel_associations.csv": "1ccde077dc866afb641f44e9882d9f5d45654b242e3fe6469ac1b07302000b95",
-    "matched_source_comparison.csv": "448879eba633458a51a43ed60921c6c2ea32ad49d090ef3c1ac8ffdf073b391a",
-    "module_associations.csv": "a6a8379a2a223f87822c2a1572020ada62ea5a02e6e248c7628a9695ec80c0d0",
-    "report.md": "09442701a827efeb480b52842646a81c1a3a5109adb6a811021ae9e20aabf550",
-    "startup_sensitivity.csv": "e22f2b8094b9ed603d21c8b0a7eaf74b6f5e329349e7224d845da97e4fc12490",
-    "summary.json": "5571935534b50706ef7da3a15abbd2c67dadfde52cce7988397cc00e66afa258",
-    "tail_accounting.csv": "5f51e12e9fb5c3c17f389d639a510d9035e786d3df13af8023996c1d78bf1f1f"
-  }
+    "decoder_gap_correlation.pdf": "735b4da4b034769ec2c253b52f70976f17c7dcd5a50a7b55c49796a183cf76cc",
+    "decoder_gap_correlation.png": "298a8707396ad49545b9ecab591aa93d9d6c6b23fc3537c9e0d1d47353b5c1e7",
+    "frames.csv": "0384af8ac6478c08a7cdb615b2c27be9fbb5f10a61469500cb1b6405f18238e2",
+    "host_associations.csv": "f003fa5628cacefaf196bcf8171de5bd7f627bc81ffbebf62794743b3fba049c",
+    "host_frames.csv": "f8f7c1a32a2be23eb668525b59deaac29e713c764bb12f10025bc8f940f783ad",
+    "host_provenance.json": "8774915d2ab9a07cc326cec13135c9ca1d492f0027c5cbd4009b0656b84f1fcd",
+    "kernel_associations.csv": "bc0f6eaac4b5d2f106f9e98dd7ebd1fa44cbfaa850092e7b1375d21c84a33a3a",
+    "matched_source_comparison.csv": "409f4fb52b51ed793abefccadc74cf26972e6964a3e97df7e7f3f7eafa679e06",
+    "module_associations.csv": "eed2b1ff35322663b5daa87d0d123be156b226bf5d857d7b669583af9b1cf356",
+    "report.md": "30b4c20e52288a51ed76366d2c0d1859a4cd845cc68b6acc946338f443fb59ca",
+    "startup_sensitivity.csv": "654b4b8b2360dd25596b315aeece3be1a7c2f7d8a7a2d037206c37090eb0f47a",
+    "summary.json": "adb56c7aa6a5f752c7196896c2cc40e2ea2018b340dac1afde3b004a0166d43c",
+    "tail_accounting.csv": "ab05295afab518e2db784006a1a46a2e037ae81f40d23733fef55f59fa3cc6bf"
+  },
+  "historical_validation": "generated_configs/input2-crossed/validation/before-p1-p99/input-data/dino_diagnosis/validation.json",
+  "original_completed_inferences": 1848,
+  "retained_inferences": 1800,
+  "sample_filter_policy": "p1-p99-linear-per-execution-model-v1",
+  "source_hashes_verified": true,
+  "unique_retained_source_frames": 917
 }

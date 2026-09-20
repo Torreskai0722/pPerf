@@ -1,0 +1,184 @@
+{
+  "analyzer_sha256": "31caf833485b1673d0fe9e73a427a86f8c42452628f6bc9c04d3fd00025a33cb",
+  "helper_sha256": "4c8ce7765b766b1161076e78b8604cdd1ff3ce9fbe4fd4d0497a1c29f5ea23d5",
+  "limitations": [
+    "One execution per condition; temporally dependent frames; sparse-tail P99",
+    "Correlations with latency components are descriptive, not causal proof",
+    "Nonkernel residual includes copies, host work, launch gaps and synchronization",
+    "Kernel timings aggregate each exact name within its recorded top-level module",
+    "Endpoint contributions use the total latency's interpolated percentile frames, not component percentiles",
+    "Existing annotations do not resolve individual layers"
+  ],
+  "runs": [
+    {
+      "P50_ms": 62.805183,
+      "P99_minus_P50_ms": 2.3735629899999964,
+      "completed_count": 232,
+      "execution_id": "i2-i30-0770",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": false,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0770",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 232
+    },
+    {
+      "P50_ms": 62.605336,
+      "P99_minus_P50_ms": 2.001832759999992,
+      "completed_count": 229,
+      "execution_id": "i2-i30-0398",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": false,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0398",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 229
+    },
+    {
+      "P50_ms": 62.639405499999995,
+      "P99_minus_P50_ms": 3.6244043300000044,
+      "completed_count": 232,
+      "execution_id": "i2-i30-0184",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": false,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0184",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 232
+    },
+    {
+      "P50_ms": 62.966913,
+      "P99_minus_P50_ms": 2.7714618999999985,
+      "completed_count": 231,
+      "execution_id": "i2-i30-0245",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": false,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0245",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 231
+    },
+    {
+      "P50_ms": 63.134837000000005,
+      "P99_minus_P50_ms": 2.4544480999999934,
+      "completed_count": 232,
+      "execution_id": "i2-i31-0770",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": true,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0770",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 232
+    },
+    {
+      "P50_ms": 63.000535,
+      "P99_minus_P50_ms": 2.4492834800000054,
+      "completed_count": 229,
+      "execution_id": "i2-i31-0398",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": true,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0398",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 229
+    },
+    {
+      "P50_ms": 62.776410999999996,
+      "P99_minus_P50_ms": 1.9602206899999999,
+      "completed_count": 232,
+      "execution_id": "i2-i31-0184",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": true,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0184",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 232
+    },
+    {
+      "P50_ms": 62.692389,
+      "P99_minus_P50_ms": 3.361927300000012,
+      "completed_count": 231,
+      "execution_id": "i2-i31-0245",
+      "kernel_count_max": 1280,
+      "kernel_count_min": 1280,
+      "mps_enabled": true,
+      "pre_inference_kernels_excluded": 0,
+      "scene_id": "scene-0245",
+      "streams": [
+        [
+          "1",
+          "7"
+        ]
+      ],
+      "unique_source_count": 231
+    }
+  ],
+  "sources_sha256": {
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0184/input-data/frames.json": "e2e3c23d84314735af8820e5a688f5a20406cde7e65084e6a3ae9537a4d1fb06",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0184/input-data/kernels.csv.gz": "ed129ad3eb49dc8abe89294492d0579fcd522e173ef65679b757c9f93de39290",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0245/input-data/frames.json": "e0f70aff8c30bd67071856a528595d94e09f2c4628a2a5f79851c2cb2543d8bd",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0245/input-data/kernels.csv.gz": "20546b0a883a9aa14e4d12e36e9c75c72eb30c5d09771315da52d5e25f12182a",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0398/input-data/frames.json": "e6ff5faeff3e5142986e6668fd8aa3d72696bf3a7fe7ec403f9d05c17b4813bb",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0398/input-data/kernels.csv.gz": "9fcede0958638440b6a659936664b0b958223cab873e399a307f217277d26f80",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0770/input-data/frames.json": "989d59eed473e22cfb8da4378b6ed10fd09f3cab03016aea3a45c1fc2bcd22f9",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i30-0770/input-data/kernels.csv.gz": "64d062ee0db9bcc9dab2d46e23cfe7b6c64965c538820c35bbe91c45af8b248e",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0184/input-data/frames.json": "2379da0839928b5578253b877a67f70b6dc1ff191800aa0e60c353ec0b70f46d",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0184/input-data/kernels.csv.gz": "9ecda7a16a0a456bc7112454dc2c12760ca5dce62f7aa4e9af2ddfed170f2e2f",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0245/input-data/frames.json": "fde17d6adf03ce204716b49c8e16a3cc6561cc78d3b0f4d79e78ec92e915896b",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0245/input-data/kernels.csv.gz": "c95405a8b53fc9b45ba92980dc2fed758c424030c8d45ce83b6f1193ab683f47",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0398/input-data/frames.json": "a1a59be1eebdbc1ee2f5b4cb6860fc78fef702ff0e81c9239c00b9fa4502786a",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0398/input-data/kernels.csv.gz": "318db24b89b0a7020a893e686572d7046d74718e8d97b77152b72cf95994c129",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0770/input-data/frames.json": "55bbd9a290bb6144212ad218c2a3a44453eadd6a485a15d86532bca5e6c3d66f",
+    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i31-0770/input-data/kernels.csv.gz": "66caabe0a624585d0b332018d8dd42bd6c7bbdca00a662bc69f01abbc33c4ae6",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i30-0184/config.yaml": "934f5f8fe50fd8d2256db25e9dfdd118622a639e9063961f61c7adacec51395a",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i30-0245/config.yaml": "ac3ff74922f3f1c783138619d27b896ed6f423f0fed81cd7d4803924777f98c0",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i30-0398/config.yaml": "341f54e94bbe3d464bf9e605d28395cede7cc308ba4f5ed330f0a67cf94aa44e",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i30-0770/config.yaml": "da9642640025a4fab0ef3eb130d93ccc07f444c34badd76e7522a5616327e71a",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i31-0184/config.yaml": "f504ff745d85c0e540945013e0533f0bc9ec198940f2c460045a1f747357be12",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i31-0245/config.yaml": "c1391da24b3197ce54b527031353e9651c74071d17362cf913115ab2546f2206",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i31-0398/config.yaml": "22321d44058eeed4a6fab3ca69fae2336ecca07167a3002547c50dafcda82070",
+    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i31-0770/config.yaml": "1f077ad2fc945e47506df0d9b792dbcee6006396cbc0f1bfa6e24650c8c1e5bb"
+  }
+}

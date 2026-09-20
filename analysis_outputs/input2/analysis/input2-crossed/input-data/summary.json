@@ -2,9 +2,9 @@
   "blocked_execution_slots": 0,
   "complete": true,
   "isolated_baselines": {
-    "display_counts": "/mmdetection3d_ros2/analysis_outputs/input2/analysis/input2-crossed/input-data/isolated_violin_display.csv",
-    "index": "/mmdetection3d_ros2/analysis_outputs/input2/analysis/input2-crossed/input-data/isolated_baselines.md",
-    "pdf": "/mmdetection3d_ros2/analysis_outputs/input2/analysis/input2-crossed/input-data/plots/isolated/isolated_baselines.pdf",
+    "display_counts": "analysis_outputs/input2/analysis/input2-crossed/input-data/isolated_violin_display.csv",
+    "index": "analysis_outputs/input2/analysis/input2-crossed/input-data/isolated_baselines.md",
+    "pdf": "analysis_outputs/input2/analysis/input2-crossed/input-data/plots/isolated/isolated_baselines.pdf",
     "plots": [
       "plots/isolated/3dssd.png",
       "plots/isolated/centerpoint.png",
@@ -21,7 +21,8 @@
     "depth-zero layer attribution",
     "selection-conditioned AA/BB reuse"
   ],
-  "report": "/mmdetection3d_ros2/analysis_outputs/input2/analysis/input2-crossed/input-data/report.md",
+  "report": "analysis_outputs/input2/analysis/input2-crossed/input-data/report.md",
+  "sample_filter_policy": "p1-p99-linear-per-execution-model-v1",
   "unique_executions": 196,
   "validated_execution_slots": 216
 }

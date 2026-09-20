@@ -1,8 +1,9 @@
 [
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -12,13 +13,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 374,
+    "analysis_unique_source_count": 374,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 382,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -28,13 +29,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 382
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -44,13 +45,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 381,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -60,13 +61,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 381
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -76,13 +77,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 371,
+    "analysis_unique_source_count": 371,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 379,
     "lidar_scene": "scene-0398",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -92,13 +93,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 379
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -108,13 +109,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 371,
+    "analysis_unique_source_count": 371,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 379,
     "lidar_scene": "scene-0398",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -124,13 +125,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 379
+    "repetition": 1
   },
   {
+    "analysis_count": 158,
+    "analysis_unique_source_count": 158,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 162,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": false,
@@ -140,13 +141,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 162
+    "repetition": 1
   },
   {
+    "analysis_count": 79,
+    "analysis_unique_source_count": 79,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 81,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -156,13 +157,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 81
+    "repetition": 1
   },
   {
+    "analysis_count": 159,
+    "analysis_unique_source_count": 159,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 163,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": false,
@@ -172,13 +173,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 163
+    "repetition": 1
   },
   {
+    "analysis_count": 78,
+    "analysis_unique_source_count": 78,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 80,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -188,13 +189,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 80
+    "repetition": 1
   },
   {
+    "analysis_count": 155,
+    "analysis_unique_source_count": 155,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 159,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": false,
@@ -204,13 +205,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 159
+    "repetition": 1
   },
   {
+    "analysis_count": 61,
+    "analysis_unique_source_count": 61,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 63,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -220,13 +221,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 63
+    "repetition": 1
   },
   {
+    "analysis_count": 155,
+    "analysis_unique_source_count": 155,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 159,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": false,
@@ -236,13 +237,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 159
+    "repetition": 1
   },
   {
+    "analysis_count": 61,
+    "analysis_unique_source_count": 61,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 63,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -252,13 +253,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 63
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -268,13 +269,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 125,
+    "analysis_unique_source_count": 125,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 129,
     "lidar_scene": "scene-0770",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -284,13 +285,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 129
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 231,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -300,13 +301,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 123,
+    "analysis_unique_source_count": 123,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 127,
     "lidar_scene": "scene-0770",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -316,13 +317,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 127
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -332,13 +333,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 159,
+    "analysis_unique_source_count": 159,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 163,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -348,13 +349,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 163
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -364,13 +365,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 160,
+    "analysis_unique_source_count": 160,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 164,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -380,13 +381,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 164
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -396,13 +397,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 350,
+    "analysis_unique_source_count": 350,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 358,
     "lidar_scene": "scene-0245",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -412,13 +413,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 358
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0245",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -428,13 +429,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 345,
+    "analysis_unique_source_count": 345,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 353,
     "lidar_scene": "scene-0245",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -444,13 +445,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 353
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -460,13 +461,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 337,
+    "analysis_unique_source_count": 337,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 345,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -476,13 +477,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 345
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 231,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -492,13 +493,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 336,
+    "analysis_unique_source_count": 336,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 344,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -508,13 +509,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 344
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -524,13 +525,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 308,
+    "analysis_unique_source_count": 308,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 316,
     "lidar_scene": "scene-0770",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -540,13 +541,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 316
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -556,13 +557,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 366,
+    "analysis_unique_source_count": 366,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 374,
     "lidar_scene": "scene-0770",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -572,13 +573,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 374
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -588,13 +589,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 348,
+    "analysis_unique_source_count": 348,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 356,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -604,13 +605,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 356
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -620,13 +621,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 297,
+    "analysis_unique_source_count": 297,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 305,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -636,13 +637,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 305
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -652,13 +653,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 384,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -668,13 +669,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 384
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 231,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -684,13 +685,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 374,
+    "analysis_unique_source_count": 374,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 382,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -700,13 +701,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 382
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -716,13 +717,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 374,
+    "analysis_unique_source_count": 374,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 382,
     "lidar_scene": "scene-0245",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -732,13 +733,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 382
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -748,13 +749,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 384,
     "lidar_scene": "scene-0245",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -764,13 +765,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 384
+    "repetition": 1
   },
   {
+    "analysis_count": 199,
+    "analysis_unique_source_count": 199,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 205,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": true,
@@ -780,13 +781,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 205
+    "repetition": 1
   },
   {
+    "analysis_count": 100,
+    "analysis_unique_source_count": 100,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 104,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -796,13 +797,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 104
+    "repetition": 1
   },
   {
+    "analysis_count": 203,
+    "analysis_unique_source_count": 203,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 209,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": true,
@@ -812,13 +813,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 209
+    "repetition": 1
   },
   {
+    "analysis_count": 98,
+    "analysis_unique_source_count": 98,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 102,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -826,15 +827,15 @@
       "centerpoint",
       "dino"
     ],
-    "priority": "sparse tail",
+    "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 102
+    "repetition": 1
   },
   {
+    "analysis_count": 194,
+    "analysis_unique_source_count": 194,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 198,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": true,
@@ -844,13 +845,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 198
+    "repetition": 1
   },
   {
+    "analysis_count": 78,
+    "analysis_unique_source_count": 78,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 80,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -860,13 +861,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 80
+    "repetition": 1
   },
   {
+    "analysis_count": 195,
+    "analysis_unique_source_count": 195,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 199,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": true,
@@ -876,13 +877,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 199
+    "repetition": 1
   },
   {
+    "analysis_count": 78,
+    "analysis_unique_source_count": 78,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 80,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -892,13 +893,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 80
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -908,13 +909,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 171,
+    "analysis_unique_source_count": 171,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 175,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -924,13 +925,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 175
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -940,13 +941,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 170,
+    "analysis_unique_source_count": 170,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 174,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -956,13 +957,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 174
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -972,13 +973,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 125,
+    "analysis_unique_source_count": 125,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 129,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -988,13 +989,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 129
+    "repetition": 1
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 231,
     "lidar_scene": "scene-0184",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -1004,13 +1005,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 231
+    "repetition": 1
   },
   {
+    "analysis_count": 125,
+    "analysis_unique_source_count": 125,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 129,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -1020,13 +1021,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 129
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -1036,13 +1037,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 372,
+    "analysis_unique_source_count": 372,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 380,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1052,13 +1053,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 380
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0184",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -1068,13 +1069,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 381,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1084,13 +1085,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 381
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -1100,13 +1101,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 372,
+    "analysis_unique_source_count": 372,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 380,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1116,13 +1117,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 380
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -1132,13 +1133,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 371,
+    "analysis_unique_source_count": 371,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 379,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1148,13 +1149,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 379
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -1164,13 +1165,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 381,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1180,13 +1181,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 381
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -1196,13 +1197,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 375,
+    "analysis_unique_source_count": 375,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 383,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1212,13 +1213,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 383
+    "repetition": 1
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -1228,13 +1229,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 229
+    "repetition": 1
   },
   {
+    "analysis_count": 371,
+    "analysis_unique_source_count": 371,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 379,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1244,13 +1245,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 379
+    "repetition": 1
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -1260,13 +1261,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 232
+    "repetition": 1
   },
   {
+    "analysis_count": 372,
+    "analysis_unique_source_count": 372,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 380,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -1276,13 +1277,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 1,
-    "unique_source_count": 380
+    "repetition": 1
   },
   {
+    "analysis_count": 157,
+    "analysis_unique_source_count": 157,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 161,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": false,
@@ -1292,13 +1293,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 161
+    "repetition": 2
   },
   {
+    "analysis_count": 61,
+    "analysis_unique_source_count": 61,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 63,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1308,13 +1309,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 63
+    "repetition": 2
   },
   {
+    "analysis_count": 156,
+    "analysis_unique_source_count": 156,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 160,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": false,
@@ -1324,13 +1325,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 160
+    "repetition": 2
   },
   {
+    "analysis_count": 61,
+    "analysis_unique_source_count": 61,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 63,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1340,13 +1341,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 63
+    "repetition": 2
   },
   {
+    "analysis_count": 157,
+    "analysis_unique_source_count": 157,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 161,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": false,
@@ -1356,13 +1357,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 161
+    "repetition": 2
   },
   {
+    "analysis_count": 79,
+    "analysis_unique_source_count": 79,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 81,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1372,13 +1373,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 81
+    "repetition": 2
   },
   {
+    "analysis_count": 160,
+    "analysis_unique_source_count": 160,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 164,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": false,
@@ -1388,13 +1389,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 164
+    "repetition": 2
   },
   {
+    "analysis_count": 80,
+    "analysis_unique_source_count": 80,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 82,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1404,13 +1405,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 82
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -1420,13 +1421,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 160,
+    "analysis_unique_source_count": 160,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 164,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1436,13 +1437,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 164
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -1452,13 +1453,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 158,
+    "analysis_unique_source_count": 158,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 162,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1468,13 +1469,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 162
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 231,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -1484,13 +1485,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 124,
+    "analysis_unique_source_count": 124,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 128,
     "lidar_scene": "scene-0770",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1500,13 +1501,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 128
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -1516,13 +1517,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 125,
+    "analysis_unique_source_count": 125,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 129,
     "lidar_scene": "scene-0770",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -1532,13 +1533,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 129
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 231,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -1548,13 +1549,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 336,
+    "analysis_unique_source_count": 336,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 344,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1564,13 +1565,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 344
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -1580,13 +1581,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 333,
+    "analysis_unique_source_count": 333,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 341,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1596,13 +1597,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 341
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0245",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -1612,13 +1613,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 344,
+    "analysis_unique_source_count": 344,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 352,
     "lidar_scene": "scene-0245",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1628,13 +1629,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 352
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -1644,13 +1645,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 351,
+    "analysis_unique_source_count": 351,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 359,
     "lidar_scene": "scene-0245",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1660,13 +1661,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 359
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -1676,13 +1677,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 298,
+    "analysis_unique_source_count": 298,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 306,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1692,13 +1693,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 306
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -1708,13 +1709,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 347,
+    "analysis_unique_source_count": 347,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 355,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1724,13 +1725,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 355
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -1740,13 +1741,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 372,
+    "analysis_unique_source_count": 372,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 380,
     "lidar_scene": "scene-0770",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1756,13 +1757,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 380
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -1772,13 +1773,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 313,
+    "analysis_unique_source_count": 313,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 321,
     "lidar_scene": "scene-0770",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -1788,13 +1789,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 321
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -1804,13 +1805,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 384,
     "lidar_scene": "scene-0245",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -1820,13 +1821,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 384
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -1836,13 +1837,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 384,
     "lidar_scene": "scene-0245",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -1852,13 +1853,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 384
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 231,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -1868,13 +1869,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 374,
+    "analysis_unique_source_count": 374,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 382,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -1884,13 +1885,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 382
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -1900,13 +1901,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 381,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -1916,13 +1917,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 381
+    "repetition": 2
   },
   {
+    "analysis_count": 194,
+    "analysis_unique_source_count": 194,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 198,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": true,
@@ -1932,13 +1933,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 198
+    "repetition": 2
   },
   {
+    "analysis_count": 78,
+    "analysis_unique_source_count": 78,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 80,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -1948,13 +1949,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 80
+    "repetition": 2
   },
   {
+    "analysis_count": 194,
+    "analysis_unique_source_count": 194,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 198,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": true,
@@ -1964,13 +1965,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 198
+    "repetition": 2
   },
   {
+    "analysis_count": 80,
+    "analysis_unique_source_count": 80,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 82,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -1980,13 +1981,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 82
+    "repetition": 2
   },
   {
+    "analysis_count": 204,
+    "analysis_unique_source_count": 204,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 210,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": true,
@@ -1996,13 +1997,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 210
+    "repetition": 2
   },
   {
+    "analysis_count": 99,
+    "analysis_unique_source_count": 99,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 103,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -2010,15 +2011,15 @@
       "centerpoint",
       "dino"
     ],
-    "priority": "sparse tail",
+    "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 103
+    "repetition": 2
   },
   {
+    "analysis_count": 197,
+    "analysis_unique_source_count": 197,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 203,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": true,
@@ -2028,13 +2029,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 203
+    "repetition": 2
   },
   {
+    "analysis_count": 101,
+    "analysis_unique_source_count": 101,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 105,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -2044,13 +2045,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 105
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 231,
     "lidar_scene": "scene-0184",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -2060,45 +2061,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 125,
+    "analysis_unique_source_count": 125,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 129,
-    "lidar_scene": "scene-0184",
-    "model_id": "centerpoint",
-    "mps_enabled": true,
-    "pair": [
-      "centerpoint",
-      "yolov3"
-    ],
-    "priority": "sparse tail",
-    "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 129
-  },
-  {
-    "camera_scene": "scene-0184",
-    "cell": "BB",
-    "completed_count": 232,
-    "lidar_scene": "scene-0184",
-    "model_id": "yolov3",
-    "mps_enabled": true,
-    "pair": [
-      "centerpoint",
-      "yolov3"
-    ],
-    "priority": "sparse tail",
-    "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
-  },
-  {
-    "camera_scene": "scene-0184",
-    "cell": "BB",
-    "completed_count": 128,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -2108,13 +2077,45 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 128
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
+    "camera_scene": "scene-0184",
+    "cell": "BB",
+    "lidar_scene": "scene-0184",
+    "model_id": "yolov3",
+    "mps_enabled": true,
+    "pair": [
+      "centerpoint",
+      "yolov3"
+    ],
+    "priority": "sparse tail",
+    "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
+    "repetition": 2
+  },
+  {
+    "analysis_count": 124,
+    "analysis_unique_source_count": 124,
+    "camera_scene": "scene-0184",
+    "cell": "BB",
+    "lidar_scene": "scene-0184",
+    "model_id": "centerpoint",
+    "mps_enabled": true,
+    "pair": [
+      "centerpoint",
+      "yolov3"
+    ],
+    "priority": "sparse tail",
+    "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
+    "repetition": 2
+  },
+  {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -2124,13 +2125,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 169,
+    "analysis_unique_source_count": 169,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 173,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -2140,13 +2141,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 173
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -2156,13 +2157,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 231
+    "repetition": 2
   },
   {
+    "analysis_count": 172,
+    "analysis_unique_source_count": 172,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 176,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -2172,13 +2173,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 176
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -2188,13 +2189,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 371,
+    "analysis_unique_source_count": 371,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 379,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2204,13 +2205,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 379
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -2220,13 +2221,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 374,
+    "analysis_unique_source_count": 374,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 382,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2236,13 +2237,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 382
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0184",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -2252,13 +2253,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 370,
+    "analysis_unique_source_count": 370,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 378,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2268,13 +2269,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 378
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -2284,13 +2285,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 381,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2300,13 +2301,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 381
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -2316,13 +2317,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 381,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2332,13 +2333,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 381
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -2348,13 +2349,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 370,
+    "analysis_unique_source_count": 370,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 378,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2364,13 +2365,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 378
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -2380,13 +2381,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 384,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2396,13 +2397,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 384
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -2412,13 +2413,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 374,
+    "analysis_unique_source_count": 374,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 382,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -2428,13 +2429,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 382
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2444,13 +2445,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 371,
+    "analysis_unique_source_count": 371,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 379,
     "lidar_scene": "scene-0398",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -2460,13 +2461,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 379
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2476,13 +2477,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 381,
     "lidar_scene": "scene-0398",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -2492,13 +2493,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 381
+    "repetition": 2
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2508,13 +2509,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 229
+    "repetition": 2
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 384,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -2524,13 +2525,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 384
+    "repetition": 2
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2540,13 +2541,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 232
+    "repetition": 2
   },
   {
+    "analysis_count": 375,
+    "analysis_unique_source_count": 375,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 383,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -2556,13 +2557,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 2,
-    "unique_source_count": 383
+    "repetition": 2
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 231,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2572,13 +2573,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 123,
+    "analysis_unique_source_count": 123,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 127,
     "lidar_scene": "scene-0770",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -2588,13 +2589,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 127
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2604,13 +2605,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 124,
+    "analysis_unique_source_count": 124,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 128,
     "lidar_scene": "scene-0770",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -2620,13 +2621,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 128
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2636,13 +2637,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 159,
+    "analysis_unique_source_count": 159,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 163,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -2652,13 +2653,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 163
+    "repetition": 3
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -2668,13 +2669,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 157,
+    "analysis_unique_source_count": 157,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 161,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -2684,13 +2685,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 161
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0245",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -2700,13 +2701,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 347,
+    "analysis_unique_source_count": 347,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 355,
     "lidar_scene": "scene-0245",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2716,13 +2717,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 355
+    "repetition": 3
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -2732,13 +2733,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 351,
+    "analysis_unique_source_count": 351,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 359,
     "lidar_scene": "scene-0245",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2748,13 +2749,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 359
+    "repetition": 3
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 231,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -2764,13 +2765,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 336,
+    "analysis_unique_source_count": 336,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 344,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2780,13 +2781,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 344
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": false,
@@ -2796,13 +2797,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 339,
+    "analysis_unique_source_count": 339,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 347,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2812,13 +2813,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 347
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -2828,13 +2829,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 371,
+    "analysis_unique_source_count": 371,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 379,
     "lidar_scene": "scene-0770",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2844,13 +2845,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 379
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -2860,13 +2861,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 306,
+    "analysis_unique_source_count": 306,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 314,
     "lidar_scene": "scene-0770",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2876,13 +2877,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 314
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -2892,13 +2893,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 297,
+    "analysis_unique_source_count": 297,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 305,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2908,13 +2909,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 305
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": false,
@@ -2924,13 +2925,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 345,
+    "analysis_unique_source_count": 345,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 353,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": false,
@@ -2940,13 +2941,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 353
+    "repetition": 3
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 231,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -2956,13 +2957,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0245",
     "cell": "AB",
-    "completed_count": 384,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -2972,13 +2973,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 384
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -2988,13 +2989,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 375,
+    "analysis_unique_source_count": 375,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 383,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -3004,13 +3005,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 383
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -3020,13 +3021,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 375,
+    "analysis_unique_source_count": 375,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 383,
     "lidar_scene": "scene-0245",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -3036,13 +3037,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 383
+    "repetition": 3
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -3052,13 +3053,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 375,
+    "analysis_unique_source_count": 375,
     "camera_scene": "scene-0245",
     "cell": "BB",
-    "completed_count": 383,
     "lidar_scene": "scene-0245",
     "model_id": "3dssd",
     "mps_enabled": true,
@@ -3068,13 +3069,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 383
+    "repetition": 3
   },
   {
+    "analysis_count": 204,
+    "analysis_unique_source_count": 204,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 210,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": true,
@@ -3084,13 +3085,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 210
+    "repetition": 3
   },
   {
+    "analysis_count": 99,
+    "analysis_unique_source_count": 99,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 103,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3098,15 +3099,15 @@
       "centerpoint",
       "dino"
     ],
-    "priority": "sparse tail",
+    "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 103
+    "repetition": 3
   },
   {
+    "analysis_count": 203,
+    "analysis_unique_source_count": 203,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 209,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": true,
@@ -3116,13 +3117,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 209
+    "repetition": 3
   },
   {
+    "analysis_count": 99,
+    "analysis_unique_source_count": 99,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 103,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3130,15 +3131,15 @@
       "centerpoint",
       "dino"
     ],
-    "priority": "sparse tail",
+    "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 103
+    "repetition": 3
   },
   {
+    "analysis_count": 191,
+    "analysis_unique_source_count": 191,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 195,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": true,
@@ -3148,13 +3149,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 195
+    "repetition": 3
   },
   {
+    "analysis_count": 80,
+    "analysis_unique_source_count": 80,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 82,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3164,13 +3165,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 82
+    "repetition": 3
   },
   {
+    "analysis_count": 196,
+    "analysis_unique_source_count": 196,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 200,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": true,
@@ -3180,13 +3181,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 200
+    "repetition": 3
   },
   {
+    "analysis_count": 78,
+    "analysis_unique_source_count": 78,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 80,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3196,13 +3197,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 80
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 232,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -3212,13 +3213,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 173,
+    "analysis_unique_source_count": 173,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 177,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3228,13 +3229,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 177
+    "repetition": 3
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 231,
     "lidar_scene": "scene-0245",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -3244,13 +3245,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 170,
+    "analysis_unique_source_count": 170,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 174,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3260,13 +3261,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 174
+    "repetition": 3
   },
   {
+    "analysis_count": 225,
+    "analysis_unique_source_count": 225,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 231,
     "lidar_scene": "scene-0184",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -3276,13 +3277,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 231
+    "repetition": 3
   },
   {
+    "analysis_count": 126,
+    "analysis_unique_source_count": 126,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 130,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3292,13 +3293,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 130
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "yolov3",
     "mps_enabled": true,
@@ -3308,13 +3309,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 124,
+    "analysis_unique_source_count": 124,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 128,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": true,
@@ -3324,13 +3325,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 128
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0184",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -3340,13 +3341,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 375,
+    "analysis_unique_source_count": 375,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 383,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3356,13 +3357,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 383
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -3372,13 +3373,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 376,
+    "analysis_unique_source_count": 376,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 384,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3388,13 +3389,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 384
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -3404,13 +3405,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 370,
+    "analysis_unique_source_count": 370,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 378,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3420,13 +3421,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 378
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "vit-upernet",
     "mps_enabled": true,
@@ -3436,13 +3437,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 381,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3452,13 +3453,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 381
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -3468,13 +3469,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 381,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3484,13 +3485,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 381
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0184",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -3500,13 +3501,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0184",
     "cell": "AA",
-    "completed_count": 381,
     "lidar_scene": "scene-0184",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3516,13 +3517,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 381
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -3532,13 +3533,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 369,
+    "analysis_unique_source_count": 369,
     "camera_scene": "scene-0184",
     "cell": "BA",
-    "completed_count": 377,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3548,13 +3549,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 377
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "mask-rcnn",
     "mps_enabled": true,
@@ -3564,13 +3565,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 372,
+    "analysis_unique_source_count": 372,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 380,
     "lidar_scene": "scene-0398",
     "model_id": "pointpillars",
     "mps_enabled": true,
@@ -3580,13 +3581,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 380
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 229,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -3596,13 +3597,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 374,
+    "analysis_unique_source_count": 374,
     "camera_scene": "scene-0398",
     "cell": "AB",
-    "completed_count": 382,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -3612,13 +3613,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 382
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 232,
     "lidar_scene": "scene-0770",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -3628,13 +3629,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0770",
     "cell": "AA",
-    "completed_count": 381,
     "lidar_scene": "scene-0770",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -3644,13 +3645,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 381
+    "repetition": 3
   },
   {
+    "analysis_count": 226,
+    "analysis_unique_source_count": 226,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 232,
     "lidar_scene": "scene-0398",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -3660,13 +3661,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 232
+    "repetition": 3
   },
   {
+    "analysis_count": 372,
+    "analysis_unique_source_count": 372,
     "camera_scene": "scene-0770",
     "cell": "BA",
-    "completed_count": 380,
     "lidar_scene": "scene-0398",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -3676,13 +3677,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 380
+    "repetition": 3
   },
   {
+    "analysis_count": 223,
+    "analysis_unique_source_count": 223,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 229,
     "lidar_scene": "scene-0398",
     "model_id": "yolov3",
     "mps_enabled": false,
@@ -3692,13 +3693,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 229
+    "repetition": 3
   },
   {
+    "analysis_count": 373,
+    "analysis_unique_source_count": 373,
     "camera_scene": "scene-0398",
     "cell": "BB",
-    "completed_count": 381,
     "lidar_scene": "scene-0398",
     "model_id": "3dssd",
     "mps_enabled": false,
@@ -3708,13 +3709,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 381
+    "repetition": 3
   },
   {
+    "analysis_count": 159,
+    "analysis_unique_source_count": 159,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 163,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": false,
@@ -3724,13 +3725,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 163
+    "repetition": 3
   },
   {
+    "analysis_count": 78,
+    "analysis_unique_source_count": 78,
     "camera_scene": "scene-0184",
     "cell": "AB",
-    "completed_count": 80,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -3740,13 +3741,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 80
+    "repetition": 3
   },
   {
+    "analysis_count": 158,
+    "analysis_unique_source_count": 158,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 162,
     "lidar_scene": "scene-0245",
     "model_id": "dino",
     "mps_enabled": false,
@@ -3756,13 +3757,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 162
+    "repetition": 3
   },
   {
+    "analysis_count": 79,
+    "analysis_unique_source_count": 79,
     "camera_scene": "scene-0245",
     "cell": "AA",
-    "completed_count": 81,
     "lidar_scene": "scene-0245",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -3772,13 +3773,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 81
+    "repetition": 3
   },
   {
+    "analysis_count": 160,
+    "analysis_unique_source_count": 160,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 164,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": false,
@@ -3788,13 +3789,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 164
+    "repetition": 3
   },
   {
+    "analysis_count": 60,
+    "analysis_unique_source_count": 60,
     "camera_scene": "scene-0245",
     "cell": "BA",
-    "completed_count": 62,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -3804,13 +3805,13 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 62
+    "repetition": 3
   },
   {
+    "analysis_count": 158,
+    "analysis_unique_source_count": 158,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 162,
     "lidar_scene": "scene-0184",
     "model_id": "dino",
     "mps_enabled": false,
@@ -3820,13 +3821,13 @@
     ],
     "priority": "sparse tail",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 162
+    "repetition": 3
   },
   {
+    "analysis_count": 60,
+    "analysis_unique_source_count": 60,
     "camera_scene": "scene-0184",
     "cell": "BB",
-    "completed_count": 62,
     "lidar_scene": "scene-0184",
     "model_id": "centerpoint",
     "mps_enabled": false,
@@ -3836,7 +3837,6 @@
     ],
     "priority": "especially fragile",
     "recommendation": "Use longer matched source recordings in a separately specified common-window follow-up; retain temporal-dependence checks. Do not add repetitions to this matrix.",
-    "repetition": 3,
-    "unique_source_count": 62
+    "repetition": 3
   }
 ]

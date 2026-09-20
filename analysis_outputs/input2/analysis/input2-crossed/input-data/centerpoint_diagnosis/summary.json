@@ -1,5 +1,5 @@
 {
-  "analyzer_sha256": "4c8ce7765b766b1161076e78b8604cdd1ff3ce9fbe4fd4d0497a1c29f5ea23d5",
+  "analyzer_sha256": "0683658a26a75296e91f1b8c53cacd22bcb9307f45dba1839a9d736b4501f9e1",
   "limitations": [
     "One execution per condition; temporally dependent frames; sparse-tail P99",
     "Module/kernel GPU time is a component of latency: correlation is not causal proof",
@@ -10,11 +10,43 @@
   "runs": [
     {
       "P50_ms": 119.813335,
-      "P99_minus_P50_ms": 8.099016639999988,
-      "completed_count": 147,
+      "P99_minus_P50_ms": 4.609221340000005,
+      "completed_count": 143,
       "execution_id": "i2-i20-0770",
       "mps_enabled": false,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 118.05099798,
+        "cutoff_P99_ms": 127.91235163999998,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "2",
+            "latency_ms": 117.87491,
+            "source_frame_id": "scene-0770:lidar:6"
+          },
+          {
+            "input_id": "19",
+            "latency_ms": 128.703191,
+            "source_frame_id": "scene-0770:lidar:51"
+          },
+          {
+            "input_id": "70",
+            "latency_ms": 131.001018,
+            "source_frame_id": "scene-0770:lidar:186"
+          },
+          {
+            "input_id": "100",
+            "latency_ms": 118.049313,
+            "source_frame_id": "scene-0770:lidar:266"
+          }
+        ],
+        "original_count": 147,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 143,
+        "retained_unique_source_count": 143
+      },
       "scene_id": "scene-0770",
       "streams": [
         [
@@ -23,15 +55,47 @@
           "7"
         ]
       ],
-      "unique_source_count": 147
+      "unique_source_count": 143
     },
     {
       "P50_ms": 120.087989,
-      "P99_minus_P50_ms": 8.210731400000014,
-      "completed_count": 146,
+      "P99_minus_P50_ms": 5.992066330000014,
+      "completed_count": 142,
       "execution_id": "i2-i20-0398",
       "mps_enabled": false,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 112.0780922,
+        "cutoff_P99_ms": 128.2987204,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "20",
+            "latency_ms": 128.913276,
+            "source_frame_id": "scene-0398:lidar:51"
+          },
+          {
+            "input_id": "120",
+            "latency_ms": 111.659117,
+            "source_frame_id": "scene-0398:lidar:317"
+          },
+          {
+            "input_id": "121",
+            "latency_ms": 108.475396,
+            "source_frame_id": "scene-0398:lidar:319"
+          },
+          {
+            "input_id": "136",
+            "latency_ms": 128.805496,
+            "source_frame_id": "scene-0398:lidar:359"
+          }
+        ],
+        "original_count": 146,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 142,
+        "retained_unique_source_count": 142
+      },
       "scene_id": "scene-0398",
       "streams": [
         [
@@ -40,15 +104,47 @@
           "7"
         ]
       ],
-      "unique_source_count": 146
+      "unique_source_count": 142
     },
     {
       "P50_ms": 125.46472800000001,
-      "P99_minus_P50_ms": 11.04336219999999,
-      "completed_count": 142,
+      "P99_minus_P50_ms": 5.502344629999982,
+      "completed_count": 138,
       "execution_id": "i2-i20-0184",
       "mps_enabled": false,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 119.61116846,
+        "cutoff_P99_ms": 136.5080902,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "14",
+            "latency_ms": 137.065272,
+            "source_frame_id": "scene-0184:lidar:39"
+          },
+          {
+            "input_id": "19",
+            "latency_ms": 139.863104,
+            "source_frame_id": "scene-0184:lidar:53"
+          },
+          {
+            "input_id": "129",
+            "latency_ms": 119.293137,
+            "source_frame_id": "scene-0184:lidar:355"
+          },
+          {
+            "input_id": "135",
+            "latency_ms": 119.516005,
+            "source_frame_id": "scene-0184:lidar:371"
+          }
+        ],
+        "original_count": 142,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 138,
+        "retained_unique_source_count": 138
+      },
       "scene_id": "scene-0184",
       "streams": [
         [
@@ -57,15 +153,47 @@
           "7"
         ]
       ],
-      "unique_source_count": 142
+      "unique_source_count": 138
     },
     {
       "P50_ms": 92.52879899999999,
-      "P99_minus_P50_ms": 14.293543409999998,
-      "completed_count": 188,
+      "P99_minus_P50_ms": 13.949977220000008,
+      "completed_count": 184,
       "execution_id": "i2-i20-0245",
       "mps_enabled": false,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 85.77352587,
+        "cutoff_P99_ms": 106.82234240999999,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "0",
+            "latency_ms": 109.146023,
+            "source_frame_id": "scene-0245:lidar:1"
+          },
+          {
+            "input_id": "1",
+            "latency_ms": 107.600259,
+            "source_frame_id": "scene-0245:lidar:2"
+          },
+          {
+            "input_id": "45",
+            "latency_ms": 84.359514,
+            "source_frame_id": "scene-0245:lidar:99"
+          },
+          {
+            "input_id": "47",
+            "latency_ms": 85.71132,
+            "source_frame_id": "scene-0245:lidar:103"
+          }
+        ],
+        "original_count": 188,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 184,
+        "retained_unique_source_count": 184
+      },
       "scene_id": "scene-0245",
       "streams": [
         [
@@ -74,15 +202,47 @@
           "7"
         ]
       ],
-      "unique_source_count": 188
+      "unique_source_count": 184
     },
     {
       "P50_ms": 120.048093,
-      "P99_minus_P50_ms": 7.735858100000058,
-      "completed_count": 146,
+      "P99_minus_P50_ms": 4.352127910000021,
+      "completed_count": 142,
       "execution_id": "i2-i21-0770",
       "mps_enabled": true,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 118.27175015,
+        "cutoff_P99_ms": 127.78395110000005,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "1",
+            "latency_ms": 118.265582,
+            "source_frame_id": "scene-0770:lidar:3"
+          },
+          {
+            "input_id": "38",
+            "latency_ms": 129.816053,
+            "source_frame_id": "scene-0770:lidar:101"
+          },
+          {
+            "input_id": "111",
+            "latency_ms": 117.602997,
+            "source_frame_id": "scene-0770:lidar:294"
+          },
+          {
+            "input_id": "136",
+            "latency_ms": 131.274087,
+            "source_frame_id": "scene-0770:lidar:360"
+          }
+        ],
+        "original_count": 146,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 142,
+        "retained_unique_source_count": 142
+      },
       "scene_id": "scene-0770",
       "streams": [
         [
@@ -91,15 +251,47 @@
           "7"
         ]
       ],
-      "unique_source_count": 146
+      "unique_source_count": 142
     },
     {
       "P50_ms": 119.9158625,
-      "P99_minus_P50_ms": 6.13302195,
-      "completed_count": 146,
+      "P99_minus_P50_ms": 4.9674751499999985,
+      "completed_count": 142,
       "execution_id": "i2-i21-0398",
       "mps_enabled": true,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 111.63241385,
+        "cutoff_P99_ms": 126.04888445,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "94",
+            "latency_ms": 126.065417,
+            "source_frame_id": "scene-0398:lidar:248"
+          },
+          {
+            "input_id": "121",
+            "latency_ms": 111.337985,
+            "source_frame_id": "scene-0398:lidar:318"
+          },
+          {
+            "input_id": "122",
+            "latency_ms": 111.504005,
+            "source_frame_id": "scene-0398:lidar:321"
+          },
+          {
+            "input_id": "137",
+            "latency_ms": 132.343254,
+            "source_frame_id": "scene-0398:lidar:361"
+          }
+        ],
+        "original_count": 146,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 142,
+        "retained_unique_source_count": 142
+      },
       "scene_id": "scene-0398",
       "streams": [
         [
@@ -108,15 +300,47 @@
           "7"
         ]
       ],
-      "unique_source_count": 146
+      "unique_source_count": 142
     },
     {
       "P50_ms": 125.259213,
-      "P99_minus_P50_ms": 8.001563399999966,
-      "completed_count": 141,
+      "P99_minus_P50_ms": 5.964799880000001,
+      "completed_count": 137,
       "execution_id": "i2-i21-0184",
       "mps_enabled": true,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 119.271107,
+        "cutoff_P99_ms": 133.26077639999997,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "19",
+            "latency_ms": 138.516137,
+            "source_frame_id": "scene-0184:lidar:53"
+          },
+          {
+            "input_id": "124",
+            "latency_ms": 134.613184,
+            "source_frame_id": "scene-0184:lidar:342"
+          },
+          {
+            "input_id": "128",
+            "latency_ms": 119.214899,
+            "source_frame_id": "scene-0184:lidar:353"
+          },
+          {
+            "input_id": "129",
+            "latency_ms": 118.960825,
+            "source_frame_id": "scene-0184:lidar:355"
+          }
+        ],
+        "original_count": 141,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 137,
+        "retained_unique_source_count": 137
+      },
       "scene_id": "scene-0184",
       "streams": [
         [
@@ -125,15 +349,47 @@
           "7"
         ]
       ],
-      "unique_source_count": 141
+      "unique_source_count": 137
     },
     {
       "P50_ms": 92.577556,
-      "P99_minus_P50_ms": 12.874596699999998,
-      "completed_count": 186,
+      "P99_minus_P50_ms": 12.351557319999998,
+      "completed_count": 182,
       "execution_id": "i2-i21-0245",
       "mps_enabled": true,
       "pre_inference_kernels_excluded": 0,
+      "sample_filter": {
+        "cutoff_P1_ms": 86.80500645,
+        "cutoff_P99_ms": 105.4521527,
+        "excluded_above_P99": 2,
+        "excluded_below_P1": 2,
+        "excluded_frames": [
+          {
+            "input_id": "0",
+            "latency_ms": 107.455968,
+            "source_frame_id": "scene-0245:lidar:1"
+          },
+          {
+            "input_id": "1",
+            "latency_ms": 105.998463,
+            "source_frame_id": "scene-0245:lidar:3"
+          },
+          {
+            "input_id": "42",
+            "latency_ms": 86.238909,
+            "source_frame_id": "scene-0245:lidar:94"
+          },
+          {
+            "input_id": "45",
+            "latency_ms": 84.818507,
+            "source_frame_id": "scene-0245:lidar:99"
+          }
+        ],
+        "original_count": 186,
+        "policy": "p1-p99-linear-per-execution-model-v1",
+        "retained_count": 182,
+        "retained_unique_source_count": 182
+      },
       "scene_id": "scene-0245",
       "streams": [
         [
@@ -142,42 +398,44 @@
           "7"
         ]
       ],
-      "unique_source_count": 186
+      "unique_source_count": 182
     }
   ],
+  "sample_filter_policy": "p1-p99-linear-per-execution-model-v1",
+  "sample_filter_sha256": "ffc4add97c7b444097845cb35d92b4fe72ea6efda3e07b39d056a473fd88ab75",
   "scope": "Eight isolated CenterPoint executions; completed non-warmup inference through CUDA completion",
   "sources_sha256": {
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0184/input-data/frames.json": "98c7b34649e9f7f2eaf68eddc3113e1bb1d0f82643b8b1ecae53e0933ca73913",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0184/input-data/kernels.csv.gz": "be7b3cc33f13573b2ee3522836f34c26a56e6a3622b9caa6b35bfe13164dc748",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0245/input-data/frames.json": "0e65911e22f91e1d9aef728af6f1030f7ceebf9a6161f7e5b25e1ed356cff6c4",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0245/input-data/kernels.csv.gz": "1b96b8a145434d95ea15995298bc8d9e78992a263f0de7fa82993a83ffd16fd9",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0398/input-data/frames.json": "a6c7af01a6ee076a327ff34d23a52b79aa7f0b9b1c74e6ff13cccd44c577ce48",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0398/input-data/kernels.csv.gz": "89f259b3592fb0d0ceb43bc8ae76eed855f17967eb564e16b5d88d352c88dec8",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0770/input-data/frames.json": "66876770f6701c53c53b4dd4d188ae3d53eaba2724d1294dbc38d01441c5f907",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i20-0770/input-data/kernels.csv.gz": "d107fc28a771cc2f56cb7d0ab08ce4f4c1dda3931fdf83c5272511d2f16e51af",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0184/input-data/frames.json": "acf092fade6238f077bb3fed6c2873c23d9c90f6b94a855d251d90172aef7596",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0184/input-data/kernels.csv.gz": "faf5828bcf03c799e21a7e3a4c942e932a13abed998bce79b2b43bb2f5fc2c7f",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0245/input-data/frames.json": "63b0758c369f300ddaf6c672cb5a6f30b2f340c9b6d6495df0877d33c4dfa332",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0245/input-data/kernels.csv.gz": "40e302128feb4bff9d376ad31f4008b3c2fd9b033ff0a667aff35ac0e97dc7e6",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0398/input-data/frames.json": "0f0011352474d98029b7f4a1c32cada9da612a2b8e7f9a153b98c98039d8a64e",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0398/input-data/kernels.csv.gz": "983d9b272d71d8e62a7e572b16789cddf1aa758ff6d44dfe16c121d09a592a8f",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0770/input-data/frames.json": "73c7ad359c58243f477744cbfa07965bacc824f54a2f241055f80234952cf88b",
-    "/mmdetection3d_ros2/analysis_outputs/input2/analysis/runs/i2-i21-0770/input-data/kernels.csv.gz": "322ad2a3bdba0602c8fa39538641c5142932d8beef3ce57dc9f859b470a82a16",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0184/config.yaml": "6ad60208bf9b06498e3b7be2ebb339e87705fc8bdc24905d0f4ceb211466859d",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0184/model_centerpoint_inputs.jsonl": "67f45ba34c8543d3c63b361832b8ba721ade7c9e9875e64117f0262baeb3cf7d",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0245/config.yaml": "824c326b1b586bea0485aee2fc18926fe339496bd7329591dd819ec82fb0be2f",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0245/model_centerpoint_inputs.jsonl": "f9fe8c4529082306658df1e4f8831f9edbb2620e60041a6198ea2d9264fe2560",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0398/config.yaml": "922012ebd823dc0c314d21bcc7e7db30133fdf08f003fd1020c1188f49ae8e0f",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0398/model_centerpoint_inputs.jsonl": "fd46bfd90f696e6c16febfb42524bb6aa7710b1af596355a4c82404ce84af621",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0770/config.yaml": "86809d1471c17adf0eec93f8d27ba9c28580cc2229ed4972433cf18eec009d5b",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i20-0770/model_centerpoint_inputs.jsonl": "96a99315c39026b509f90f21c9c3a37fc1ecbb5ba46ee365780edb8f3a269381",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0184/config.yaml": "06afd3d65ea4a3d7bed2c58cda4d25ed21be4c4c09b9c557b93ef450c98d5c90",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0184/model_centerpoint_inputs.jsonl": "6197f9bfbee5318bafd9e2aa7b343e9433c82fd173c2f1c772d5c4fac2cd1843",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0245/config.yaml": "8c83d7c27c499f0d75941d0cd1b9bf899cd132dfba6757df8b62081b0241370b",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0245/model_centerpoint_inputs.jsonl": "38604ed0925028b469bd4949f534c59ac2dc579ead39914c0370d3f453152003",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0398/config.yaml": "a82344744da4ba980af424b28a4cd934d7e422e745125b3d95a745ca77bb01b5",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0398/model_centerpoint_inputs.jsonl": "e069397686b694c0eddca000123f3280d2759386198ca033f679cce8c1bf80be",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0770/config.yaml": "9d516f0ab53dd741a4d87232f813dfe9655c37cbaf28a05ecde83fb5aed76a9e",
-    "/mmdetection3d_ros2/analysis_outputs/input2/runs/i2-i21-0770/model_centerpoint_inputs.jsonl": "25aeccf3e9eebfc7ea4f38f842c11a57c282bbfb2f6a3c32b4b228d6691fdbb0"
+    "analysis_outputs/input2/analysis/runs/i2-i20-0184/input-data/frames.json": "98c7b34649e9f7f2eaf68eddc3113e1bb1d0f82643b8b1ecae53e0933ca73913",
+    "analysis_outputs/input2/analysis/runs/i2-i20-0184/input-data/kernels.csv.gz": "ba99d833a5b1690d8bdc22edf2c5a786458536ccbbe1dee9d02252c12b36bcae",
+    "analysis_outputs/input2/analysis/runs/i2-i20-0245/input-data/frames.json": "0e65911e22f91e1d9aef728af6f1030f7ceebf9a6161f7e5b25e1ed356cff6c4",
+    "analysis_outputs/input2/analysis/runs/i2-i20-0245/input-data/kernels.csv.gz": "ce60ac22aa2d669e90f431c2df91993fd4781aa1db104f06641510c8895417eb",
+    "analysis_outputs/input2/analysis/runs/i2-i20-0398/input-data/frames.json": "a6c7af01a6ee076a327ff34d23a52b79aa7f0b9b1c74e6ff13cccd44c577ce48",
+    "analysis_outputs/input2/analysis/runs/i2-i20-0398/input-data/kernels.csv.gz": "67f09f6ae9679aff8bffbd24018568c73de4568259d5009970f67520330eafe8",
+    "analysis_outputs/input2/analysis/runs/i2-i20-0770/input-data/frames.json": "66876770f6701c53c53b4dd4d188ae3d53eaba2724d1294dbc38d01441c5f907",
+    "analysis_outputs/input2/analysis/runs/i2-i20-0770/input-data/kernels.csv.gz": "6979e5e7df8edd6dd259feaf7be5d4433f4f3d507e2cdba1593294e381f55163",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0184/input-data/frames.json": "acf092fade6238f077bb3fed6c2873c23d9c90f6b94a855d251d90172aef7596",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0184/input-data/kernels.csv.gz": "da02a1972752092bf58a14defe51e5e2eada12d6b4c064131c0eea51e0fe9225",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0245/input-data/frames.json": "63b0758c369f300ddaf6c672cb5a6f30b2f340c9b6d6495df0877d33c4dfa332",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0245/input-data/kernels.csv.gz": "96a5bc11e46ce3d2c1b7d8cb364188406ca2affb1886fbc8a86482b79a215660",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0398/input-data/frames.json": "0f0011352474d98029b7f4a1c32cada9da612a2b8e7f9a153b98c98039d8a64e",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0398/input-data/kernels.csv.gz": "b70d2f500ca39a88a1e31c4d48cd7851f21b09e771bbbcb2036fc5abdf1f61f1",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0770/input-data/frames.json": "73c7ad359c58243f477744cbfa07965bacc824f54a2f241055f80234952cf88b",
+    "analysis_outputs/input2/analysis/runs/i2-i21-0770/input-data/kernels.csv.gz": "419d651e5b80f5a964891776eb5b7443b2e00b6e12a686c111d1f61fc95e5bf7",
+    "analysis_outputs/input2/runs/i2-i20-0184/config.yaml": "6ad60208bf9b06498e3b7be2ebb339e87705fc8bdc24905d0f4ceb211466859d",
+    "analysis_outputs/input2/runs/i2-i20-0184/model_centerpoint_inputs.jsonl": "67f45ba34c8543d3c63b361832b8ba721ade7c9e9875e64117f0262baeb3cf7d",
+    "analysis_outputs/input2/runs/i2-i20-0245/config.yaml": "824c326b1b586bea0485aee2fc18926fe339496bd7329591dd819ec82fb0be2f",
+    "analysis_outputs/input2/runs/i2-i20-0245/model_centerpoint_inputs.jsonl": "f9fe8c4529082306658df1e4f8831f9edbb2620e60041a6198ea2d9264fe2560",
+    "analysis_outputs/input2/runs/i2-i20-0398/config.yaml": "922012ebd823dc0c314d21bcc7e7db30133fdf08f003fd1020c1188f49ae8e0f",
+    "analysis_outputs/input2/runs/i2-i20-0398/model_centerpoint_inputs.jsonl": "fd46bfd90f696e6c16febfb42524bb6aa7710b1af596355a4c82404ce84af621",
+    "analysis_outputs/input2/runs/i2-i20-0770/config.yaml": "86809d1471c17adf0eec93f8d27ba9c28580cc2229ed4972433cf18eec009d5b",
+    "analysis_outputs/input2/runs/i2-i20-0770/model_centerpoint_inputs.jsonl": "96a99315c39026b509f90f21c9c3a37fc1ecbb5ba46ee365780edb8f3a269381",
+    "analysis_outputs/input2/runs/i2-i21-0184/config.yaml": "06afd3d65ea4a3d7bed2c58cda4d25ed21be4c4c09b9c557b93ef450c98d5c90",
+    "analysis_outputs/input2/runs/i2-i21-0184/model_centerpoint_inputs.jsonl": "6197f9bfbee5318bafd9e2aa7b343e9433c82fd173c2f1c772d5c4fac2cd1843",
+    "analysis_outputs/input2/runs/i2-i21-0245/config.yaml": "8c83d7c27c499f0d75941d0cd1b9bf899cd132dfba6757df8b62081b0241370b",
+    "analysis_outputs/input2/runs/i2-i21-0245/model_centerpoint_inputs.jsonl": "38604ed0925028b469bd4949f534c59ac2dc579ead39914c0370d3f453152003",
+    "analysis_outputs/input2/runs/i2-i21-0398/config.yaml": "a82344744da4ba980af424b28a4cd934d7e422e745125b3d95a745ca77bb01b5",
+    "analysis_outputs/input2/runs/i2-i21-0398/model_centerpoint_inputs.jsonl": "e069397686b694c0eddca000123f3280d2759386198ca033f679cce8c1bf80be",
+    "analysis_outputs/input2/runs/i2-i21-0770/config.yaml": "9d516f0ab53dd741a4d87232f813dfe9655c37cbaf28a05ecde83fb5aed76a9e",
+    "analysis_outputs/input2/runs/i2-i21-0770/model_centerpoint_inputs.jsonl": "25aeccf3e9eebfc7ea4f38f842c11a57c282bbfb2f6a3c32b4b228d6691fdbb0"
   }
 }

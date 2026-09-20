@@ -1,0 +1,28 @@
+{
+  "runs": 8,
+  "completed_inferences": 1242,
+  "unique_source_frames": 895,
+  "focused_tests": "12 passed",
+  "source_hashes_verified": true,
+  "additive_timing_reconstruction_verified": true,
+  "plot_visually_inspected": true,
+  "artifacts_sha256": {
+    "associations.csv": "bc691f33d2a9072717215665aca274c0ef0e580c02efe43f6025c69c46185999",
+    "frames.csv": "e0d9dcce032ed91811c2141c33a1155af980c1adefe68d3f2f6b0eb15686cb67",
+    "geometry_associations.csv": "36e8465804f32ebc0b2c13654bd537f0bf1535ff26edb0ee25744eae37dff8c2",
+    "input_geometry.csv": "f153c12634bb299622e00d008f5373c96bfd390b636e523e1211bb20077557f7",
+    "input_geometry_provenance.json": "5592f0c53faf718487c7016990590a14b8a8fa0880be096f26a0f29c8504513b",
+    "matched_frame_deltas.csv": "2f41bad11112785c071088bb17d4289b5d0c0eca8c774d6a3fa17fae7d8c4f1f",
+    "mode_comparisons.csv": "ed545398dfdfc705d0c848b7a20d6277f82dc43428de44963c585665f865052d",
+    "report.md": "c7fea26d91749012388b674439b4abb112537a50c34413430ebac890dbd7fe71",
+    "summary.json": "c870fd720c396781ac2e2e9289cc1d772f33606a3612f0a45667fd70af57c6df",
+    "voxelization_correlation.pdf": "5fa13b78d0831385617ae8b13b12b5e1667ec806df27617b89177f3fadbcb09e",
+    "voxelization_correlation.png": "5c6b766540f92f3bbc100626351356bab8a319caebb9d1e6b1259f2083c8770b"
+  },
+  "package_boundary_correction": {
+    "collector_module": "closeloop_profiler.centerpoint_input_geometry",
+    "focused_tests": "23 passed",
+    "original_source_and_validation": "generated_configs/input2-crossed/validation/before-package-boundary-fix",
+    "note": "Retained geometry and timing evidence are unchanged. Historical source hashes resolve to the preserved pre-fix source; the report reproduction command now uses the profiler collector."
+  }
+}

@@ -1,0 +1,31 @@
+Starting >>> closeloop_analyzer
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-8.3.5, pluggy-1.6.0
+cachedir: /mmdetection3d_ros2/closeloop_perf/build/closeloop_analyzer/.pytest_cache
+rootdir: /mmdetection3d_ros2/closeloop_perf/src/closeloop_analyzer
+configfile: pytest.ini
+plugins: ament-copyright-0.12.15, ament-xmllint-0.12.15, ament-lint-0.12.15, launch-testing-1.0.14, launch-testing-ros-0.19.13, ament-flake8-0.12.15, ament-pep257-0.12.15, dash-4.4.1, colcon-core-0.21.0
+collected 65 items
+
+test/test_centerpoint_diagnosis.py ..                                    [  3%]
+test/test_communication.py .                                             [  4%]
+test/test_corrected_input_analysis.py .........                          [ 18%]
+test/test_coverage.py ..                                                 [ 21%]
+test/test_crossed_analysis.py ..........                                 [ 36%]
+test/test_dino_diagnosis.py ..                                           [ 40%]
+test/test_mps_analyzer.py ........                                       [ 52%]
+test/test_mps_leftover.py ....                                           [ 58%]
+test/test_mps_two_model_cta_analysis.py .....                            [ 66%]
+test/test_mps_two_model_gpu_analysis.py ...                              [ 70%]
+test/test_mps_two_model_report.py ..                                     [ 73%]
+test/test_pooled_violins.py .                                            [ 75%]
+test/test_preprocess_analyzer.py ...                                     [ 80%]
+test/test_public_analyzers.py ....                                       [ 86%]
+test/test_sample_filter.py .                                             [ 87%]
+test/test_target_selection.py .......s                                   [100%]
+
+- generated xml file: /mmdetection3d_ros2/closeloop_perf/build/closeloop_analyzer/pytest.xml -
+======================== 64 passed, 1 skipped in 1.45s =========================
+Finished <<< closeloop_analyzer [2.29s]
+
+Summary: 1 package finished [2.48s]
