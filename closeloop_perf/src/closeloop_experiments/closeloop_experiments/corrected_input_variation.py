@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import sys
 
 import yaml
 
@@ -40,7 +41,7 @@ REQUIRED_FIELDS = {
     "conditions",
     "baseline_map",
 }
-OPTIONAL_FIELDS = {"replay_passes"}
+OPTIONAL_FIELDS = {"replay_passes", "pairs", "common_window_ns", "confirmation_repetitions"}
 MODEL_FIELDS = {
     "group",
     "task",
@@ -566,6 +567,14 @@ def run_campaign(study, configs, artifact_root, dry_run=False):
 
 def main(argv=None):
     """Plan, generate, validate, dry-run, or execute the campaign."""
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    # The existing public campaign owns both descriptive and controlled studies.
+    for value in arguments:
+        if value.endswith((".yaml", ".yml")) and Path(value).is_file():
+            if yaml.safe_load(Path(value).read_text()).get("study_id") == "input2-crossed":
+                from .input_crossed import main as crossed_main
+                return crossed_main(arguments)
+            break
     parser = argparse.ArgumentParser()
     parser.add_argument("command",
                         choices=("plan", "generate", "validate", "run",

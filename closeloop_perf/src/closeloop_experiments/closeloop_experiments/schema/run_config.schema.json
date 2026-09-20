@@ -53,6 +53,8 @@
       "required": ["scene_token", "metadata_path", "bag_directory", "rate", "topics", "remappings", "readiness_timeout_seconds", "completion_timeout_seconds"],
       "properties": {
         "scene_token": {"type": "string", "minLength": 1},
+        "controlled_bag_manifest": {"type": "string", "minLength": 1},
+        "controlled_bag_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "scene_tokens": {
           "type": "array", "minItems": 2, "uniqueItems": true,
           "items": {"type": "string", "minLength": 1}

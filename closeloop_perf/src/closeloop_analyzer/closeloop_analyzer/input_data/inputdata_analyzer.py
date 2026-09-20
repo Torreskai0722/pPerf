@@ -1,6 +1,7 @@
 """Offline input-data and relay communication analysis."""
 
 from pathlib import Path
+import json
 
 import yaml
 
@@ -15,6 +16,11 @@ class InputDataAnalyzer:
     def analyze(self, source, output_root, options=None) -> dict:
         """Analyze one input-scoped run and return the written summary."""
         options = dict(options or {})
+        path = Path(source)
+        if path.is_file() and path.suffix == ".json":
+            if json.loads(path.read_text()).get("schema") == "input2_crossed_experiment_v1":
+                from .crossed_analysis import analyze
+                return analyze(path, output_root, options)
         manifest = load_manifest(source, output_root)
         require(manifest, scope="input")
         run = Path(manifest["run_directory"])

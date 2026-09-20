@@ -435,6 +435,7 @@ class ModelProfiler:
         if self._closed:
             raise RuntimeError("model profiler is closed")
         self._input_id = str(input_id)
+        self.last_completion_monotonic_ns = None
         prior_method_range_state = self._emit_method_ranges
         self._emit_method_ranges = warmup
         self.install_module_hooks()
@@ -457,6 +458,7 @@ class ModelProfiler:
                 event = self.torch.cuda.Event(enable_timing=False)
                 event.record(stream)
                 event.synchronize()
+                self.last_completion_monotonic_ns = time.monotonic_ns()
             return result
         finally:
             self.remove_module_hooks()

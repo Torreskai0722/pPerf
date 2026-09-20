@@ -66,6 +66,16 @@ These commands are a reference, not a checklist to run for every task. Provide e
 
 Use four-space indentation and PEP 8 conventions for Python. Name modules, functions, and variables in `snake_case`, classes in `PascalCase`, and constants in `UPPER_SNAKE_CASE`. Keep ROS launch files named `*.launch.py` and configuration in YAML. Add concise docstrings to public modules and functions, and follow each package's configured lint checks. Avoid committing caches, binaries, profiler reports, or machine-specific absolute paths.
 
+## Plotting Library & Style
+
+Use **Matplotlib** for future research plots, following the baseline violin style in `closeloop_analyzer/input_data/crossed_analysis.py::isolated_violin_plots`. Use the noninteractive `Agg` backend for artifact generation, PNG at 180 dpi for previews, and vector PDF (`matplotlib.backends.backend_pdf.PdfPages` for multiple figures) for sharing.
+
+- Use a white background, subtle horizontal grid (`alpha=0.2`), dark outlines/summary bars (`#333333`), and translucent fills (`alpha=0.65`). MPS off is blue (`#4c78a8`); MPS on is orange (`#e68a2e`). Include a clear legend and units on the y-axis.
+- For scene-based inference distributions, use `Axes.violinplot`: one plot per model, with MPS-off and MPS-on violins next to each other at each scene on the same axes. Preserve the authored scene order. Tick labels contain only scene names; keep counts, unique-frame counts, and execution details in accompanying tables.
+- Default inference-time violin displays to **minimum through P99**, computing each scene/mode cutoff independently with `numpy.percentile(..., 99, method="linear")`. Omit observations above the cutoff only from the plotted density and its median/quartile/range bars; retain the lower tail. Label the figure as a P99-limited display and retain cutoff/display-count evidence. Do not winsorize values or trim stored samples, reported statistics, selection evidence, or throughput calculations.
+- Preserve actual scene identities when comparing modes. Do not combine different input combinations because their AA/AB/BA/BB labels match, or pool independent repetitions unless explicitly requested. State the sample scope and any display filtering in the caption or accompanying report.
+- Keep plotting code in `closeloop_analyzer`, reuse existing plotting functions, and visually inspect representative regenerated figures for readable labels, legends, and unclipped content.
+
 ## Testing Guidelines
 
 Choose validation according to the affected code; do not run the full workspace suite for every task.

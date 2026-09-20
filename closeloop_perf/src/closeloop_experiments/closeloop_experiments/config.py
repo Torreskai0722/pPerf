@@ -125,6 +125,14 @@ def _semantic_validate(data: Dict[str, Any]) -> None:
     if nsys and set(nsys["trace"]) != required_traces:
         raise ConfigError("Level-1 trace must contain cuda, nvtx, and cudnn")
     playback_mode = data["replay"].get("playback_mode", "full")
+    controlled = data["replay"].get("controlled_bag_manifest")
+    if bool(controlled) != bool(data["replay"].get("controlled_bag_manifest_sha256")):
+        raise ConfigError("controlled replay requires both manifest path and SHA-256")
+    if controlled and (data["replay"].get("repeat_count", 1) != 1
+                       or data["replay"]["rate"] != 1.0
+                       or playback_mode != "full"
+                       or data["replay"].get("scene_tokens")):
+        raise ConfigError("controlled replay requires one full pass at rate 1 without scene discovery")
     scene_tokens = data["replay"].get("scene_tokens")
     if scene_tokens and scene_tokens[0] != data["replay"]["scene_token"]:
         raise ConfigError(
@@ -454,6 +462,17 @@ def load_run_config(path: str, check_paths: bool = True,
             if not value.is_absolute()
             else value.resolve()
         )
+    controlled = resolved["replay"].get("controlled_bag_manifest")
+    if controlled:
+        path = Path(controlled).expanduser()
+        path = path.resolve() if path.is_absolute() else (base / path).resolve()
+        resolved["replay"]["controlled_bag_manifest"] = str(path)
+        if check_paths:
+            from closeloop_testbed.replayer import controlled_manifest
+            try:
+                controlled_manifest(resolved["replay"])
+            except (OSError, ValueError, KeyError) as exc:
+                raise ConfigError(f"invalid controlled bag: {exc}") from exc
     for model in resolved["models"]:
         for field in ("warmup_input", "model_config", "checkpoint"):
             if field not in model:

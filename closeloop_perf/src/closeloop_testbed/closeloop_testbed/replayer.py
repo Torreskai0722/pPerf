@@ -1,6 +1,7 @@
 """Ordered MCAP replay coordinator."""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import signal
@@ -53,6 +54,16 @@ def ordered_scene_tokens(replay_config):
 
 def playback_segments(replay_config):
     """Resolve every scene and MCAP into one ordered playback plan."""
+    if replay_config.get("controlled_bag_manifest"):
+        manifest = controlled_manifest(replay_config)
+        return [{
+            "segment_id": "controlled-pass-0", "pass_index": 0,
+            "scene_index": 0, "bag_index": 0,
+            "bag_path": manifest["bag_path"],
+            "input_scenes": manifest["input_scenes"],
+            "controlled_bag_manifest": replay_config["controlled_bag_manifest"],
+            "window_ns": manifest["window_ns"],
+        }]
     segments = []
     for pass_index in range(replay_config.get("repeat_count", 1)):
         for scene_index, token in enumerate(ordered_scene_tokens(replay_config)):
@@ -71,6 +82,30 @@ def playback_segments(replay_config):
                     "bag_path": str(bag.resolve()),
                 })
     return segments
+
+
+def controlled_manifest(replay_config):
+    """Resolve only the explicit validated bag, never scene-name discovery."""
+    path = Path(replay_config["controlled_bag_manifest"])
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != replay_config.get("controlled_bag_manifest_sha256"):
+        raise ValueError("controlled manifest hash mismatch")
+    manifest = json.loads(raw)
+    if (manifest.get("schema") != "controlled_bag_v1"
+            or manifest.get("validation", {}).get("valid") is not True
+            or set(manifest["input_scenes"]) != {"image", "lidar"}
+            or replay_config.get("repeat_count", 1) != 1
+            or replay_config.get("playback_mode", "full") != "full"
+            or replay_config["rate"] != 1.0):
+        raise ValueError("controlled replay requires a validated one-pass full bag at rate 1")
+    for filename, expected in manifest["output_hashes"].items():
+        digest = hashlib.sha256()
+        with Path(filename).open("rb") as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(block)
+        if digest.hexdigest() != expected:
+            raise ValueError(f"controlled bag hash mismatch: {filename}")
+    return manifest
 
 
 def play_ordered_segments(segments, play_one):

@@ -12,6 +12,7 @@ import time
 
 from closeloop_profiler.architecture_profiles import architecture_profile_metadata
 from closeloop_profiler.components import create_model_profiler
+from closeloop_profiler.source_frames import message_header_timestamp_ns
 from .config import load_runtime_config
 from closeloop_testbed.resource_control import (
     apply_process_resources,
@@ -31,7 +32,9 @@ from .paired import (
 )
 from .communication import BatchedJsonlWriter, StreamOrderTracker
 from .capsule_helpers import select_cta_target
-from .input_handling import configured_input_queue_depth, model_input_record
+from .input_handling import (
+    configured_input_queue_depth, model_input_record, model_input_segment,
+)
 from .model_execution import (
     select_model, update_profile_evidence, write_status,
 )
@@ -144,6 +147,9 @@ def main(argv=None) -> int:
             status["inference_resize_scale"] = list(inferencer.resize_scale)
             write_status(status_path, status)
         profiler = create_model_profiler(config, inferencer, args.model_id)
+        if config["replay"].get("controlled_bag_manifest"):
+            bag_manifest = json.loads(Path(config["replay"]["controlled_bag_manifest"]).read_text())
+            profiler.scene_token = bag_manifest["input_scenes"][model_config["modality"]]["scene_token"]
         cta_configuration = model_config.get("nvbit_cta_profile")
         cta_arm = None
         cta_disarm = None
@@ -201,7 +207,7 @@ def main(argv=None) -> int:
         def input_callback(message):
             callback_entry_ns = time.monotonic_ns()
             input_id = status["inputs"]
-            segment = dict(active_segment)
+            segment = model_input_segment(active_segment, model_config["modality"])
             order = input_order.observe(
                 segment.get("segment_id", "unassigned"),
                 model_config["input_topic"],
@@ -284,6 +290,9 @@ def main(argv=None) -> int:
                             )
                 record["model_pipeline_end_monotonic_ns"] = (
                     time.monotonic_ns()
+                )
+                record["inference_completion_monotonic_ns"] = getattr(
+                    profiler, "last_completion_monotonic_ns", None
                 )
                 record["completed"] = True
                 status["inputs"] += 1

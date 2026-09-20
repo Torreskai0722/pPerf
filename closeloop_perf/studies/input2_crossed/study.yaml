@@ -1,0 +1,182 @@
+schema_version: 1
+study_id: input2-crossed
+base_config: ../input_data_variation_matrix_v3/base.yaml
+output_root: ../../../analysis_outputs/input2/runs
+generated_config_root: ../../../analysis_outputs/input2/generated_configs/input2-crossed
+checkpoint_root: /root/.cache/torch/hub/checkpoints
+metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+warmup_image: /mmdetection3d_ros2/data/warmup.jpg
+warmup_lidar: /mmdetection3d_ros2/data/warmup.bin
+replicates: 1
+replay_passes: 1
+mps_modes:
+- false
+- true
+mps_percentage: 100
+graphics_clock_mhz: 3105
+memory_clock_mhz: 10501
+nsys_version: 2025.2.1.130
+replay_cpu_affinity:
+- 12
+- 13
+- 14
+- 15
+replay_cpu_thread_count: 4
+models:
+  3dssd:
+    group: lidar_point
+    task: detection
+    modality: lidar
+    mmlab_model: 3dssd_4xb4_kitti-3d-car
+    architecture_profile: mmdet3d_point_single_stage_v1
+    model_config: /opt/mmdetection3d/configs/3dssd/3dssd_4xb4_kitti-3d-car.py
+    model_config_sha256: 9dc71fbec262a288de80d6d532b8d69f99ad43f465896ddff87eefec97ab4540
+    checkpoint: 3dssd_4x4_kitti-3d-car_20210818_203828-b89c8fc4.pth
+    checkpoint_sha256: b89c8fc42aa86772bf904be06442d39a859d9c62f8dbc7d074922e30f7a3c998
+    point_feature_count: 4
+  yolov3:
+    group: image_detection
+    task: detection
+    modality: image
+    mmlab_model: yolov3_d53_mstrain-608_273e_coco
+    architecture_profile: mmdet_single_stage_2d_v1
+    model_config: /opt/mmdetection/configs/yolo/yolov3_d53_8xb8-ms-608-273e_coco.py
+    model_config_sha256: ffa39f0aea4d0c0e86b6959cc91c6336a9555288d2355faac66695ca70440c00
+    checkpoint: yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+    checkpoint_sha256: a2c3acb8585904b391336a12954179282a1defb2c6784c51967a6d8490f5b84d
+  centerpoint:
+    group: lidar_voxel
+    task: detection
+    modality: lidar
+    mmlab_model: centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d
+    architecture_profile: mmdet3d_voxel_two_stage_v1
+    model_config: /opt/mmdetection3d/configs/centerpoint/centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d.py
+    model_config_sha256: 6475e4e9ea1891cb46823ce5ef62b6f3d3cf54ca79b45743476e986910f43ad5
+    checkpoint: centerpoint_0075voxel_second_secfpn_dcn_circlenms_4x8_cyclic_20e_nus_20220810_025930-657f67e0.pth
+    checkpoint_sha256: 657f67e049c40d6b3c293133bed0e29693aad4095938904fb4d83dc57dc9aca0
+  dino:
+    group: image_detection
+    task: detection
+    modality: image
+    mmlab_model: dino-4scale_r50_8xb2-12e_coco
+    architecture_profile: mmdet_detr_2d_v1
+    model_config: /opt/mmdetection/configs/dino/dino-4scale_r50_8xb2-12e_coco.py
+    model_config_sha256: 60f902024cb992151569237f2b4cf0c8133f195e431592e08851d08e1e4b5179
+    checkpoint: dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+    checkpoint_sha256: 55b2bba264ac6ea4d006ce7597fd265c778495f0c4988530f967eee13e2f2d59
+  pointpillars:
+    group: lidar_voxel
+    task: detection
+    modality: lidar
+    mmlab_model: pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d
+    architecture_profile: mmdet3d_voxel_two_stage_v1
+    model_config: /opt/mmdetection3d/configs/pointpillars/pointpillars_hv_secfpn_sbn-all_8xb4-2x_nus-3d.py
+    model_config_sha256: 1ffe085179a48b1bf47e15c12674fe0d58d518cb117ce7a2b7fa10dbbdbd4db1
+    checkpoint: hv_pointpillars_secfpn_sbn-all_4x8_2x_nus-3d_20210826_225857-f19d00a3.pth
+    checkpoint_sha256: f19d00a38e6b775f38a45a9a3ca3ecaec20a5585a3caf44622423e2d5f75d5d0
+  vit-upernet:
+    group: image_segmentation
+    task: semantic_segmentation
+    modality: image
+    mmlab_model: vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512
+    architecture_profile: mmseg_encoder_decoder_v1
+    model_config: /usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/vit/vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512.py
+    model_config_sha256: 9d0ba4eca79d1492f3dc62134b3274ac8cb7e565636bba92e2699bce40d20cad
+    checkpoint: upernet_vit-b16_mln_512x512_160k_ade20k_20210624_130547-852fa768.pth
+    checkpoint_sha256: 852fa7681f761df8fa159b62ce9ce37b151c90ae5982370838246f2b4b0bb6aa
+    inference_resize_scale:
+    - 512
+    - 512
+  mask-rcnn:
+    group: image_segmentation
+    task: instance_segmentation
+    modality: image
+    mmlab_model: mask-rcnn_r50_fpn_1x_coco
+    architecture_profile: mmdet_two_stage_2d_v1
+    model_config: /opt/mmdetection/configs/mask_rcnn/mask-rcnn_r50_fpn_1x_coco.py
+    model_config_sha256: d6713165d805ed830ab79e5fa808824453588e45e6b0d9259ddf11e8c24dbf3f
+    checkpoint: mask_rcnn_r50_fpn_1x_coco_20200205-d4b0c5d6.pth
+    checkpoint_sha256: d4b0c5d6dfd452a9dede742267538201797618fdda8f33d5684e2f33528ee24d
+conditions:
+  scene-0770:
+    effect: surrounding_environment
+    scene_name: scene-0770
+    scene_token: aedcd3cf7c4a49d7a4a43ab7443a9eb1
+    scene_factors:
+      road_type: parking-lot
+      traffic: low
+      object_density: medium
+      complexity: stationary-ego-and-pedestrian-on-road
+      lighting: daylight
+    corruption_type: clean
+    severity: 0
+    seed: 4770
+    full_duration: true
+    bag_directory: /mmdetection3d_ros2/data/input_variation/environment-scene-0770-clean-full
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/environment-scene-0770-clean-full/input_variation_manifest.json
+    dataset_manifest_sha256: ff8cdd32f12250c98a8fa3f92ccca541204c061be6c260c92ebcfe8a8aa04f0e
+  scene-0398:
+    effect: surrounding_environment
+    scene_name: scene-0398
+    scene_token: b519ec833e23450a8bd3340b67f2516b
+    scene_factors:
+      road_type: urban-road
+      traffic: very-high
+      object_density: very-high
+      complexity: congestion-and-overtaking
+      lighting: daylight
+    corruption_type: clean
+    severity: 0
+    seed: 4398
+    full_duration: true
+    bag_directory: /mmdetection3d_ros2/data/input_variation/environment-scene-0398-clean-full
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/environment-scene-0398-clean-full/input_variation_manifest.json
+    dataset_manifest_sha256: 86bc39718113e36f0bee3a7cbedb6436c23fb2d530e5c82ddcf258c94e6cb6b5
+  scene-0184:
+    effect: surrounding_environment
+    scene_name: scene-0184
+    scene_token: 93032908bafd484ea10a39b0d5d3fff6
+    scene_factors:
+      road_type: narrow-road
+      traffic: low
+      object_density: low
+      complexity: many-trees
+      lighting: daylight
+    corruption_type: clean
+    severity: 0
+    seed: 4184
+    full_duration: true
+    bag_directory: /mmdetection3d_ros2/data/input_variation/environment-scene-0184-clean-full
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/environment-scene-0184-clean-full/input_variation_manifest.json
+    dataset_manifest_sha256: f7c73e7c42966e6380ebbe854df92d729b97b303cb0ae581ad17e77b102a339f
+  scene-0245:
+    effect: surrounding_environment
+    scene_name: scene-0245
+    scene_token: bcb05cffb5814973a6cff4fbdca2b99b
+    scene_factors:
+      road_type: bridge-construction
+      traffic: medium
+      object_density: medium
+      complexity: high-speed-and-construction
+      lighting: daylight
+    corruption_type: clean
+    severity: 0
+    seed: 4245
+    full_duration: true
+    bag_directory: /mmdetection3d_ros2/data/input_variation/environment-scene-0245-clean-full
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/environment-scene-0245-clean-full/input_variation_manifest.json
+    dataset_manifest_sha256: 97b5c4d408e9e644ce9e9b03e5e153f48b0c489ec2920cb4a140c7ab66cb5629
+baseline_map: {}
+pairs:
+- - 3dssd
+  - yolov3
+- - centerpoint
+  - dino
+- - centerpoint
+  - yolov3
+- - pointpillars
+  - vit-upernet
+- - pointpillars
+  - mask-rcnn
+common_window_ns: 19250761000
+confirmation_repetitions: 3

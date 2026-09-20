@@ -264,7 +264,7 @@ def distribution_metrics(values):
     if not len(values):
         raise ValueError("latency distribution is empty")
     percentiles = dict(zip(
-        QUANTILES, np.percentile(values, QUANTILES).astype(float)
+        QUANTILES, np.percentile(values, QUANTILES, method="linear").astype(float)
     ))
     p0, p5, p25, median, p75, p95, p99 = (
         percentiles[key] for key in (0, 5, 25, 50, 75, 95, 99)
@@ -282,6 +282,8 @@ def distribution_metrics(values):
         # Compatibility alias for older report consumers; this is P0-P99.
         "width_ms": p99 - p0,
         "normalized_range": (p99 - p0) / median if median else None,
+        "R": (p99 - median) / median if median else None,
+        "p50_p99_range_ms": p99 - median,
     }
 
 

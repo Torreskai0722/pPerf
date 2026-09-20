@@ -130,6 +130,7 @@ def main(argv=None):
         )
 
         def relay_callback(message, selected=route, output=publisher):
+            received_ns = time.monotonic_ns()
             segment = dict(active_segment)
             timestamp_ns = message_header_timestamp_ns(message)
             order = tracker.observe(
@@ -138,16 +139,23 @@ def main(argv=None):
                 timestamp_ns,
             )
             pre_publish_ns = time.monotonic_ns()
-            output.publish(message)
-            writer.write({
+            record = {
                 "schema": "communication_relay_v1",
                 **segment,
                 **selected,
                 **order,
                 "original_source_timestamp_ns": timestamp_ns,
+                "relay_received_monotonic_ns": received_ns,
                 "relay_pre_publish_monotonic_ns": pre_publish_ns,
-                "relay_post_publish_monotonic_ns": time.monotonic_ns(),
-            })
+            }
+            try:
+                output.publish(message)
+                record["relay_post_publish_monotonic_ns"] = time.monotonic_ns()
+            except Exception as exc:
+                record["publication_error"] = str(exc)
+                raise
+            finally:
+                writer.write(record)
             counters["messages"] += 1
             counters["duplicates"] += int(order["duplicate"])
             counters["out_of_order"] += int(order["out_of_order"])

@@ -25,7 +25,7 @@ CAMPAIGNS = {
 CAMPAIGN_ACTIONS = {
     "communication": {"generate", "validate", "run"},
     "input-data": {
-        "plan", "generate", "validate", "run", "generate-isolated",
+        "plan", "prepare", "validate-bags", "generate", "validate", "run", "generate-isolated",
         "validate-isolated", "run-isolated",
     },
     "input-variation": {"plan", "prepare", "generate", "validate", "run"},

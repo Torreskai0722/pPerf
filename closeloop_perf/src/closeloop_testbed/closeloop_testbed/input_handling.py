@@ -8,6 +8,16 @@ def configured_input_queue_depth(model_config):
     return model_config.get("input_queue_depth", 10)
 
 
+def model_input_segment(segment, modality):
+    """Use the receiving model's own scene in a controlled mixed segment."""
+    segment = dict(segment)
+    own_scene = segment.get("input_scenes", {}).get(modality)
+    if own_scene:
+        segment.update(scene_token=own_scene["scene_token"],
+                       scene_name=own_scene["scene_id"])
+    return segment
+
+
 def model_input_record(model_id, input_id, input_topic, message,
                        callback_entry_ns=None, segment=None, order=None):
     """Return the identity record written outside the inference NVTX range."""
