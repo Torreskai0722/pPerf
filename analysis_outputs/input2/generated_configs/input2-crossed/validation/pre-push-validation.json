@@ -1,0 +1,16 @@
+{
+  "focused_tests": "23 passed",
+  "profiler_colcon_build": "passed",
+  "prior_cross_package_validation": "528 tests, 2 unrelated missing section4_1/study.yaml failures, 1 skipped",
+  "change": "Move the ROS-dependent CenterPoint geometry evidence collector into closeloop_profiler; keep diagnosis in closeloop_analyzer.",
+  "measurement_changes": false,
+  "original_sources": "before-package-boundary-fix",
+  "files_sha256": {
+    "closeloop_perf/src/closeloop_profiler/closeloop_profiler/centerpoint_input_geometry.py": "808cda7534bbe5e5af7b73b9cefab99db5b68be38ba3d2285de39cb2d9f09baa",
+    "closeloop_perf/src/closeloop_analyzer/closeloop_analyzer/input_data/centerpoint_diagnosis.py": "5cca09ec9885b598b48f92ea748eb078eae73e9eff8d64b65ef9133b6123e063",
+    "analysis_outputs/input2/generated_configs/input2-crossed/validation/pre-push-focused.log": "4ac2281666eeea345759c37bffd7e178880f4dc5505503e6dd0a9be0d148e22a",
+    "analysis_outputs/input2/generated_configs/input2-crossed/validation/pre-push-build.log": "a1b268b11a2b8573ccf1b4f8f87e1dd8c7ad025cfe048eba1eb2f4e2c83c4df0",
+    "analysis_outputs/input2/analysis/input2-crossed/input-data/centerpoint_diagnosis/report.md": "c7fea26d91749012388b674439b4abb112537a50c34413430ebac890dbd7fe71",
+    "analysis_outputs/input2/analysis/input2-crossed/input-data/centerpoint_diagnosis/validation.json": "fa084680b886a5b9ca1afb7078d0a538057d0791319290101a637e2beedda12c"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "bags": 16,
+  "execution_slots": 216,
+  "manifest": "/mmdetection3d_ros2/analysis_outputs/input2/generated_configs/input2-crossed/experiment_manifest.json"
+}

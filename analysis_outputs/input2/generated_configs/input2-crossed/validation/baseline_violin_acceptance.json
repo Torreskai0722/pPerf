@@ -1,0 +1,38 @@
+{
+  "accepted": true,
+  "baseline_executions": 56,
+  "focused_tests_passed": 10,
+  "models": 7,
+  "original_report_backup": "analysis_outputs/input2/generated_configs/input2-crossed/validation/before-baseline-violins",
+  "outputs": {
+    "analysis/input2-crossed/input-data/isolated_baselines.md": "57521b87223d7a1234e94e9e7cf63efbdcad6c8c8bbe7cc8b7197fa2e8835240",
+    "analysis/input2-crossed/input-data/per_run_summaries.csv": "48636eefbf93ee568809544c5819decfdcd1390dd9b52ec0b52a5f99dea4c67c",
+    "analysis/input2-crossed/input-data/plots/isolated/3dssd.png": "f5f4e451ae61ef4cb40922bee0b8a5674f6e21d80409455a3417321d7c44a7ca",
+    "analysis/input2-crossed/input-data/plots/isolated/centerpoint.png": "a0a2aece4eb28bde454dd07f1dc61793eff32787e6c72188f97f4d2f82626521",
+    "analysis/input2-crossed/input-data/plots/isolated/dino.png": "f0e4e450f2bedcb6a207800df81cba4bf818845cb8d75e7e27660974c13fdf37",
+    "analysis/input2-crossed/input-data/plots/isolated/isolated_baselines.pdf": "82fd8b56d058432a98e10269b3ef8433192fed68bdb035792d2868e14004d673",
+    "analysis/input2-crossed/input-data/plots/isolated/mask-rcnn.png": "40db241e53b35e71fc29a3407e9748aef4a4ca512be91f8894497cea74cac8b1",
+    "analysis/input2-crossed/input-data/plots/isolated/pointpillars.png": "22f86c480182c8a13d7e1250cffd1ed7e5f47a64fd80bf50a6c074722b2b99d0",
+    "analysis/input2-crossed/input-data/plots/isolated/vit-upernet.png": "d4837a9a954d4cd30930b7eebbef9b87c4506e1886c662adbc4f0b118b3035d2",
+    "analysis/input2-crossed/input-data/plots/isolated/yolov3.png": "a104cc7ae74fcb42cad10762ee34b39bd8dd3dd267e784ee7913e0bb774b6c02",
+    "analysis/input2-crossed/input-data/report.md": "18cbcb70ad0edf3d4e8a8a020e92956eaaedbfe61442f38349d638b1b5540aa9",
+    "analysis/input2-crossed/input-data/summary.json": "788027e6069d567e21a9d1c965033f30f85dc1f63b0891afb20d96d52a15d35d"
+  },
+  "panels": 14,
+  "pdf_pages": 7,
+  "plot_code_sha256": "8ab4138bce16f1c42d697d370584d57cc85ead5a53e078d216f102d91c76844a",
+  "png_figures": 7,
+  "sample_scope": "all completed non-warmup inferences through CUDA completion; no tail trimming",
+  "scene_order": [
+    "0770",
+    "0398",
+    "0184",
+    "0245"
+  ],
+  "scientific_results_unchanged": true,
+  "shared_y_scale": "within each model across MPS modes",
+  "summary_csv_note": "Coverage dictionary key order normalized; parsed CSV contents match unchanged summary JSON",
+  "visual_check": "Count labels placed on separate lines; representative model plots inspected",
+  "x_axis": "Scene",
+  "y_axis": "Inference time (ms)"
+}

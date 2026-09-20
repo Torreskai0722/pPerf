@@ -1,0 +1,13 @@
+{
+  "blocked_execution_slots": 0,
+  "complete": true,
+  "limitations": [
+    "sparse tails",
+    "temporal dependence",
+    "depth-zero layer attribution",
+    "selection-conditioned AA/BB reuse"
+  ],
+  "report": "/mmdetection3d_ros2/analysis_outputs/input2/analysis/input2-crossed/input-data/report.md",
+  "unique_executions": 196,
+  "validated_execution_slots": 216
+}

@@ -1,0 +1,21 @@
+[0.079s] ERROR:colcon.colcon_test_result.test_result.xunit:Skipping 'build/closeloop_perf/package.xml': [Errno 2] No such file or directory: 'build/closeloop_perf/package.xml'
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/colcon_test_result/test_result/xunit.py", line 47, in get_test_results
+    result = parse_xunit_xml(
+  File "/usr/lib/python3/dist-packages/colcon_test_result/test_result/xunit.py", line 86, in parse_xunit_xml
+    root = tree.parse(path)
+  File "/usr/lib/python3.10/xml/etree/ElementTree.py", line 569, in parse
+    source = open(source, "rb")
+FileNotFoundError: [Errno 2] No such file or directory: 'build/closeloop_perf/package.xml'
+
+build/closeloop_experiments/pytest.xml: 113 tests, 0 errors, 2 failures, 0 skipped
+- closeloop_experiments.test.test_non_mps_offset_sweep test_inventory_has_18_unique_pairs_and_every_model_with_3dssd
+  <<< failure message
+    closeloop_experiments.non_mps_memcpy_compute.StudyError: cannot load offset sweep input: [Errno 2] No such file or directory: '/mmdetection3d_ros2/closeloop_perf/studies/section4_1/study.yaml'
+  >>>
+- closeloop_experiments.test.test_non_mps_offset_sweep test_offset_order_and_image_deadline_are_exact
+  <<< failure message
+    closeloop_experiments.non_mps_memcpy_compute.StudyError: cannot load offset sweep input: [Errno 2] No such file or directory: '/mmdetection3d_ros2/closeloop_perf/studies/section4_1/study.yaml'
+  >>>
+
+Summary: 525 tests, 0 errors, 2 failures, 1 skipped

@@ -1,0 +1,14 @@
+{
+  "i2-i00-0770-a2": {
+    "evidence": "validation/input2-crossed-runtime-fix-tests.log",
+    "reason": "Runtime-fix focused tests completed at 2026-09-18 05:33:04.475245 UTC (3.73 seconds of test execution), overlapping this initial 3DSSD replay, which completed at 05:33:05.775330 UTC. Preserve the attempt for runtime validation only and replace it without concurrent validation."
+  },
+  "i2-i10-0770": {
+    "evidence": "validation/input2-crossed-extra-tests.log",
+    "reason": "Focused validation ran on replay CPU 15 during part of the initial YOLOv3 replay (approximately 2026-09-18 05:37:01\u201305:37:15 UTC). Preserve this attempt, exclude it from the controlled matrix, and execute a fresh attempt without concurrent validation."
+  },
+  "i2-s30-0398": {
+    "evidence": "analysis/input2-crossed/input-data/blockers.json; runs/i2-s30-0398/launch.log; retained profile.sqlite.gz",
+    "reason": "Offline validation found completed PointPillars input 339 without recorded final CUDA event synchronization inside inference range [30621198679,30685402160] ns; input 340 also has no final runtime API records. Callback completion alone is insufficient for trace validation. Launch log records PointPillars shutdown escalating to SIGKILL. Preserve this attempt and replace this screening execution."
+  }
+}

@@ -1,0 +1,134 @@
+schema_version: 2
+run:
+  id: i2-c01-aa-1
+  experiment: controlled own-input and co-runner input sensitivity
+  provenance: study=517b7c5d326691d23cf400c0f5ca5446c4bb99c902b8e1e59bf2af9b37def02e
+  timeout_seconds: 900
+ros:
+  distribution: humble
+  middleware: rmw_fastrtps_cpp
+  domain_id: 86
+  launch_package: closeloop_testbed
+  launch_file: testbed.launch.py
+replay:
+  scene_token: aedcd3cf7c4a49d7a4a43ab7443a9eb1
+  metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+  bag_directory: /mmdetection3d_ros2/data/input_variation/controlled/dd63105e2bace5c2a829/bag
+  rate: 1.0
+  playback_mode: full
+  topics:
+  - /CAM_FRONT/image_rect_compressed
+  - /LIDAR_TOP
+  remappings:
+    /CAM_FRONT/image_rect_compressed: /camera/front
+    /LIDAR_TOP: /lidar/top
+  readiness_timeout_seconds: 240
+  player_startup_timeout_seconds: 15
+  completion_timeout_seconds: 240
+  communication_profile: true
+  cpu_affinity:
+  - 12
+  - 13
+  - 14
+  - 15
+  cpu_thread_count: 4
+  repeat_count: 1
+  controlled_bag_manifest: /mmdetection3d_ros2/data/input_variation/controlled/dd63105e2bace5c2a829/manifest.json
+  controlled_bag_manifest_sha256: 870062846e9c9acb6d9e5fddbe44addd5e66c6ca412ff5b0e934e191187a2677
+gpu:
+  index: 0
+  mps_enabled: true
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+models:
+- task: detection
+  modality: image
+  mmlab_model: yolov3_d53_mstrain-608_273e_coco
+  architecture_profile: mmdet_single_stage_2d_v1
+  model_config: /opt/mmdetection/configs/yolo/yolov3_d53_8xb8-ms-608-273e_coco.py
+  model_config_sha256: ffa39f0aea4d0c0e86b6959cc91c6336a9555288d2355faac66695ca70440c00
+  checkpoint: /root/.cache/torch/hub/checkpoints/yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8.pth
+  checkpoint_sha256: a2c3acb8585904b391336a12954179282a1defb2c6784c51967a6d8490f5b84d
+  id: yolov3
+  node_name: model_yolov3
+  input_topic: /camera/front
+  input_message_type: compressed_image
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+  warmup_count: 5
+  launch_offset_seconds: 0
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  cpu_thread_count: 3
+  mps_percentage: 100
+- task: detection
+  modality: lidar
+  mmlab_model: 3dssd_4xb4_kitti-3d-car
+  architecture_profile: mmdet3d_point_single_stage_v1
+  model_config: /opt/mmdetection3d/configs/3dssd/3dssd_4xb4_kitti-3d-car.py
+  model_config_sha256: 9dc71fbec262a288de80d6d532b8d69f99ad43f465896ddff87eefec97ab4540
+  checkpoint: /root/.cache/torch/hub/checkpoints/3dssd_4x4_kitti-3d-car_20210818_203828-b89c8fc4.pth
+  checkpoint_sha256: b89c8fc42aa86772bf904be06442d39a859d9c62f8dbc7d074922e30f7a3c998
+  point_feature_count: 4
+  id: 3dssd
+  node_name: model_3dssd
+  input_topic: /lidar/top
+  input_message_type: pointcloud2
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.bin
+  warmup_count: 5
+  launch_offset_seconds: 1
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  cpu_thread_count: 3
+  mps_percentage: 100
+recording:
+  level: level1
+  scopes:
+  - model
+  - input
+  nsys:
+    version: 2025.2.1.130
+    trace:
+    - cuda
+    - nvtx
+    - cudnn
+    sample: none
+    backtrace: none
+    cpu_context_switch: false
+    gpu_context_switch: false
+input_variation:
+  condition_id: scene-0770
+  effect: surrounding_environment
+  source_scene_name: scene-0770
+  scene_factors:
+    road_type: parking-lot
+    traffic: low
+    object_density: medium
+    complexity: stationary-ego-and-pedestrian-on-road
+    lighting: daylight
+  corruption:
+    type: clean
+    severity: 0
+    seed: 4770
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/controlled/dd63105e2bace5c2a829/manifest.json
+    dataset_manifest_sha256: 870062846e9c9acb6d9e5fddbe44addd5e66c6ca412ff5b0e934e191187a2677
+    full_duration: true
+  replicate: 1
+  tenancy: two_model

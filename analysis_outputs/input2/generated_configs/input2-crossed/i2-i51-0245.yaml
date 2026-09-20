@@ -1,0 +1,108 @@
+schema_version: 2
+run:
+  id: i2-i51-0245
+  experiment: controlled own-input and co-runner input sensitivity
+  provenance: study=517b7c5d326691d23cf400c0f5ca5446c4bb99c902b8e1e59bf2af9b37def02e
+  timeout_seconds: 900
+ros:
+  distribution: humble
+  middleware: rmw_fastrtps_cpp
+  domain_id: 121
+  launch_package: closeloop_testbed
+  launch_file: testbed.launch.py
+replay:
+  scene_token: bcb05cffb5814973a6cff4fbdca2b99b
+  metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+  bag_directory: /mmdetection3d_ros2/data/input_variation/controlled/41c1957eee28368c9de6/bag
+  rate: 1.0
+  playback_mode: full
+  topics:
+  - /CAM_FRONT/image_rect_compressed
+  - /LIDAR_TOP
+  remappings:
+    /CAM_FRONT/image_rect_compressed: /camera/front
+    /LIDAR_TOP: /lidar/top
+  readiness_timeout_seconds: 240
+  player_startup_timeout_seconds: 15
+  completion_timeout_seconds: 240
+  communication_profile: true
+  cpu_affinity:
+  - 12
+  - 13
+  - 14
+  - 15
+  cpu_thread_count: 4
+  repeat_count: 1
+  controlled_bag_manifest: /mmdetection3d_ros2/data/input_variation/controlled/41c1957eee28368c9de6/manifest.json
+  controlled_bag_manifest_sha256: 4c922b71e845c97c6ee3e8ffbaaf567d899bdca060877fcf003c5b1934c1d229
+gpu:
+  index: 0
+  mps_enabled: true
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+models:
+- task: semantic_segmentation
+  modality: image
+  mmlab_model: vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512
+  architecture_profile: mmseg_encoder_decoder_v1
+  model_config: /usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/vit/vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512.py
+  model_config_sha256: 9d0ba4eca79d1492f3dc62134b3274ac8cb7e565636bba92e2699bce40d20cad
+  checkpoint: /root/.cache/torch/hub/checkpoints/upernet_vit-b16_mln_512x512_160k_ade20k_20210624_130547-852fa768.pth
+  checkpoint_sha256: 852fa7681f761df8fa159b62ce9ce37b151c90ae5982370838246f2b4b0bb6aa
+  inference_resize_scale:
+  - 512
+  - 512
+  id: vit-upernet
+  node_name: model_vit_upernet
+  input_topic: /camera/front
+  input_message_type: compressed_image
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+  warmup_count: 5
+  launch_offset_seconds: 0
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  cpu_thread_count: 3
+  mps_percentage: 100
+recording:
+  level: level1
+  scopes:
+  - model
+  - input
+  nsys:
+    version: 2025.2.1.130
+    trace:
+    - cuda
+    - nvtx
+    - cudnn
+    sample: none
+    backtrace: none
+    cpu_context_switch: false
+    gpu_context_switch: false
+input_variation:
+  condition_id: scene-0245
+  effect: surrounding_environment
+  source_scene_name: scene-0245
+  scene_factors:
+    road_type: bridge-construction
+    traffic: medium
+    object_density: medium
+    complexity: high-speed-and-construction
+    lighting: daylight
+  corruption:
+    type: clean
+    severity: 0
+    seed: 4245
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/controlled/41c1957eee28368c9de6/manifest.json
+    dataset_manifest_sha256: 4c922b71e845c97c6ee3e8ffbaaf567d899bdca060877fcf003c5b1934c1d229
+    full_duration: true
+  replicate: 1
+  tenancy: single

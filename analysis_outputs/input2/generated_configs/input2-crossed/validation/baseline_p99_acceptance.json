@@ -1,0 +1,36 @@
+{
+  "accepted": true,
+  "axes_per_figure": 1,
+  "baseline_conditions": 56,
+  "display_policy": "minimum through independent scene/mode P99 using NumPy linear; density and bars use displayed observations",
+  "figures": 7,
+  "focused_tests_passed": 11,
+  "library": "Matplotlib Axes.violinplot",
+  "models": 7,
+  "modes": "MPS off blue left; MPS on orange right",
+  "outputs": {
+    "analysis/input2-crossed/input-data/isolated_baselines.md": "9b36ac613283d34c6d388db35beb82a08456e4e3b729ba68e9a63dd708d64dd4",
+    "analysis/input2-crossed/input-data/isolated_violin_display.csv": "c59917090e004efb03b80c5421d96f64cbeecc4024a412a82a82697231b2e442",
+    "analysis/input2-crossed/input-data/plots/isolated/3dssd.png": "37ff3d76ca1643779bba0a9d0477169401b558081d63a676ef2c4550d24fcf53",
+    "analysis/input2-crossed/input-data/plots/isolated/centerpoint.png": "c4d1b48429d4ebd0a2925d4a99a8ee9db1f6bd3c68f7c111c8178e3f21c22a0b",
+    "analysis/input2-crossed/input-data/plots/isolated/dino.png": "bf108c683b60557c38037c298a584a19461c2d9b056a70728438513327c0afed",
+    "analysis/input2-crossed/input-data/plots/isolated/isolated_baselines.pdf": "da4f6cb29ceecd3a7c973e201dd54db16165174d74abc2beac09cf56ab364371",
+    "analysis/input2-crossed/input-data/plots/isolated/mask-rcnn.png": "b547ec0ce4f4aec1724e400207e61eec5b22fc67e2ba2e458f55b344527b1b16",
+    "analysis/input2-crossed/input-data/plots/isolated/pointpillars.png": "d9f0fe46bd33fa144c3c6eeee274259dde3363973d05187d09d2f9419e2e0804",
+    "analysis/input2-crossed/input-data/plots/isolated/vit-upernet.png": "c352ed579fae2ff76830462937e829895a95b60e52d48c5bf30950e289ade55c",
+    "analysis/input2-crossed/input-data/plots/isolated/yolov3.png": "f57f05eb278d3ce1fa406061f04e77bd4794b6e950082c2793ed961c202d85b0",
+    "analysis/input2-crossed/input-data/summary.json": "36218c7357c534555dec811a0aea1dbb3003b18f0246d34b82ec3b50430bda77"
+  },
+  "pdf_pages": 7,
+  "plotter_sha256": "cd213f2995042fbf7583e3bdc0b7adeaa1d346b0561c45fdb9d3b90002ee88db",
+  "previous_plots": "/mmdetection3d_ros2/analysis_outputs/input2/generated_configs/input2-crossed/validation/before-baseline-p99",
+  "raw_evidence_and_full_data_statistics_unchanged": true,
+  "style_guide": "/mmdetection3d_ros2/AGENTS.md",
+  "style_guide_sha256": "ca19d1ebfeeeb2e2175903709041e9facea1f5fab27cc12f93118594d7d57b28",
+  "visual_inspection": [
+    "3dssd",
+    "centerpoint",
+    "yolov3"
+  ],
+  "x_axis": "scene names only"
+}

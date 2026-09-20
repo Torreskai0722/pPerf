@@ -1,0 +1,131 @@
+schema_version: 2
+run:
+  id: i2-s10-0398
+  experiment: controlled own-input and co-runner input sensitivity
+  provenance: study=517b7c5d326691d23cf400c0f5ca5446c4bb99c902b8e1e59bf2af9b37def02e
+  timeout_seconds: 900
+ros:
+  distribution: humble
+  middleware: rmw_fastrtps_cpp
+  domain_id: 132
+  launch_package: closeloop_testbed
+  launch_file: testbed.launch.py
+replay:
+  scene_token: b519ec833e23450a8bd3340b67f2516b
+  metadata_path: /mmdetection3d_ros2/data/nuscenes/v1.0-trainval/scene.json
+  bag_directory: /mmdetection3d_ros2/data/input_variation/controlled/440212535c6bc1228743/bag
+  rate: 1.0
+  playback_mode: full
+  topics:
+  - /CAM_FRONT/image_rect_compressed
+  - /LIDAR_TOP
+  remappings:
+    /CAM_FRONT/image_rect_compressed: /camera/front
+    /LIDAR_TOP: /lidar/top
+  readiness_timeout_seconds: 240
+  player_startup_timeout_seconds: 15
+  completion_timeout_seconds: 240
+  communication_profile: true
+  cpu_affinity:
+  - 12
+  - 13
+  - 14
+  - 15
+  cpu_thread_count: 4
+  repeat_count: 1
+  controlled_bag_manifest: /mmdetection3d_ros2/data/input_variation/controlled/440212535c6bc1228743/manifest.json
+  controlled_bag_manifest_sha256: c221f55f5d8ac38220dd50c93ba35d534edc5da02f16e756f97622a59fbd600e
+gpu:
+  index: 0
+  mps_enabled: false
+  graphics_clock_mhz: 3105
+  memory_clock_mhz: 10501
+models:
+- task: detection
+  modality: image
+  mmlab_model: dino-4scale_r50_8xb2-12e_coco
+  architecture_profile: mmdet_detr_2d_v1
+  model_config: /opt/mmdetection/configs/dino/dino-4scale_r50_8xb2-12e_coco.py
+  model_config_sha256: 60f902024cb992151569237f2b4cf0c8133f195e431592e08851d08e1e4b5179
+  checkpoint: /root/.cache/torch/hub/checkpoints/dino-4scale_r50_8xb2-12e_coco_20221202_182705-55b2bba2.pth
+  checkpoint_sha256: 55b2bba264ac6ea4d006ce7597fd265c778495f0c4988530f967eee13e2f2d59
+  id: dino
+  node_name: model_dino
+  input_topic: /camera/front
+  input_message_type: compressed_image
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.jpg
+  warmup_count: 5
+  launch_offset_seconds: 0
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  cpu_thread_count: 3
+- task: detection
+  modality: lidar
+  mmlab_model: centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d
+  architecture_profile: mmdet3d_voxel_two_stage_v1
+  model_config: /opt/mmdetection3d/configs/centerpoint/centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d.py
+  model_config_sha256: 6475e4e9ea1891cb46823ce5ef62b6f3d3cf54ca79b45743476e986910f43ad5
+  checkpoint: /root/.cache/torch/hub/checkpoints/centerpoint_0075voxel_second_secfpn_dcn_circlenms_4x8_cyclic_20e_nus_20220810_025930-657f67e0.pth
+  checkpoint_sha256: 657f67e049c40d6b3c293133bed0e29693aad4095938904fb4d83dc57dc9aca0
+  id: centerpoint
+  node_name: model_centerpoint
+  input_topic: /lidar/top
+  input_message_type: pointcloud2
+  input_queue_depth: 1
+  qos: best_effort
+  warmup_input: /mmdetection3d_ros2/data/warmup.bin
+  warmup_count: 5
+  launch_offset_seconds: 1
+  module_annotation_depth: 0
+  quiet_period_seconds: 0.5
+  cpu_affinity:
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  cpu_thread_count: 3
+recording:
+  level: level1
+  scopes:
+  - model
+  - input
+  nsys:
+    version: 2025.2.1.130
+    trace:
+    - cuda
+    - nvtx
+    - cudnn
+    sample: none
+    backtrace: none
+    cpu_context_switch: false
+    gpu_context_switch: true
+input_variation:
+  condition_id: scene-0398
+  effect: surrounding_environment
+  source_scene_name: scene-0398
+  scene_factors:
+    road_type: urban-road
+    traffic: very-high
+    object_density: very-high
+    complexity: congestion-and-overtaking
+    lighting: daylight
+  corruption:
+    type: clean
+    severity: 0
+    seed: 4398
+    dataset_manifest: /mmdetection3d_ros2/data/input_variation/controlled/440212535c6bc1228743/manifest.json
+    dataset_manifest_sha256: c221f55f5d8ac38220dd50c93ba35d534edc5da02f16e756f97622a59fbd600e
+    full_duration: true
+  replicate: 1
+  tenancy: two_model

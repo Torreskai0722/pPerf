@@ -1,0 +1,315 @@
+Starting >>> closeloop_profiler
+Starting >>> closeloop_analyzer
+UpdateCTestConfiguration  from :/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/CTestConfiguration.ini
+Parse Config file:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/CTestConfiguration.ini
+   Site: mg-CAR
+   Build name: (empty)
+ Add coverage exclude regular expressions.
+Create new tag: 20260918-0530 - Experimental
+UpdateCTestConfiguration  from :/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/CTestConfiguration.ini
+Parse Config file:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/CTestConfiguration.ini
+Test project /mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: test_agent_state
+
+1: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_agent_state.gtest.xml" "--package-name" "closeloop_profiler" "--output-file" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/ament_cmake_gtest/test_agent_state.txt" "--command" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_agent_state" "--gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_agent_state.gtest.xml"
+1: Test timeout computed to be: 60
+1: -- run_test.py: invoking following command in '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler':
+1:  - /mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_agent_state --gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_agent_state.gtest.xml
+1: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+1: [==========] Running 2 tests from 1 test suite.
+1: [----------] Global test environment set-up.
+1: [----------] 2 tests from AgentState
+1: [ RUN      ] AgentState.AcceptsCaptureAndRepeatedReplayCycle
+1: [       OK ] AgentState.AcceptsCaptureAndRepeatedReplayCycle (0 ms)
+1: [ RUN      ] AgentState.RejectsSkippedAndPostShutdownTransitions
+1: [       OK ] AgentState.RejectsSkippedAndPostShutdownTransitions (0 ms)
+1: [----------] 2 tests from AgentState (0 ms total)
+1: 
+1: [----------] Global test environment tear-down
+1: [==========] 2 tests from 1 test suite ran. (0 ms total)
+1: [  PASSED  ] 2 tests.
+1: -- run_test.py: return code 0
+1: -- run_test.py: inject classname prefix into gtest result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_agent_state.gtest.xml'
+1: -- run_test.py: verify result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_agent_state.gtest.xml'
+1/4 Test #1: test_agent_state .................   Passed    0.05 sec
+test 2
+    Start 2: test_driver_replay
+
+2: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_driver_replay.gtest.xml" "--package-name" "closeloop_profiler" "--output-file" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/ament_cmake_gtest/test_driver_replay.txt" "--command" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_driver_replay" "--gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_driver_replay.gtest.xml"
+2: Test timeout computed to be: 60
+2: -- run_test.py: invoking following command in '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler':
+2:  - /mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_driver_replay --gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_driver_replay.gtest.xml
+2: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+2: [==========] Running 2 tests from 1 test suite.
+2: [----------] Global test environment set-up.
+2: [----------] 2 tests from DriverReplayTest
+2: [ RUN      ] DriverReplayTest.ReplaysAllDriverVariantsAndDependencies
+2: [       OK ] DriverReplayTest.ReplaysAllDriverVariantsAndDependencies (214 ms)
+2: [ RUN      ] DriverReplayTest.AppliesPerLaunchPriorityRangeExtremes
+2: [       OK ] DriverReplayTest.AppliesPerLaunchPriorityRangeExtremes (115 ms)
+2: [----------] 2 tests from DriverReplayTest (329 ms total)
+2: 
+2: [----------] Global test environment tear-down
+2: [==========] 2 tests from 1 test suite ran. (329 ms total)
+2: [  PASSED  ] 2 tests.
+2: -- run_test.py: return code 0
+2: -- run_test.py: inject classname prefix into gtest result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_driver_replay.gtest.xml'
+2: -- run_test.py: verify result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_driver_replay.gtest.xml'
+2/4 Test #2: test_driver_replay ...............   Passed    0.40 sec
+test 3
+    Start 3: test_nvbit_cta_tracker
+
+3: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_nvbit_cta_tracker.gtest.xml" "--package-name" "closeloop_profiler" "--output-file" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/ament_cmake_gtest/test_nvbit_cta_tracker.txt" "--command" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_nvbit_cta_tracker" "--gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_nvbit_cta_tracker.gtest.xml"
+3: Test timeout computed to be: 60
+3: -- run_test.py: invoking following command in '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler':
+3:  - /mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_nvbit_cta_tracker --gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_nvbit_cta_tracker.gtest.xml
+3: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+3: [==========] Running 10 tests from 1 test suite.
+3: [----------] Global test environment set-up.
+3: [----------] 10 tests from NvbitCtaTracker
+3: [ RUN      ] NvbitCtaTracker.LinearizesThreeDimensionalCtas
+3: [       OK ] NvbitCtaTracker.LinearizesThreeDimensionalCtas (0 ms)
+3: [ RUN      ] NvbitCtaTracker.DivergentExitsProduceOneCtaBoundary
+3: [       OK ] NvbitCtaTracker.DivergentExitsProduceOneCtaBoundary (0 ms)
+3: [ RUN      ] NvbitCtaTracker.ExitBoundaryAllowsWarpOvershoot
+3: [       OK ] NvbitCtaTracker.ExitBoundaryAllowsWarpOvershoot (0 ms)
+3: [ RUN      ] NvbitCtaTracker.RetainsPartialBoundaries
+3: [       OK ] NvbitCtaTracker.RetainsPartialBoundaries (0 ms)
+3: [ RUN      ] NvbitCtaTracker.EnforcesFixedBufferBounds
+3: [       OK ] NvbitCtaTracker.EnforcesFixedBufferBounds (0 ms)
+3: [ RUN      ] NvbitCtaTracker.SelectsOnlyThePassiveSequenceWindow
+3: [       OK ] NvbitCtaTracker.SelectsOnlyThePassiveSequenceWindow (0 ms)
+3: [ RUN      ] NvbitCtaTracker.AlignsExactHeadThenKeepsTailWindow
+3: [       OK ] NvbitCtaTracker.AlignsExactHeadThenKeepsTailWindow (0 ms)
+3: [ RUN      ] NvbitCtaTracker.ConvertsGlobaltimerWithSignedOffset
+3: [       OK ] NvbitCtaTracker.ConvertsGlobaltimerWithSignedOffset (0 ms)
+3: [ RUN      ] NvbitCtaTracker.PublicRecordHasEntryAndExitSmFields
+3: [       OK ] NvbitCtaTracker.PublicRecordHasEntryAndExitSmFields (0 ms)
+3: [ RUN      ] NvbitCtaTracker.CollectionStatusAccountsForCapacityAndBoundaries
+3: [       OK ] NvbitCtaTracker.CollectionStatusAccountsForCapacityAndBoundaries (0 ms)
+3: [----------] 10 tests from NvbitCtaTracker (0 ms total)
+3: 
+3: [----------] Global test environment tear-down
+3: [==========] 10 tests from 1 test suite ran. (0 ms total)
+3: [  PASSED  ] 10 tests.
+3: -- run_test.py: return code 0
+3: -- run_test.py: inject classname prefix into gtest result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_nvbit_cta_tracker.gtest.xml'
+3: -- run_test.py: verify result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/test_nvbit_cta_tracker.gtest.xml'
+3/4 Test #3: test_nvbit_cta_tracker ...........   Passed    0.05 sec
+test 4
+    Start 4: profiler_python_tests
+
+4: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/profiler_python_tests.xunit.xml" "--package-name" "closeloop_profiler" "--output-file" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/ament_cmake_pytest/profiler_python_tests.txt" "--command" "/usr/bin/python3" "-u" "-m" "pytest" "/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/test" "-o" "cache_dir=/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/ament_cmake_pytest/profiler_python_tests/.cache" "--junit-xml=/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/profiler_python_tests.xunit.xml" "--junit-prefix=closeloop_profiler"
+4: Test timeout computed to be: 60
+4: -- run_test.py: invoking following command in '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler':
+4:  - /usr/bin/python3 -u -m pytest /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/test -o cache_dir=/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/ament_cmake_pytest/profiler_python_tests/.cache --junit-xml=/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/profiler_python_tests.xunit.xml --junit-prefix=closeloop_profiler
+4: ============================= test session starts ==============================
+4: platform linux -- Python 3.10.12, pytest-8.3.5, pluggy-1.6.0
+4: cachedir: closeloop_perf/build/closeloop_profiler/ament_cmake_pytest/profiler_python_tests/.cache
+4: rootdir: /mmdetection3d_ros2
+4: plugins: ament-copyright-0.12.15, ament-xmllint-0.12.15, ament-lint-0.12.15, launch-testing-1.0.14, launch-testing-ros-0.19.13, ament-flake8-0.12.15, ament-pep257-0.12.15, dash-4.4.1, colcon-core-0.21.0
+4: collected 57 items
+4: 
+4: ../../src/closeloop_profiler/test/test_architecture_profiles.py .......  [ 12%]
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-8.3.5, pluggy-1.6.0
+cachedir: /mmdetection3d_ros2/closeloop_perf/build/closeloop_analyzer/.pytest_cache
+rootdir: /mmdetection3d_ros2/closeloop_perf/src/closeloop_analyzer
+configfile: pytest.ini
+plugins: ament-copyright-0.12.15, ament-xmllint-0.12.15, ament-lint-0.12.15, launch-testing-1.0.14, launch-testing-ros-0.19.13, ament-flake8-0.12.15, ament-pep257-0.12.15, dash-4.4.1, colcon-core-0.21.0
+collected 55 items
+
+test/test_communication.py .                                             [  1%]
+test/test_corrected_input_analysis.py .........                          [ 18%]
+test/test_coverage.py ..                                                 [ 21%]
+test/test_crossed_analysis.py ......                                     [ 32%]
+test/test_mps_analyzer.py ........                                       [ 47%]
+test/test_mps_leftover.py ....                                           [ 54%]
+test/test_mps_two_model_cta_analysis.py .....                            [ 63%]
+test/test_mps_two_model_gpu_analysis.py ...                              [ 69%]
+test/test_mps_two_model_report.py ..                                     [ 72%]
+test/test_preprocess_analyzer.py ...                                     [ 78%]
+test/test_public_analyzers.py ....                                       [ 85%]
+test/test_target_selection.py .......s                                   [100%]
+
+- generated xml file: /mmdetection3d_ros2/closeloop_perf/build/closeloop_analyzer/pytest.xml -
+======================== 54 passed, 1 skipped in 1.09s =========================
+Finished <<< closeloop_analyzer [2.05s]
+4: ../../src/closeloop_profiler/test/test_kernel_capsule.py ............... [ 38%]
+4: ..............                                                           [ 63%]
+4: ../../src/closeloop_profiler/test/test_profiler.py ..................    [ 94%]
+4: ../../src/closeloop_profiler/test/test_source_frames.py ...              [100%]
+4: 
+4: - generated xml file: /mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/profiler_python_tests.xunit.xml -
+4: ============================== 57 passed in 3.06s ==============================
+4: -- run_test.py: return code 0
+4: -- run_test.py: verify result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_profiler/test_results/closeloop_profiler/profiler_python_tests.xunit.xml'
+4/4 Test #4: profiler_python_tests ............   Passed    3.78 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Label Time Summary:
+gtest     =   0.49 sec*proc (3 tests)
+pytest    =   3.78 sec*proc (1 test)
+
+Total Test time (real) =   4.27 sec
+Finished <<< closeloop_profiler [4.49s]
+Starting >>> closeloop_testbed
+UpdateCTestConfiguration  from :/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/CTestConfiguration.ini
+Parse Config file:/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/CTestConfiguration.ini
+   Site: mg-CAR
+   Build name: (empty)
+ Add coverage exclude regular expressions.
+Create new tag: 20260918-0530 - Experimental
+UpdateCTestConfiguration  from :/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/CTestConfiguration.ini
+Parse Config file:/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/CTestConfiguration.ini
+Test project /mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: test_offline_adapter
+
+1: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/test_offline_adapter.gtest.xml" "--package-name" "closeloop_testbed" "--output-file" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/ament_cmake_gtest/test_offline_adapter.txt" "--command" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_offline_adapter" "--gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/test_offline_adapter.gtest.xml"
+1: Test timeout computed to be: 60
+1: -- run_test.py: invoking following command in '/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed':
+1:  - /mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_offline_adapter --gtest_output=xml:/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/test_offline_adapter.gtest.xml
+1: Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+1: [==========] Running 2 tests from 1 test suite.
+1: [----------] Global test environment set-up.
+1: [----------] 2 tests from OfflineAdapterTest
+1: [ RUN      ] OfflineAdapterTest.RejectsMalformedConfiguration
+1: [       OK ] OfflineAdapterTest.RejectsMalformedConfiguration (192 ms)
+1: [ RUN      ] OfflineAdapterTest.SizesAndHashesDeterministicOutput
+1: [       OK ] OfflineAdapterTest.SizesAndHashesDeterministicOutput (107 ms)
+1: [----------] 2 tests from OfflineAdapterTest (299 ms total)
+1: 
+1: [----------] Global test environment tear-down
+1: [==========] 2 tests from 1 test suite ran. (299 ms total)
+1: [  PASSED  ] 2 tests.
+1: -- run_test.py: return code 0
+1: -- run_test.py: inject classname prefix into gtest result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/test_offline_adapter.gtest.xml'
+1: -- run_test.py: verify result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/test_offline_adapter.gtest.xml'
+1/2 Test #1: test_offline_adapter .............   Passed    0.36 sec
+test 2
+    Start 2: testbed_python_tests
+
+2: Test command: /usr/bin/python3 "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/testbed_python_tests.xunit.xml" "--package-name" "closeloop_testbed" "--output-file" "/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/ament_cmake_pytest/testbed_python_tests.txt" "--command" "/usr/bin/python3" "-u" "-m" "pytest" "/mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/test" "-o" "cache_dir=/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/ament_cmake_pytest/testbed_python_tests/.cache" "--junit-xml=/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/testbed_python_tests.xunit.xml" "--junit-prefix=closeloop_testbed"
+2: Test timeout computed to be: 60
+2: -- run_test.py: invoking following command in '/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed':
+2:  - /usr/bin/python3 -u -m pytest /mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/test -o cache_dir=/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/ament_cmake_pytest/testbed_python_tests/.cache --junit-xml=/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/testbed_python_tests.xunit.xml --junit-prefix=closeloop_testbed
+2: ============================= test session starts ==============================
+2: platform linux -- Python 3.10.12, pytest-8.3.5, pluggy-1.6.0
+2: cachedir: /mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/ament_cmake_pytest/testbed_python_tests/.cache
+2: rootdir: /mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed
+2: configfile: pytest.ini
+2: plugins: ament-copyright-0.12.15, ament-xmllint-0.12.15, ament-lint-0.12.15, launch-testing-1.0.14, launch-testing-ros-0.19.13, ament-flake8-0.12.15, ament-pep257-0.12.15, dash-4.4.1, colcon-core-0.21.0
+2: collected 34 items
+2: 
+2: ../../src/closeloop_testbed/test/test_green_context.py ..                [  5%]
+2: ../../src/closeloop_testbed/test/test_paired.py ......                   [ 23%]
+2: ../../src/closeloop_testbed/test/test_resource_control.py .........      [ 50%]
+2: ../../src/closeloop_testbed/test/test_testbed.py .................       [100%]
+2: 
+2: - generated xml file: /mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/testbed_python_tests.xunit.xml -
+2: ============================== 34 passed in 0.29s ==============================
+2: -- run_test.py: return code 0
+2: -- run_test.py: verify result file '/mmdetection3d_ros2/closeloop_perf/build/closeloop_testbed/test_results/closeloop_testbed/testbed_python_tests.xunit.xml'
+2/2 Test #2: testbed_python_tests .............   Passed    0.88 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+gtest     =   0.36 sec*proc (1 test)
+pytest    =   0.88 sec*proc (1 test)
+
+Total Test time (real) =   1.23 sec
+Finished <<< closeloop_testbed [1.28s]
+Starting >>> closeloop_experiments
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-8.3.5, pluggy-1.6.0
+cachedir: /mmdetection3d_ros2/closeloop_perf/build/closeloop_experiments/.pytest_cache
+rootdir: /mmdetection3d_ros2/closeloop_perf/src/closeloop_experiments
+configfile: pytest.ini
+plugins: ament-copyright-0.12.15, ament-xmllint-0.12.15, ament-lint-0.12.15, launch-testing-1.0.14, launch-testing-ros-0.19.13, ament-flake8-0.12.15, ament-pep257-0.12.15, dash-4.4.1, colcon-core-0.21.0
+collected 113 items
+
+test/test_capsule_cli.py .                                               [  0%]
+test/test_capture_session.py ....                                        [  4%]
+test/test_cli.py ..                                                      [  6%]
+test/test_communication_variation.py ..                                  [  7%]
+test/test_config.py ................                                     [ 22%]
+test/test_corrected_input_variation.py .........                         [ 30%]
+test/test_corrupt_rosbag.py ............                                 [ 40%]
+test/test_full_bag_green.py .......                                      [ 46%]
+test/test_input1_campaign.py .......                                     [ 53%]
+test/test_input2_campaign.py ....                                        [ 56%]
+[Processing: closeloop_experiments]
+test/test_input_crossed.py ...                                           [ 59%]
+test/test_input_variation.py ......                                      [ 64%]
+[Processing: closeloop_experiments]
+test/test_k1091_cta_mps_sweep.py ....                                    [ 68%]
+test/test_migration.py .....                                             [ 72%]
+test/test_mps.py ..                                                      [ 74%]
+test/test_mps_three_model.py .                                           [ 75%]
+test/test_mps_two_model_cause.py ..                                      [ 76%]
+test/test_non_mps_memcpy_compute.py ......                               [ 82%]
+test/test_non_mps_offset_sweep.py FF...                                  [ 86%]
+test/test_package_boundaries.py ...                                      [ 89%]
+test/test_rpc_transport.py ...                                           [ 92%]
+test/test_runner.py .........                                            [100%]
+
+=================================== FAILURES ===================================
+________ test_inventory_has_18_unique_pairs_and_every_model_with_3dssd _________
+closeloop_experiments/non_mps_offset_sweep.py:84: in _load_yaml
+    value = yaml.safe_load(Path(path).read_bytes())
+/usr/lib/python3.10/pathlib.py:1126: in read_bytes
+    with self.open(mode='rb') as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   FileNotFoundError: [Errno 2] No such file or directory: '/mmdetection3d_ros2/closeloop_perf/studies/section4_1/study.yaml'
+
+The above exception was the direct cause of the following exception:
+test/test_non_mps_offset_sweep.py:29: in test_inventory_has_18_unique_pairs_and_every_model_with_3dssd
+    study = load_study(STUDY, check_paths=False)
+closeloop_experiments/non_mps_offset_sweep.py:124: in load_study
+    section = _load_yaml(section_path)
+closeloop_experiments/non_mps_offset_sweep.py:86: in _load_yaml
+    raise StudyError(f"cannot load offset sweep input: {exc}") from exc
+E   closeloop_experiments.non_mps_memcpy_compute.StudyError: cannot load offset sweep input: [Errno 2] No such file or directory: '/mmdetection3d_ros2/closeloop_perf/studies/section4_1/study.yaml'
+________________ test_offset_order_and_image_deadline_are_exact ________________
+closeloop_experiments/non_mps_offset_sweep.py:84: in _load_yaml
+    value = yaml.safe_load(Path(path).read_bytes())
+/usr/lib/python3.10/pathlib.py:1126: in read_bytes
+    with self.open(mode='rb') as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   FileNotFoundError: [Errno 2] No such file or directory: '/mmdetection3d_ros2/closeloop_perf/studies/section4_1/study.yaml'
+
+The above exception was the direct cause of the following exception:
+test/test_non_mps_offset_sweep.py:39: in test_offset_order_and_image_deadline_are_exact
+    study = load_study(STUDY, check_paths=False)
+closeloop_experiments/non_mps_offset_sweep.py:124: in load_study
+    section = _load_yaml(section_path)
+closeloop_experiments/non_mps_offset_sweep.py:86: in _load_yaml
+    raise StudyError(f"cannot load offset sweep input: {exc}") from exc
+E   closeloop_experiments.non_mps_memcpy_compute.StudyError: cannot load offset sweep input: [Errno 2] No such file or directory: '/mmdetection3d_ros2/closeloop_perf/studies/section4_1/study.yaml'
+- generated xml file: /mmdetection3d_ros2/closeloop_perf/build/closeloop_experiments/pytest.xml -
+=========================== short test summary info ============================
+FAILED test/test_non_mps_offset_sweep.py::test_inventory_has_18_unique_pairs_and_every_model_with_3dssd
+FAILED test/test_non_mps_offset_sweep.py::test_offset_order_and_image_deadline_are_exact
+=================== 2 failed, 111 passed in 64.06s (0:01:04) ===================
+Finished <<< closeloop_experiments [1min 5s]	[ with test failures ]
+
+Summary: 4 packages finished [1min 11s]
+  1 package had test failures: closeloop_experiments

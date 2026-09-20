@@ -1,0 +1,389 @@
+{
+  "analyzer_sha256": "46547f2e9dd8273c608e09a50bc9c1f61f93bd6340f5045f5a8953d343de3633",
+  "limitation": "Reconstructed geometry/logical work; not a recorded GPU voxel count or cycle counter",
+  "method": "CPU reconstruction with installed inferencer transforms; no GPU inference",
+  "settings": {
+    "scene-0184": {
+      "pipeline": [
+        {
+          "backend_args": null,
+          "coord_type": "LIDAR",
+          "load_dim": 5,
+          "type": "LidarDet3DInferencerLoader",
+          "use_dim": 5
+        },
+        {
+          "backend_args": null,
+          "pad_empty_sweeps": true,
+          "remove_close": true,
+          "sweeps_num": 9,
+          "type": "LoadPointsFromMultiSweeps",
+          "use_dim": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "flip": false,
+          "img_scale": [
+            1333,
+            800
+          ],
+          "pts_scale_ratio": 1,
+          "transforms": [
+            {
+              "rot_range": [
+                0,
+                0
+              ],
+              "scale_ratio_range": [
+                1.0,
+                1.0
+              ],
+              "translation_std": [
+                0,
+                0,
+                0
+              ],
+              "type": "GlobalRotScaleTrans"
+            },
+            {
+              "type": "RandomFlip3D"
+            },
+            {
+              "point_cloud_range": [
+                -54,
+                -54,
+                -5.0,
+                54,
+                54,
+                3.0
+              ],
+              "type": "PointsRangeFilter"
+            }
+          ],
+          "type": "MultiScaleFlipAug3D"
+        },
+        {
+          "keys": [
+            "points"
+          ],
+          "type": "Pack3DDetInputs"
+        }
+      ],
+      "voxel_layer": {
+        "max_num_points": 10,
+        "max_voxels": [
+          90000,
+          120000
+        ],
+        "point_cloud_range": [
+          -54,
+          -54,
+          -5.0,
+          54,
+          54,
+          3.0
+        ],
+        "voxel_size": [
+          0.075,
+          0.075,
+          0.2
+        ]
+      }
+    },
+    "scene-0245": {
+      "pipeline": [
+        {
+          "backend_args": null,
+          "coord_type": "LIDAR",
+          "load_dim": 5,
+          "type": "LidarDet3DInferencerLoader",
+          "use_dim": 5
+        },
+        {
+          "backend_args": null,
+          "pad_empty_sweeps": true,
+          "remove_close": true,
+          "sweeps_num": 9,
+          "type": "LoadPointsFromMultiSweeps",
+          "use_dim": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "flip": false,
+          "img_scale": [
+            1333,
+            800
+          ],
+          "pts_scale_ratio": 1,
+          "transforms": [
+            {
+              "rot_range": [
+                0,
+                0
+              ],
+              "scale_ratio_range": [
+                1.0,
+                1.0
+              ],
+              "translation_std": [
+                0,
+                0,
+                0
+              ],
+              "type": "GlobalRotScaleTrans"
+            },
+            {
+              "type": "RandomFlip3D"
+            },
+            {
+              "point_cloud_range": [
+                -54,
+                -54,
+                -5.0,
+                54,
+                54,
+                3.0
+              ],
+              "type": "PointsRangeFilter"
+            }
+          ],
+          "type": "MultiScaleFlipAug3D"
+        },
+        {
+          "keys": [
+            "points"
+          ],
+          "type": "Pack3DDetInputs"
+        }
+      ],
+      "voxel_layer": {
+        "max_num_points": 10,
+        "max_voxels": [
+          90000,
+          120000
+        ],
+        "point_cloud_range": [
+          -54,
+          -54,
+          -5.0,
+          54,
+          54,
+          3.0
+        ],
+        "voxel_size": [
+          0.075,
+          0.075,
+          0.2
+        ]
+      }
+    },
+    "scene-0398": {
+      "pipeline": [
+        {
+          "backend_args": null,
+          "coord_type": "LIDAR",
+          "load_dim": 5,
+          "type": "LidarDet3DInferencerLoader",
+          "use_dim": 5
+        },
+        {
+          "backend_args": null,
+          "pad_empty_sweeps": true,
+          "remove_close": true,
+          "sweeps_num": 9,
+          "type": "LoadPointsFromMultiSweeps",
+          "use_dim": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "flip": false,
+          "img_scale": [
+            1333,
+            800
+          ],
+          "pts_scale_ratio": 1,
+          "transforms": [
+            {
+              "rot_range": [
+                0,
+                0
+              ],
+              "scale_ratio_range": [
+                1.0,
+                1.0
+              ],
+              "translation_std": [
+                0,
+                0,
+                0
+              ],
+              "type": "GlobalRotScaleTrans"
+            },
+            {
+              "type": "RandomFlip3D"
+            },
+            {
+              "point_cloud_range": [
+                -54,
+                -54,
+                -5.0,
+                54,
+                54,
+                3.0
+              ],
+              "type": "PointsRangeFilter"
+            }
+          ],
+          "type": "MultiScaleFlipAug3D"
+        },
+        {
+          "keys": [
+            "points"
+          ],
+          "type": "Pack3DDetInputs"
+        }
+      ],
+      "voxel_layer": {
+        "max_num_points": 10,
+        "max_voxels": [
+          90000,
+          120000
+        ],
+        "point_cloud_range": [
+          -54,
+          -54,
+          -5.0,
+          54,
+          54,
+          3.0
+        ],
+        "voxel_size": [
+          0.075,
+          0.075,
+          0.2
+        ]
+      }
+    },
+    "scene-0770": {
+      "pipeline": [
+        {
+          "backend_args": null,
+          "coord_type": "LIDAR",
+          "load_dim": 5,
+          "type": "LidarDet3DInferencerLoader",
+          "use_dim": 5
+        },
+        {
+          "backend_args": null,
+          "pad_empty_sweeps": true,
+          "remove_close": true,
+          "sweeps_num": 9,
+          "type": "LoadPointsFromMultiSweeps",
+          "use_dim": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "flip": false,
+          "img_scale": [
+            1333,
+            800
+          ],
+          "pts_scale_ratio": 1,
+          "transforms": [
+            {
+              "rot_range": [
+                0,
+                0
+              ],
+              "scale_ratio_range": [
+                1.0,
+                1.0
+              ],
+              "translation_std": [
+                0,
+                0,
+                0
+              ],
+              "type": "GlobalRotScaleTrans"
+            },
+            {
+              "type": "RandomFlip3D"
+            },
+            {
+              "point_cloud_range": [
+                -54,
+                -54,
+                -5.0,
+                54,
+                54,
+                3.0
+              ],
+              "type": "PointsRangeFilter"
+            }
+          ],
+          "type": "MultiScaleFlipAug3D"
+        },
+        {
+          "keys": [
+            "points"
+          ],
+          "type": "Pack3DDetInputs"
+        }
+      ],
+      "voxel_layer": {
+        "max_num_points": 10,
+        "max_voxels": [
+          90000,
+          120000
+        ],
+        "point_cloud_range": [
+          -54,
+          -54,
+          -5.0,
+          54,
+          54,
+          3.0
+        ],
+        "voxel_size": [
+          0.075,
+          0.075,
+          0.2
+        ]
+      }
+    }
+  },
+  "sources_sha256": {
+    "/mmdetection3d_ros2/data/input_variation/controlled/41c1957eee28368c9de6/manifest.json": "4c922b71e845c97c6ee3e8ffbaaf567d899bdca060877fcf003c5b1934c1d229",
+    "/mmdetection3d_ros2/data/input_variation/controlled/41c1957eee28368c9de6/source_frames.jsonl": "dd7e63fdbee4f887b5bec124c4396d4a1c843fb9ffefd737eae1d8c3e31849e7",
+    "/mmdetection3d_ros2/data/input_variation/controlled/440212535c6bc1228743/manifest.json": "c221f55f5d8ac38220dd50c93ba35d534edc5da02f16e756f97622a59fbd600e",
+    "/mmdetection3d_ros2/data/input_variation/controlled/440212535c6bc1228743/source_frames.jsonl": "116c2579c1c0b6b80fd2476ecb8b8ef8afab390453d7151f6be98b92a48a10ca",
+    "/mmdetection3d_ros2/data/input_variation/controlled/b72e921ce26a64d11ca6/manifest.json": "60eccac44145b4a9a640aed627e96924422487092212dfd32ae34a37ec5049d1",
+    "/mmdetection3d_ros2/data/input_variation/controlled/b72e921ce26a64d11ca6/source_frames.jsonl": "671d65d10adf61ffdb678798d82c7020c77baefeceba5c467216309dffbc2f50",
+    "/mmdetection3d_ros2/data/input_variation/controlled/dd63105e2bace5c2a829/manifest.json": "870062846e9c9acb6d9e5fddbe44addd5e66c6ca412ff5b0e934e191187a2677",
+    "/mmdetection3d_ros2/data/input_variation/controlled/dd63105e2bace5c2a829/source_frames.jsonl": "dfa37682a05a8eeb5ada2a6c7af3a6b8be6f44779e6c57d8836e51b2dd5461e5",
+    "/opt/mmcv/mmcv/ops/csrc/common/cuda/voxelization_cuda_kernel.cuh": "a161dfcc06303b916cd919b0eb85b3aa3bae33c16730e87c46a0e6db1fd5ab49",
+    "/opt/mmcv/mmcv/ops/csrc/pytorch/cuda/voxelization_cuda.cu": "9a089b79490c1a53648601d992bdacea4f1272af7c127dc0c2ac854ef3f79d2d",
+    "/opt/mmdetection3d/configs/centerpoint/centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d.py": "6475e4e9ea1891cb46823ce5ef62b6f3d3cf54ca79b45743476e986910f43ad5",
+    "/opt/mmdetection3d/mmdet3d/datasets/transforms/loading.py": "e505dea1c5b05c2bd6820fe91543d62708a49950913babaa964554bf72246bb8"
+  }
+}

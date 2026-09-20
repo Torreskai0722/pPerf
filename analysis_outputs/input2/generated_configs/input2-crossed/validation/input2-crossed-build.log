@@ -1,0 +1,94 @@
+Starting >>> closeloop_profiler
+Starting >>> closeloop_analyzer
+Finished <<< closeloop_analyzer [0.81s]
+--- stderr: closeloop_profiler
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp: In member function ‘std::pair<std::__cxx11::basic_string<char>, long unsigned int> {anonymous}::KernelCapsuleAgent::digest_terminal_outputs()’:
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:1883:18: warning: ‘int SHA256_Init(SHA256_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+ 1883 |       SHA256_Init(&hash);
+      |       ~~~~~~~~~~~^~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:15:
+/usr/include/openssl/sha.h:73:27: note: declared here
+   73 | OSSL_DEPRECATEDIN_3_0 int SHA256_Init(SHA256_CTX *c);
+      |                           ^~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:1889:22: warning: ‘int SHA256_Update(SHA256_CTX*, const void*, size_t)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+ 1889 |         SHA256_Update(&hash, output.name.data(), output.name.size());
+      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:15:
+/usr/include/openssl/sha.h:74:27: note: declared here
+   74 | OSSL_DEPRECATEDIN_3_0 int SHA256_Update(SHA256_CTX *c,
+      |                           ^~~~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:1890:22: warning: ‘int SHA256_Update(SHA256_CTX*, const void*, size_t)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+ 1890 |         SHA256_Update(&hash, host.data(), host.size());
+      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:15:
+/usr/include/openssl/sha.h:74:27: note: declared here
+   74 | OSSL_DEPRECATEDIN_3_0 int SHA256_Update(SHA256_CTX *c,
+      |                           ^~~~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:1894:19: warning: ‘int SHA256_Final(unsigned char*, SHA256_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+ 1894 |       SHA256_Final(digest, &hash);
+      |       ~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:15:
+/usr/include/openssl/sha.h:76:27: note: declared here
+   76 | OSSL_DEPRECATEDIN_3_0 int SHA256_Final(unsigned char *md, SHA256_CTX *c);
+      |                           ^~~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:1902:16: warning: ‘int SHA256_Init(SHA256_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+ 1902 |     SHA256_Init(&hash);
+      |     ~~~~~~~~~~~^~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:15:
+/usr/include/openssl/sha.h:73:27: note: declared here
+   73 | OSSL_DEPRECATEDIN_3_0 int SHA256_Init(SHA256_CTX *c);
+      |                           ^~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:1909:20: warning: ‘int SHA256_Update(SHA256_CTX*, const void*, size_t)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+ 1909 |       SHA256_Update(&hash, host.data(), host.size());
+      |       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:15:
+/usr/include/openssl/sha.h:74:27: note: declared here
+   74 | OSSL_DEPRECATEDIN_3_0 int SHA256_Update(SHA256_CTX *c,
+      |                           ^~~~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:1913:17: warning: ‘int SHA256_Final(unsigned char*, SHA256_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+ 1913 |     SHA256_Final(digest, &hash);
+      |     ~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_profiler/native/kernel_capsule_native.cpp:15:
+/usr/include/openssl/sha.h:76:27: note: declared here
+   76 | OSSL_DEPRECATEDIN_3_0 int SHA256_Final(unsigned char *md, SHA256_CTX *c);
+      |                           ^~~~~~~~~~~~
+---
+Finished <<< closeloop_profiler [8.08s]
+Starting >>> closeloop_testbed
+--- stderr: closeloop_testbed
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp: In member function ‘std::string {anonymous}::Worker::digest_outputs()’:
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:536:16: warning: ‘int SHA256_Init(SHA256_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  536 |     SHA256_Init(&digest);
+      |     ~~~~~~~~~~~^~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:10:
+/usr/include/openssl/sha.h:73:27: note: declared here
+   73 | OSSL_DEPRECATEDIN_3_0 int SHA256_Init(SHA256_CTX *c);
+      |                           ^~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:547:20: warning: ‘int SHA256_Update(SHA256_CTX*, const void*, size_t)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  547 |       SHA256_Update(&digest, output.name, std::strlen(output.name));
+      |       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:10:
+/usr/include/openssl/sha.h:74:27: note: declared here
+   74 | OSSL_DEPRECATEDIN_3_0 int SHA256_Update(SHA256_CTX *c,
+      |                           ^~~~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:548:20: warning: ‘int SHA256_Update(SHA256_CTX*, const void*, size_t)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  548 |       SHA256_Update(&digest, bytes.data(), bytes.size());
+      |       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:10:
+/usr/include/openssl/sha.h:74:27: note: declared here
+   74 | OSSL_DEPRECATEDIN_3_0 int SHA256_Update(SHA256_CTX *c,
+      |                           ^~~~~~~~~~~~~
+/mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:551:17: warning: ‘int SHA256_Final(unsigned char*, SHA256_CTX*)’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  551 |     SHA256_Final(result, &digest);
+      |     ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+In file included from /mmdetection3d_ros2/closeloop_perf/src/closeloop_testbed/native/offline_worker.cpp:10:
+/usr/include/openssl/sha.h:76:27: note: declared here
+   76 | OSSL_DEPRECATEDIN_3_0 int SHA256_Final(unsigned char *md, SHA256_CTX *c);
+      |                           ^~~~~~~~~~~~
+---
+Finished <<< closeloop_testbed [5.70s]
+Starting >>> closeloop_experiments
+Finished <<< closeloop_experiments [0.82s]
+
+Summary: 4 packages finished [14.9s]
+  2 packages had stderr output: closeloop_profiler closeloop_testbed

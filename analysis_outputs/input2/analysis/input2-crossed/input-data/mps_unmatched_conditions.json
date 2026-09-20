@@ -1,0 +1,482 @@
+[
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0770",
+    "model_id": "yolov3",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0770",
+    "model_id": "3dssd",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0398",
+    "model_id": "yolov3",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0398",
+    "model_id": "3dssd",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0398",
+    "model_id": "yolov3",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0398",
+    "model_id": "3dssd",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0770",
+    "model_id": "yolov3",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0770",
+    "model_id": "centerpoint",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0770",
+    "model_id": "yolov3",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0770",
+    "model_id": "centerpoint",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0245",
+    "model_id": "yolov3",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0245",
+    "model_id": "centerpoint",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0245",
+    "model_id": "vit-upernet",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0245",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0245",
+    "model_id": "vit-upernet",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0245",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0398",
+    "model_id": "vit-upernet",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0398",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0770",
+    "model_id": "mask-rcnn",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0770",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0770",
+    "model_id": "mask-rcnn",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0770",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0184",
+    "model_id": "mask-rcnn",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      false
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0184",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0770",
+    "model_id": "yolov3",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0770",
+    "model_id": "3dssd",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0245",
+    "model_id": "yolov3",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0245",
+    "model_id": "3dssd",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0245",
+    "model_id": "yolov3",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0770",
+    "lidar_scene": "scene-0245",
+    "model_id": "3dssd",
+    "pair": "3dssd+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0245",
+    "model_id": "yolov3",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0245",
+    "model_id": "centerpoint",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0184",
+    "model_id": "yolov3",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0184",
+    "model_id": "centerpoint",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0184",
+    "model_id": "yolov3",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0245",
+    "lidar_scene": "scene-0184",
+    "model_id": "centerpoint",
+    "pair": "centerpoint+yolov3",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0184",
+    "model_id": "vit-upernet",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0184",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0184",
+    "model_id": "vit-upernet",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0184",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0398",
+    "model_id": "vit-upernet",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0398",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+vit-upernet",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0184",
+    "model_id": "mask-rcnn",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0184",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0398",
+    "model_id": "mask-rcnn",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0398",
+    "lidar_scene": "scene-0398",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0398",
+    "model_id": "mask-rcnn",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  },
+  {
+    "available_modes": [
+      true
+    ],
+    "camera_scene": "scene-0184",
+    "lidar_scene": "scene-0398",
+    "model_id": "pointpillars",
+    "pair": "pointpillars+mask-rcnn",
+    "reason": "no valid other-mode execution for this actual scene combination"
+  }
+]

@@ -1,0 +1,87 @@
+Starting >>> closeloop_profiler
+Consolidate compiler generated dependencies of target agent_state
+Consolidate compiler generated dependencies of target pperf_nvbit_cta_validation
+Consolidate compiler generated dependencies of target pperf_nvbit_cta_inject
+Consolidate compiler generated dependencies of target gtest_main
+Consolidate compiler generated dependencies of target pperf_kernel_capsule_agent
+Consolidate compiler generated dependencies of target gtest
+[  0%] Built target ament_cmake_python_symlink_closeloop_profiler
+[  5%] Built target pperf_nvbit_cta_inject
+[ 15%] Built target gtest_main
+[ 30%] Built target pperf_kernel_capsule_agent
+[ 40%] Built target gtest
+[ 50%] Built target agent_state
+[ 60%] Built target pperf_nvbit_cta_validation
+Consolidate compiler generated dependencies of target pperf_nvbit_cta_tracker
+Consolidate compiler generated dependencies of target test_driver_replay
+Consolidate compiler generated dependencies of target test_nvbit_cta_tracker
+Consolidate compiler generated dependencies of target test_agent_state
+[ 70%] Built target test_driver_replay
+[ 80%] Built target pperf_nvbit_cta_tracker
+[ 90%] Built target test_nvbit_cta_tracker
+[100%] Built target test_agent_state
+running egg_info
+writing manifest file 'closeloop_profiler.egg-info/SOURCES.txt'
+[100%] Built target ament_cmake_python_build_closeloop_profiler_egg
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/pythonpath.sh
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/pythonpath.dsv
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler-0.2.0-py3.10.egg-info/PKG-INFO
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler-0.2.0-py3.10.egg-info/SOURCES.txt
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler-0.2.0-py3.10.egg-info/dependency_links.txt
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler-0.2.0-py3.10.egg-info/top_level.txt
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/__init__.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/architecture_profiles.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/bpf/preprocess_scheduler.bt
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/capsule_profiler.py
+-- Symlinking: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/centerpoint_input_geometry.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/components.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config/architecture_profiles/mmdet3d_point_single_stage_v1.yaml
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config/architecture_profiles/mmdet3d_voxel_two_stage_v1.yaml
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config/architecture_profiles/mmdet_detr_2d_v1.yaml
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config/architecture_profiles/mmdet_single_stage_2d_v1.yaml
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config/architecture_profiles/mmdet_two_stage_2d_v1.yaml
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config/architecture_profiles/mmseg_encoder_decoder_v1.yaml
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/gpu_forensics_store.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/kernel_capsule.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/native_agent.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/preprocess_profiler.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/profiler.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/schema/architecture_profile.schema.json
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/source_frames.py
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/lib/libpperf_nvbit_cta_tracker.so
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/lib/closeloop_profiler/pperf_nvbit_cta_validation
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/lib/libpperf_kernel_capsule_agent.so
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/include/closeloop_profiler/agent_state.h
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/include/closeloop_profiler/kernel_capsule_native.h
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/include/closeloop_profiler/nvbit_cta_abi.h
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/include/closeloop_profiler/nvbit_cta_tracker_logic.h
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/library_path.sh
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/library_path.dsv
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/ament_index/resource_index/package_run_dependencies/closeloop_profiler
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/ament_index/resource_index/parent_prefix_path/closeloop_profiler
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/path.sh
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/environment/path.dsv
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/local_setup.bash
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/local_setup.sh
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/local_setup.zsh
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/local_setup.dsv
+-- Symlinking: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/package.dsv
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/ament_index/resource_index/packages/closeloop_profiler
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/cmake/ament_cmake_export_libraries-extras.cmake
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/cmake/closeloop_profilerConfig.cmake
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/cmake/closeloop_profilerConfig-version.cmake
+-- Up-to-date symlink: /mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/share/closeloop_profiler/package.xml
+Listing '/mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler'...
+Listing '/mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/bpf'...
+Compiling '/mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/centerpoint_input_geometry.py'...
+Listing '/mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config'...
+Listing '/mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/config/architecture_profiles'...
+Listing '/mmdetection3d_ros2/closeloop_perf/install/closeloop_profiler/local/lib/python3.10/dist-packages/closeloop_profiler/schema'...
+Finished <<< closeloop_profiler [0.39s]
+
+Summary: 1 package finished [0.57s]
