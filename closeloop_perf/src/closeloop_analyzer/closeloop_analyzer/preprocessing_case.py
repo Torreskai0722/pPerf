@@ -336,8 +336,8 @@ def make_figure(results, samples, traces, output):
     candidates = [r for r in base_rows if r['occurrence_id'] in peer]
     selected = min(candidates, key=lambda r: (abs(r['preprocessing_ms'] - p95), r['occurrence_id']))
     paired = peer[selected['occurrence_id']]
-    fig = plt.figure(figsize=(7.0, 4.5), facecolor='white')
-    grid = fig.add_gridspec(2, 2, height_ratios=(1.35, 1), hspace=.65, wspace=.3)
+    fig = plt.figure(figsize=(7.0, 3.2), facecolor='white')
+    grid = fig.add_gridspec(2, 2, height_ratios=(1.35, 1), hspace=.8, wspace=.3)
     for index, model in enumerate(MODELS):
         ax = fig.add_subplot(grid[0, index])
         data = [[r['preprocessing_ms'] for result in results if result['condition'] == condition
@@ -350,8 +350,11 @@ def make_figure(results, samples, traces, output):
             ax.vlines(x, p25, p75, color='#333333', lw=1.6)
             ax.scatter(x, p50, s=15, color='#333333', zorder=3)
         ax.set_xticks(range(1, 5), LABELS, fontsize=8)
-        ax.set_ylabel('CPU preprocessing (ms)', fontsize=9)
+        ax.set_ylabel('Preprocessing (ms)', fontsize=9)
         ax.set_title('ViT–UPerNet' if index == 0 else 'CenterPoint', fontsize=10)
+        if model == 'centerpoint':
+            ax.set_yscale('log')
+            ax.set_yticks([1, 10, 100, 1000], ['1', '10', '100', '1000'])
         ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
         ax.tick_params(labelsize=8)
     ax = fig.add_subplot(grid[1, :])
@@ -381,17 +384,18 @@ def make_figure(results, samples, traces, output):
     ax.set_xlabel('Time since preprocessing entry (ms)', fontsize=9)
     ax.set_title('Matched ViT occurrence ' + selected['occurrence_id'], fontsize=10)
     if not all(r['quality']['valid'] for r in results):
-        ax.text(.99, .98, 'Exploratory: validity checks failed', transform=ax.transAxes,
-                ha='right', va='top', fontsize=7, color='#8c2d04')
+        ax.text(.99, .06, 'Exploratory: validity checks failed', transform=ax.transAxes,
+                ha='right', va='bottom', fontsize=7, color='#8c2d04')
     ax.tick_params(labelsize=8); ax.grid(axis='x', alpha=.2); ax.set_axisbelow(True)
     ax.legend(handles=[Patch(color=colors[state], label=label) for state, label in
                        (('running', 'Running'), ('runnable_wait', 'Runnable waiting'), ('blocked', 'Blocked'))],
-              ncol=3, loc='upper center', bbox_to_anchor=(.5, -.35), frameon=False, fontsize=8)
+              ncol=3, loc='upper center', bbox_to_anchor=(.5, -.65), frameon=False, fontsize=8)
     fig.subplots_adjust(left=.16, right=.985, top=.95, bottom=.18)
     fig.savefig(output / 'preprocessing_case.pdf', bbox_inches='tight')
     fig.savefig(output / 'preprocessing_case.png', dpi=180, bbox_inches='tight')
     plt.close(fig)
     write_json(output / 'timeline_selection.json', {'policy': 'ViT block 1 baseline nearest retained P95 among mutually retained occurrences',
+               'figure_source_sha256': sha256(Path(__file__)),
                'retained_baseline_p95_ms': p95, 'default': selected, 'both': paired, 'timeline': timeline})
     for run_id, frame in ((baseline, selected), (both, paired)):
         model_pids = {r['pid']: r['model'] for r in samples[run_id]}
