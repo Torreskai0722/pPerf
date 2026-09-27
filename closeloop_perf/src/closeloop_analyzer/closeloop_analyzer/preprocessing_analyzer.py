@@ -3,7 +3,7 @@
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
 import csv
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import json
 import math
 from pathlib import Path
@@ -216,6 +216,39 @@ class PreprocessAnalyzer:
                 str(tag.get("model", "")), input_id, stage,
             ))
         return sorted(records, key=lambda item: (item.start, item.end))
+
+    def _retained_inputs(self, connection):
+        """Apply the shared sample policy to completed inference invocations."""
+        from .sample_filter import filter_frames
+        identities = {}
+        for path in self.run_directory.glob('model_*_inputs.jsonl'):
+            for line in path.read_text().splitlines():
+                row = json.loads(line)
+                identities[row['model_id'], str(row['input_id'])] = row
+        groups = defaultdict(list)
+        for start, end, text in connection.execute(
+                "SELECT start,end,text FROM NVTX_EVENTS WHERE end IS NOT NULL AND text LIKE 'closeloop:%'"):
+            tag = self._tag(text)
+            if tag.get('event') != 'inference' or str(tag.get('input', '')).startswith('warmup-'):
+                continue
+            key = (tag['model'], str(tag['input']))
+            identity = identities.get(key, {})
+            if identities and not identity.get('completed'):
+                continue
+            scene = identity.get('source_scene', tag.get('scene', ''))
+            groups[key[0], scene].append({
+                'input_id': key[1], 'source_frame_id': identity.get('source_frame_id', key[1]),
+                'latency_ms': (end - start) / 1e6})
+        if not groups:
+            raise ValueError('completed inference latencies required for preprocessing sample selection')
+        retained, audits = set(), {}
+        for (model, scene), frames in groups.items():
+            selected, audit = filter_frames(frames)
+            retained.update((model, row['input_id']) for row in selected)
+            audit['retained_invocations'] = [row['input_id'] for row in selected]
+            audit['original_unique_source_count'] = len({row['source_frame_id'] for row in frames})
+            audits[model + '/' + scene] = audit
+        return retained, audits
 
     @staticmethod
     def _nsys_scheduler(
@@ -486,31 +519,35 @@ class PreprocessAnalyzer:
             })
         return rows
 
-    def _raw_scheduler(self) -> List[SchedulerEvent]:
+    def _raw_scheduler(self, event_types=None, target_tids=None,
+                       start_ns=None, end_ns=None) -> List[SchedulerEvent]:
         if not self.scheduler_path.is_file():
             return []
         records = []
-        with self.scheduler_path.open(
-                "r", encoding="utf-8", newline="") as source:
-            for row in csv.DictReader(source, fieldnames=SCHEDULER_FIELDS):
-                try:
-                    records.append(SchedulerEvent(
-                        timestamp_ns=int(row["timestamp_ns"]),
-                        event=row["event"],
-                        cpu=int(row["cpu"]),
-                        prev_tid=int(row["prev_tid"]),
-                        prev_state=int(row["prev_state"]),
-                        next_tid=int(row["next_tid"]),
-                        target_tid=int(row["target_tid"]),
-                        parent_tid=int(row["parent_tid"]),
-                        child_tid=int(row["child_tid"]),
-                        orig_cpu=int(row["orig_cpu"]),
-                        dest_cpu=int(row["dest_cpu"]),
-                        comm=row.get("comm", ""),
-                    ))
-                except (KeyError, TypeError, ValueError):
+        with self.scheduler_path.open('r', encoding='utf-8', newline='') as source:
+            for row in csv.reader(source):
+                if len(row) < len(SCHEDULER_FIELDS):
                     continue
-        return records
+                if event_types is not None and row[1] not in event_types:
+                    continue
+                try:
+                    timestamp = int(row[0])
+                    if start_ns is not None and timestamp < start_ns:
+                        continue
+                    if end_ns is not None and timestamp > end_ns:
+                        continue
+                    if target_tids is not None:
+                        indices = {'switch': (3, 5), 'fork': (7, 8),
+                                   'mapping': (3, 5)}.get(row[1], (6,))
+                        if not any(int(row[index]) in target_tids for index in indices):
+                            continue
+                    records.append(SchedulerEvent(
+                        timestamp, row[1], *(int(value) for value in row[2:11]),
+                        ','.join(row[11:])))
+                except (TypeError, ValueError):
+                    if row[0].isdigit():
+                        raise ValueError('malformed numeric scheduler event')
+        return sorted(records, key=lambda event: event.timestamp_ns)
 
     @staticmethod
     def _bpf_observations(
@@ -1174,9 +1211,13 @@ class PreprocessAnalyzer:
                     }
                 pools.append(record)
             configured = metadata.get("library_thread_counts", {})
-            observed = metadata.get(
-                "observed_library_thread_counts", {}
-            )
+            observed = dict(metadata.get("observed_library_thread_counts", {}))
+            effective = metadata.get('effective_cpu_settings', {})
+            for key, field in (('opencv', 'opencv_threads'),
+                               ('pytorch_intraop', 'pytorch_intraop_threads'),
+                               ('pytorch_interop', 'pytorch_interop_threads')):
+                if field in effective:
+                    observed[key] = effective[field]
             process = {
                 "model": model,
                 "pid": pid,
@@ -1241,13 +1282,30 @@ class PreprocessAnalyzer:
             raise RuntimeError(f"missing Nsight export: {self.sqlite_path}")
         with sqlite3.connect(str(self.sqlite_path)) as connection:
             ranges = self._ranges(connection)
+            self._write_csv(self.output_directory / 'full_preprocess_ranges.csv',
+                            [asdict(row) for row in ranges], list(StageRange.__dataclass_fields__))
+            retained, sample_filters = self._retained_inputs(connection)
+            ranges = [row for row in ranges if (row.model, row.input_id) in retained]
             nsys_events = self._nsys_scheduler(connection)
             names = self._thread_names(connection)
             osrt_calls = self._osrt_calls(connection)
             work_samples = self._work_samples(connection, ranges)
+            from .scheduler_evidence import trace_diagnostics
+            log = self.run_directory / 'runner.log'
+            diagnostics = trace_diagnostics(connection, log.read_text() if log.exists() else '')
         if not ranges:
             raise RuntimeError("no non-warmup preprocessing ranges found")
 
+        from .scheduler_evidence import namespace_mapping, normalize_nsys, alignment_quality
+        mappings = self._raw_scheduler(event_types={'mapping'})
+        if mappings:
+            mapping, _ = namespace_mapping(mappings)
+            ranges, nsys_events, identity = normalize_nsys(ranges, nsys_events, mapping)
+            known = set(mapping) | set(mapping.values())
+            names = {identity(*key): name for key, name in names.items() if key in known}
+            osrt_calls = [row for row in osrt_calls if (row['pid'], row['tid']) in known]
+            for row in osrt_calls + work_samples:
+                row['pid'], row['tid'] = identity(row['pid'], row['tid'])
         target_pids = {record.pid for record in ranges}
         tid_to_pid = {
             tid: pid for _time, _cpu, _in, pid, tid in nsys_events
@@ -1256,13 +1314,12 @@ class PreprocessAnalyzer:
         target_tids = set(tid_to_pid)
         analysis_start = min(record.start for record in ranges)
         analysis_end = max(record.end for record in ranges)
-        raw = self._raw_scheduler()
+        raw = self._raw_scheduler(target_tids=target_tids)
         scheduler_source = "nsys_running_only"
         clock_offset = 0
+        alignment = {}
         if raw:
-            clock_offset = self._clock_offset(
-                raw, nsys_events, target_pids
-            )
+            clock_offset, alignment = alignment_quality(raw, nsys_events, target_pids, strict=False)
             transitions = self._transition_events(
                 raw, clock_offset, target_tids
             )
@@ -1478,7 +1535,12 @@ class PreprocessAnalyzer:
                 reverse=True,
             )
 
-        trace_quality = 1.0 if scheduler_source == "bpftrace" else 0.4
+        known_coverage = min((1 - row['unknown_thread_equivalents'] / max(1, sum(
+            pid == row['pid'] for pid in tid_to_pid.values())) for row in stage_rows
+            if row['stage'] == 'preprocess'), default=0)
+        recording_valid = (bool(alignment) and all(row['valid'] for row in alignment.values())
+                           and diagnostics['valid'] and known_coverage >= .99)
+        trace_quality = 1.0 if recording_valid else 0.0
         findings = []
         intra_models = set()
 
@@ -2182,8 +2244,10 @@ class PreprocessAnalyzer:
             },
             "scheduler_source": scheduler_source,
             "scheduler_clock_offset_ns": clock_offset,
+            "sample_filters": sample_filters,
             "local_assessment": {
                 "status": (
+                    "recording_rejected" if not recording_valid else
                     "contention_candidates" if findings
                     else "no_supported_cpu_contention"
                 ),
@@ -2204,10 +2268,13 @@ class PreprocessAnalyzer:
             "mechanism_coverage": mechanism_coverage,
             "controls": control_records,
             "evidence_quality": {
+                "valid_for_attribution": recording_valid,
+                "alignment": alignment,
+                "known_state_coverage": known_coverage,
+                "diagnostics": diagnostics,
                 "trace_quality": (
                     "complete_target_state_reconstruction"
-                    if scheduler_source == "bpftrace"
-                    else "running_state_only"
+                    if recording_valid else "insufficient_recording_quality"
                 ),
                 "thread_scope": "all profiled model-process threads",
                 "external_process_attribution": "incomplete",

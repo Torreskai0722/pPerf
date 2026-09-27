@@ -91,13 +91,16 @@ def controlled_manifest(replay_config):
     if hashlib.sha256(raw).hexdigest() != replay_config.get("controlled_bag_manifest_sha256"):
         raise ValueError("controlled manifest hash mismatch")
     manifest = json.loads(raw)
-    if (manifest.get("schema") != "controlled_bag_v1"
+    if (manifest.get("schema") not in ("controlled_bag_v1", "fixed_input_bag_v1")
             or manifest.get("validation", {}).get("valid") is not True
             or set(manifest["input_scenes"]) != {"image", "lidar"}
             or replay_config.get("repeat_count", 1) != 1
             or replay_config.get("playback_mode", "full") != "full"
             or replay_config["rate"] != 1.0):
         raise ValueError("controlled replay requires a validated one-pass full bag at rate 1")
+    if manifest["schema"] == "fixed_input_bag_v1":
+        from .fixed_manifest import validate_fixed_manifest
+        validate_fixed_manifest(manifest)
     for filename, expected in manifest["output_hashes"].items():
         digest = hashlib.sha256()
         with Path(filename).open("rb") as stream:
@@ -406,6 +409,10 @@ def main(argv=None) -> int:
                 interval["returncode"] = returncode
                 interval["partial_cutoff"] = cutoff
                 interval["end_monotonic_ns"] = time.monotonic_ns()
+                if segment.get("window_ns"):
+                    boundary = interval["resume_monotonic_ns"] + segment["window_ns"]
+                    interval["measurement_end_monotonic_ns"] = boundary
+                    time.sleep(max(0, (boundary - time.monotonic_ns()) / 1e9))
                 if cutoff:
                     partial_cutoff_applied = True
                     interval["completion_status"] = "partial_cutoff"
@@ -463,6 +470,7 @@ def main(argv=None) -> int:
         "playback_intervals": playback_intervals,
         "communication_profile_enabled": relay_enabled,
         "error": error,
+        "drain_end_monotonic_ns": time.monotonic_ns(),
     }
     output = Path(args.run_directory) / "testbed_result.json"
     output.write_text(

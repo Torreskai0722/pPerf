@@ -3,6 +3,7 @@
 from contextlib import nullcontext
 from datetime import datetime, timezone
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -156,6 +157,8 @@ def build_profile_command(config: RunConfig,
         "-o", str(config.run_directory / "scheduler_events.csv"),
         "-c", shlex.join(command),
         str(scheduler_script_path()),
+        str(os.stat('/proc/self/ns/pid').st_ino),
+        str(sum(1 << cpu for cpu in os.sched_getaffinity(0))),
     ]
 
 
@@ -398,6 +401,14 @@ class ExperimentRunner:
             manifest["synthetic_fma"] = dict(
                 self.config.data["synthetic_fma"]
             )
+        if 'preprocessing' in recording_config(self.config.data)['scopes']:
+            source_root = Path(__file__).resolve().parents[2]
+            manifest['source_sha256'] = {
+                str(path.relative_to(source_root)): hashlib.sha256(path.read_bytes()).hexdigest()
+                for package in ('closeloop_profiler', 'closeloop_testbed', 'closeloop_experiments')
+                for path in sorted((source_root / package / package).rglob('*'))
+                if path.is_file() and path.suffix in ('.py', '.bt', '.yaml', '.json')
+            }
         self._atomic_json(self.run_directory / "run_manifest.json", manifest)
         mps_context = (MPSManager(self.config.data["gpu"]["index"],
                                   self.run_directory,
@@ -411,6 +422,12 @@ class ExperimentRunner:
         try:
             with mps_context:
                 environment = os.environ.copy()
+                if 'preprocessing' in recording_config(self.config.data)['scopes']:
+                    from closeloop_profiler.runtime_evidence import THREAD_ENV_PREFIXES
+                    removed = {key: environment.pop(key) for key in list(environment)
+                               if key.startswith(THREAD_ENV_PREFIXES)}
+                    manifest['removed_thread_environment'] = removed
+                    environment['BPFTRACE_PERF_RB_PAGES'] = '256'
                 removed_mps_environment = {}
                 if not self.config.data["gpu"]["mps_enabled"]:
                     environment, removed_mps_environment = (

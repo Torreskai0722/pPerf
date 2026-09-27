@@ -15,7 +15,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     FORCE_CUDA=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential bzip2 ca-certificates cmake curl git gnupg2 lsb-release \
+    bpftrace build-essential bzip2 ca-certificates cmake curl git gnupg2 lsb-release \
     libfreetype6-dev libgl1 libgl1-mesa-dev libglu1-mesa-dev \
     libjpeg-dev libpng-dev libssl-dev libtiff-dev libx11-dev libxi-dev \
     libxrandr-dev nlohmann-json3-dev pkg-config unzip zlib1g-dev \
@@ -39,7 +39,7 @@ RUN python3 -m pip install --no-cache-dir \
 
 RUN python3 -m pip install --no-cache-dir \
     "numpy<2" "opencv-python==4.11.0.86" \
-    ftfy regex jsonschema pytest PyYAML \
+    ftfy regex jsonschema pytest PyYAML threadpoolctl \
     imagecorruptions==1.1.2 PyMieScatt==1.8.1.1 \
     glob2 imageio imutils matplotlib natsort pexpect pillow pyclipper seaborn \
     scikit-image scikit-learn

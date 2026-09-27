@@ -146,9 +146,24 @@ def main(argv=None) -> int:
         if inferencer.resize_scale is not None:
             status["inference_resize_scale"] = list(inferencer.resize_scale)
             write_status(status_path, status)
-        profiler = create_model_profiler(config, inferencer, args.model_id)
+        fixed_source, fixed_occurrences, fixed_warmup = None, {}, None
+        bag_manifest = None
         if config["replay"].get("controlled_bag_manifest"):
             bag_manifest = json.loads(Path(config["replay"]["controlled_bag_manifest"]).read_text())
+            if bag_manifest.get("schema") == "fixed_input_bag_v1":
+                from .fixed_input import decode_source, reset_preprocessing, verify_preprocessing
+                from .fixed_manifest import validate_fixed_manifest
+                fixed_occurrences = {
+                    row["output_header_timestamp_ns"]: row
+                    for row in validate_fixed_manifest(bag_manifest)
+                    if row["modality"] == model_config["modality"]}
+                fixed_source = bag_manifest["sources"][model_config["modality"]]
+                fixed_warmup = decode_source(fixed_source, model_config)
+                status["fixed_preprocessing"] = verify_preprocessing(
+                    inferencer, fixed_warmup, fixed_source["preprocessing_seed"])
+                status["fixed_source"] = fixed_source
+        profiler = create_model_profiler(config, inferencer, args.model_id)
+        if bag_manifest is not None:
             profiler.scene_token = bag_manifest["input_scenes"][model_config["modality"]]["scene_token"]
         cta_configuration = model_config.get("nvbit_cta_profile")
         cta_arm = None
@@ -225,6 +240,11 @@ def main(argv=None) -> int:
             record["previous_callback_exit_monotonic_ns"] = (
                 last_callback_exit_ns[0]
             )
+            if fixed_source is not None:
+                occurrence = fixed_occurrences[message_header_timestamp_ns(message)]
+                record.update({key: occurrence[key] for key in (
+                    "source_frame_id", "occurrence_id", "source_scene", "payload_sha256",
+                    "original_header_timestamp_ns", "original_bag_timestamp_ns")})
             if segment.get("scene_token"):
                 profiler.scene_token = segment["scene_token"]
             message_kind = model_config.get(
@@ -272,6 +292,8 @@ def main(argv=None) -> int:
                             f"{result}"
                         )
                 try:
+                    if fixed_source is not None:
+                        reset_preprocessing(fixed_source["preprocessing_seed"])
                     profiler.run(inferencer, converted, input_id)
                 finally:
                     if target and cta_disarm is not None:
@@ -522,7 +544,7 @@ def main(argv=None) -> int:
         node.create_subscription(
             String, "/closeloop/replay_complete", completion_callback, 10
         )
-        warmup = model_config["warmup_input"]
+        warmup = fixed_warmup if fixed_source is not None else model_config["warmup_input"]
         for index in range(model_config["warmup_count"]):
             if cta_input_begin is not None:
                 result = cta_input_begin()
@@ -531,6 +553,8 @@ def main(argv=None) -> int:
                         f"NVBit CTA warmup begin failed with status {result}"
                     )
             try:
+                if fixed_source is not None:
+                    reset_preprocessing(fixed_source["preprocessing_seed"])
                 profiler.run(
                     inferencer, warmup, f"warmup-{index}", warmup=True
                 )
@@ -543,6 +567,10 @@ def main(argv=None) -> int:
                             f"{result}"
                         )
         profiler.validate_warmup()
+        if 'preprocessing' in config.get('recording', {}).get('scopes', []):
+            from closeloop_profiler.runtime_evidence import runtime_snapshot
+            status['effective_cpu_settings'] = runtime_snapshot(
+                status['library_thread_counts'])
         if paired_config is not None and replay is not None:
             status["resident_input_sha256"] = replay.finish_capture()
             status["resident_input_reused"] = True

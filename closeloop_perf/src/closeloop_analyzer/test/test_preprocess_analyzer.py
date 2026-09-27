@@ -59,6 +59,11 @@ def test_analyzer_writes_compact_absolute_tail_planner_result(tmp_path):
             "INSERT INTO NVTX_EVENTS VALUES (?, ?, ?, ?)",
             (start, end, tag, global_id(pid, calling_tid)),
         )
+        connection.execute(
+            "INSERT INTO NVTX_EVENTS VALUES (?, ?, ?, ?)",
+            (end, end + 1_000_000, encode_tag('run', 'scene', 'image', str(index), 'inference'),
+             global_id(pid, calling_tid)),
+        )
         scheduler_rows.extend([
             (scheduled, 2, 1, global_id(pid, worker_tid)),
             (end - 5, 2, 0, global_id(pid, worker_tid)),
