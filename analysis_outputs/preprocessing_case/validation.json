@@ -1,0 +1,451 @@
+{
+  "analysis_result": {
+    "affirmative_conclusion_withheld": true,
+    "analyzed_runs": 12,
+    "failures": [],
+    "valid_runs": 0
+  },
+  "baseline_diagnosis_receipt.json": {
+    "diagnosis_before_interventions": true,
+    "diagnosis_saved_at_ns": 1790489772181443997,
+    "diagnosis_sha256": "a4231ed88198d20f1e6678d738e790f37bb08cde42beae6a0abb2744df8c9a42"
+  },
+  "campaign_integrity.json": {
+    "deterministic_across_all_conditions": {
+      "centerpoint": "4ddfe9695c7cae08c6cc4309b8db1bd9e2db3af03e77f536cc79dc7c3012d5e9",
+      "vit-upernet": "da586200852a81a145e645a49646910c0bab1cbae3fc5eacb132431a81b2b9d9"
+    },
+    "identical_collection_source_hashes": true,
+    "runs": [
+      {
+        "completions": {
+          "centerpoint": 153,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b1-default",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 103,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b1-cpu",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 161,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b1-threads",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 161,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b1-both",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 161,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b2-threads",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 161,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b2-both",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 153,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b2-default",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 104,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b2-cpu",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 161,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b3-both",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 161,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b3-threads",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 124,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b3-cpu",
+        "state": "success"
+      },
+      {
+        "completions": {
+          "centerpoint": 152,
+          "vit-upernet": 480
+        },
+        "resets": true,
+        "run_id": "preprocessing-b3-default",
+        "state": "success"
+      }
+    ],
+    "source_hashes": {
+      "closeloop_experiments/closeloop_experiments/__init__.py": "380561d1ebf5bfe6123e360eeec92007d8179ee04f6e10bff6107912d3ab296c",
+      "closeloop_experiments/closeloop_experiments/agent_backend.py": "1e77092e5a18c4072058d26348a2fd35a0cbee7aa02aad26308fb7acb0adb70f",
+      "closeloop_experiments/closeloop_experiments/astra_adapter.py": "1802f602b7f7d35519805fb83aea298fc30cff76666210a2edf8f49ff5f8cdce",
+      "closeloop_experiments/closeloop_experiments/campaigns.py": "ca7a7033d020e05746c3288683f7fe59c93e617b4557a735f3d7dd08ef090302",
+      "closeloop_experiments/closeloop_experiments/capsule_cli.py": "52552cb347d7ec98d9a58c92e72003d4b115750765bc1f9add0bd093d9625f2a",
+      "closeloop_experiments/closeloop_experiments/capsule_coordinator.py": "0ed6ddc0d7a2f9ab543cf2ef433ba7157152a73804f1caadb8242688e32369ab",
+      "closeloop_experiments/closeloop_experiments/capture_session.py": "b3c83be1f2a68689faea5e15d7416234a8b435c3cef4f6ed7055e7c9bef8c7b4",
+      "closeloop_experiments/closeloop_experiments/cli.py": "ba8de8017fa8a205f0a11eca6166a88263d89b69717fdaaf4530918511e72ddb",
+      "closeloop_experiments/closeloop_experiments/communication_variation.py": "25c385c0c9516cd7e91388c8a08d9de47b0118eec930f8841d66f130ab290bef",
+      "closeloop_experiments/closeloop_experiments/config.py": "af206daffa05fd487adad934028e91caa9e6fbac9198e5a84794671c7b046adf",
+      "closeloop_experiments/closeloop_experiments/controlled_bags.py": "84a223d3086542adbbbc017038150c7d2b4ffcd7cfa4ad76d9c1a82f41a7b09b",
+      "closeloop_experiments/closeloop_experiments/corrected_input_variation.py": "9d6ca155a0af96defc53b11582f299d8049622c14e6921b76e71f376c8899f55",
+      "closeloop_experiments/closeloop_experiments/corrupt_rosbag.py": "3f2235232076452ff405878ff2a553476a0044935cf0011abc3668c29c809a59",
+      "closeloop_experiments/closeloop_experiments/fixed_input_bags.py": "43ac2fa0c59eea623c87afab5e4ffba842e55d6002a80d38cc170a4bf56a7345",
+      "closeloop_experiments/closeloop_experiments/full_bag_green.py": "b3a825627b9b9647db1c8d0566a6b320b6c270f89920495715bd989ec47df976",
+      "closeloop_experiments/closeloop_experiments/input_characterization.py": "fce7d31ff6644810a5edca0aab54d7b0df1ccad9ad9b8bde15d4d01b995c3e70",
+      "closeloop_experiments/closeloop_experiments/input_crossed.py": "8099d56d4297face50e5c4ea344870d64654deffdefe7c4ef48b91501d98ca05",
+      "closeloop_experiments/closeloop_experiments/input_variation.py": "ccf926a257313a8276282d0c4a304fd2c37b4347bae3b9aedf4318377658e03a",
+      "closeloop_experiments/closeloop_experiments/k1091_cta_mps_sweep.py": "754842dacf5196461943bb5288b27d12f4895de393a4e3304f103ffe1d4bf7fa",
+      "closeloop_experiments/closeloop_experiments/kernel_replay.py": "3f2c43bb54ffc51947d61f70b311463a365769a79a336bcae2f0640dcb26ff36",
+      "closeloop_experiments/closeloop_experiments/migration.py": "e73c6edc050147c1d4bf5b1c398e319798f6a05d2e4f518485955999eee52330",
+      "closeloop_experiments/closeloop_experiments/mps.py": "0da6719ae8a9f87064880f006f7ad1a4b9f1da7c59eae0ffde7c493b72b24219",
+      "closeloop_experiments/closeloop_experiments/mps_three_model.py": "8cf7e1ba92d14d415570c7e77bcdddd144555e364190c6977da9ce484e271ae3",
+      "closeloop_experiments/closeloop_experiments/mps_two_model_cause.py": "b7a4d886b4ed8edfa9588ba49669bf99f3b05fd987374ee3bd6400bdec4b2bda",
+      "closeloop_experiments/closeloop_experiments/non_mps_memcpy_compute.py": "47a71d1acadf45aefeedb4f036ad79d2c26500a49b0899e37b7b9590fdffb6f2",
+      "closeloop_experiments/closeloop_experiments/non_mps_offset_sweep.py": "512d122ff89e812d587293e5c3e671ea19cc9a21edfe89e5c36fb4ccf50fec92",
+      "closeloop_experiments/closeloop_experiments/offline_capsule.py": "2ee5328590438c8cda8762c054a34339e862e782afb2459118a5a32e24980151",
+      "closeloop_experiments/closeloop_experiments/preprocessing_case.py": "06dfc664e82cd13fd3a18a44f16372c12dab6861d544472a3fa34914505676e0",
+      "closeloop_experiments/closeloop_experiments/rpc_transport.py": "435b4ac1cc71b7497398cf8f1f266915aec7ca4f88b731ed7ff06ebce6e4d890",
+      "closeloop_experiments/closeloop_experiments/runner.py": "a976659b52c95d57ef01fb35ee95f0dfc64d8e01984771c214ecb60441ba4405",
+      "closeloop_experiments/closeloop_experiments/schema/run_config.schema.json": "d6063025b329f274087e2b90f10fbe03b9b9361401ab79b6984a7070dbbbf35b",
+      "closeloop_profiler/closeloop_profiler/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "closeloop_profiler/closeloop_profiler/architecture_profiles.py": "d8e97ce53476d96e437105d00ad15b16e65924b21cdfc8d75e95b9b4a1e4af9d",
+      "closeloop_profiler/closeloop_profiler/bpf/preprocess_scheduler.bt": "c11a52d787c07e60324b1a8090f318a6a3811091896d78eb050e4dfd4ec3207e",
+      "closeloop_profiler/closeloop_profiler/capsule_profiler.py": "2234d23f6586ea1f9215e30958e8f310e9f59d394f305fdddec4f365d138c7fe",
+      "closeloop_profiler/closeloop_profiler/centerpoint_input_geometry.py": "808cda7534bbe5e5af7b73b9cefab99db5b68be38ba3d2285de39cb2d9f09baa",
+      "closeloop_profiler/closeloop_profiler/components.py": "0ddfebdb919134a8c06d3851214183c596f48e94f6bbd07edcf99aad54a9f68f",
+      "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet3d_point_single_stage_v1.yaml": "dfdda9662c0606d5db17b4c405bfefff9e582fa16b143a1619c2ba7fedd69285",
+      "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet3d_voxel_two_stage_v1.yaml": "b2d8366569636ae83e73d9e10eff4cd754e555ae03ed68b8fbe63282bec816cc",
+      "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet_detr_2d_v1.yaml": "6897f94b5411013a7776f36514f586a6b45b8cd9d9b629b967d2f9a8fc0bfa8c",
+      "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet_single_stage_2d_v1.yaml": "37d575389b1145db0691aa74a7dbb6816063daba1a92f30d292b23bfc3206397",
+      "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet_two_stage_2d_v1.yaml": "b4ba8991be0aadc9948ecb59ee0184117842730106497a7abf37b325e5d5e2c6",
+      "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmseg_encoder_decoder_v1.yaml": "982c7855a8ca3b85ba735019489c151ffd23895732f56cdbad1c3f256195dc54",
+      "closeloop_profiler/closeloop_profiler/gpu_forensics_store.py": "7d26377d55d8783ee278cbbb66c47db1ccda9149cbdce80d460eed3cdf5f6e33",
+      "closeloop_profiler/closeloop_profiler/kernel_capsule.py": "209bec43b2e59c50c079d728e55ca7c984da5b9125956b6e82282cb123218ccb",
+      "closeloop_profiler/closeloop_profiler/native_agent.py": "c6f13237480bc89c02a37e68df8ac6d1d95cb5407ca057132ae69a9a80a2ea97",
+      "closeloop_profiler/closeloop_profiler/preprocess_profiler.py": "d6c291f48bfdc6190aa2b1f6d0934f38584b0bef9b4df473e035b3670fdcaf83",
+      "closeloop_profiler/closeloop_profiler/profiler.py": "47b5d96f97b33078a13874c9ded4edc89de654c223e4ca776b2749cd227eb080",
+      "closeloop_profiler/closeloop_profiler/runtime_evidence.py": "4791cbc1f6d8ed33fbb6480866a47f0766c540baab656f47043ad0bfb7251307",
+      "closeloop_profiler/closeloop_profiler/schema/architecture_profile.schema.json": "14a4a857e32d9ef36e2f082e4501e197c188aa2df2f5e7ebc31b0714acc94ded",
+      "closeloop_profiler/closeloop_profiler/source_frames.py": "067b8bc004f6976c682303b25884d2426d78c03b628341badfa51dcd5ac10b22",
+      "closeloop_testbed/closeloop_testbed/__init__.py": "fa8e941807fcc42722d3bed4679dcc4ac8628b69b777562e95f6cee800f6416c",
+      "closeloop_testbed/closeloop_testbed/adapters.py": "8190398f6be2d2bb39b8070f914f677b664d3a4df26fbbcaac07d772dfd6d1e7",
+      "closeloop_testbed/closeloop_testbed/capsule_helpers.py": "c55f8fb65db1a46b1ea408b0a358a0609d1e1604fa24c0ed2371c9f57d15ffba",
+      "closeloop_testbed/closeloop_testbed/capsule_model_client.py": "994d5ca663de0dfc55dbc81449acd0c0540b6c571956f0036204e422c217b68b",
+      "closeloop_testbed/closeloop_testbed/communication.py": "c5437501e48d72ee8e96d4c651d3923865839c2d5fb9b4d5e88cebbeb5d067e4",
+      "closeloop_testbed/closeloop_testbed/config.py": "384708f2ad683f01b849d21a78a05ae870a1b6846ca8b84197337db8dc483d51",
+      "closeloop_testbed/closeloop_testbed/fixed_input.py": "dc9721b0afe6959de9977b30dba583489e94c39cb608d9c7f6769234fa7fc39d",
+      "closeloop_testbed/closeloop_testbed/fixed_manifest.py": "d9eb56b418f1649f3b6f504e9fcb31db97118a79dab6de9c423868dc8072af5e",
+      "closeloop_testbed/closeloop_testbed/fma_workload_node.py": "42b7622aa7173644b0f9c6f64c64b9afb385a326930d66069ddf946578ad1aa7",
+      "closeloop_testbed/closeloop_testbed/green_context.py": "a57aa6cc3bec3c0bce92e3c688bc2e9fda1e421201e67db82799f9303b9cc97e",
+      "closeloop_testbed/closeloop_testbed/input_handling.py": "1d5082ef3d3f47a671017da9cf39da89e22757be5254754b5a561db0b14b8f77",
+      "closeloop_testbed/closeloop_testbed/model_execution.py": "ea69289e43846e63af123764b9d81aad65e52c16c1d4ed49a78c5bdcc5748f37",
+      "closeloop_testbed/closeloop_testbed/model_node.py": "67c5a07662be881410f0731400b75693257913c5da051df9f3b6f31b2e854b16",
+      "closeloop_testbed/closeloop_testbed/mps_microbenchmark.py": "66957b43cea7e07005e99479f370c7446864135e14669594756ddcaca480b64d",
+      "closeloop_testbed/closeloop_testbed/offline_workload.py": "cbcef18b980161dd838d35b476aa73bf650a8b0a5e674a680095e3326c02e5d4",
+      "closeloop_testbed/closeloop_testbed/paired.py": "890f21c2592a2c3d999c972e09b4e4b350a64412cb03417ae539d3f5cb0987f7",
+      "closeloop_testbed/closeloop_testbed/pipelines.py": "80e4e76fad186fc7c0b2f539ae7701df65521c09d8633781cec3ba3994f8be64",
+      "closeloop_testbed/closeloop_testbed/process_env.py": "84396325a6d2ba5794f16145de9b753ce8f765fe85eccdb43a336abcb1d680ab",
+      "closeloop_testbed/closeloop_testbed/relay.py": "e60ffb1876175f4c7128ca3bbe171502345250491746b42ad62655e301f869a8",
+      "closeloop_testbed/closeloop_testbed/replayer.py": "60ed05e5d0d1ab363f4d14ec2cdb2b9ac718d457bb0ae6d8d3a45c70faa48e3c",
+      "closeloop_testbed/closeloop_testbed/resource_control.py": "0b73a5a108a2277caa6ec7b48566b193437247ca7070b62b556efb76918060d4"
+    }
+  },
+  "committed-source-integrity.json": {
+    "all_measured_collection_sources_match_committed_bytes": true,
+    "code_commit": "cbf96845268c80b890e54313762ca5ba028af995",
+    "matched_collection_files": 72
+  },
+  "committed_workspace_tests": "Summary: 216 tests, 0 errors, 0 failures, 1 skipped\n",
+  "cpu_sanity": {
+    "alignment": {
+      "1675480": {
+        "matched_switch_edges": 1999,
+        "residual_p95_ns": 1778.6999999999985,
+        "sampled_switch_edges": 1999
+      },
+      "1675481": {
+        "matched_switch_edges": 1998,
+        "residual_p95_ns": 1837.3499999999988,
+        "sampled_switch_edges": 1998
+      }
+    },
+    "diagnostics": {
+      "diagnostic_events": [
+        {
+          "globalPid": 281474976710656,
+          "severity": 1,
+          "source": 2,
+          "text": "Dwarf backtraces collected.",
+          "timestamp": -4075929,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 281474976710656,
+          "severity": 1,
+          "source": 2,
+          "text": "Event 'Reference Cycles', with sampling period 4700000, used to trigger process-tree CPU IP sample collection.",
+          "timestamp": -4072383,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 281474976710656,
+          "severity": 1,
+          "source": 2,
+          "text": "4 CPU IP samples collected for every CPU IP backtrace collected.",
+          "timestamp": -35693,
+          "timestampType": 1
+        },
+        {
+          "globalPid": -144115188075855872,
+          "severity": 1,
+          "source": 3,
+          "text": "Profiling has started.",
+          "timestamp": 0,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568001716224,
+          "severity": 1,
+          "source": 2,
+          "text": "Process was launched by the profiler, see /tmp/nvidia/nsight_systems/quadd_session_101972488/streams/pid_1972498_stdout.log and stderr.log for program output",
+          "timestamp": 30530229,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568001716224,
+          "severity": 1,
+          "source": 1,
+          "text": "Common injection library initialized successfully.",
+          "timestamp": 44218910,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568001716224,
+          "severity": 1,
+          "source": 1,
+          "text": "OS runtime libraries injection initialized successfully.",
+          "timestamp": 48370921,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568270151680,
+          "severity": 1,
+          "source": 1,
+          "text": "Common injection library initialized successfully.",
+          "timestamp": 83238735,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568286928896,
+          "severity": 1,
+          "source": 1,
+          "text": "Common injection library initialized successfully.",
+          "timestamp": 83325912,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568253374464,
+          "severity": 1,
+          "source": 1,
+          "text": "Common injection library initialized successfully.",
+          "timestamp": 83404765,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568253374464,
+          "severity": 1,
+          "source": 1,
+          "text": "OS runtime libraries injection initialized successfully.",
+          "timestamp": 87093189,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568270151680,
+          "severity": 1,
+          "source": 1,
+          "text": "OS runtime libraries injection initialized successfully.",
+          "timestamp": 87094236,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568286928896,
+          "severity": 1,
+          "source": 1,
+          "text": "OS runtime libraries injection initialized successfully.",
+          "timestamp": 87109426,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568286928896,
+          "severity": 1,
+          "source": 1,
+          "text": "NVTX injection initialized successfully.",
+          "timestamp": 109804069,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568270151680,
+          "severity": 1,
+          "source": 1,
+          "text": "NVTX injection initialized successfully.",
+          "timestamp": 109817406,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 314568270151680,
+          "severity": 1,
+          "source": 3,
+          "text": "Number of NVTX events collected: \t900.",
+          "timestamp": 212224930,
+          "timestampType": 2
+        },
+        {
+          "globalPid": 314568001716224,
+          "severity": 2,
+          "source": 3,
+          "text": "No NVTX events collected. Does the process use NVTX?",
+          "timestamp": 212231061,
+          "timestampType": 2
+        },
+        {
+          "globalPid": 314568286928896,
+          "severity": 1,
+          "source": 3,
+          "text": "Number of NVTX events collected: \t900.",
+          "timestamp": 212231902,
+          "timestampType": 2
+        },
+        {
+          "globalPid": 314568253374464,
+          "severity": 2,
+          "source": 3,
+          "text": "No NVTX events collected. Does the process use NVTX?",
+          "timestamp": 212232434,
+          "timestampType": 2
+        },
+        {
+          "globalPid": 314568270151680,
+          "severity": 1,
+          "source": 3,
+          "text": "Number of OS runtime libraries events collected: \t1333.",
+          "timestamp": 212234166,
+          "timestampType": 2
+        },
+        {
+          "globalPid": 314568001716224,
+          "severity": 1,
+          "source": 3,
+          "text": "Number of OS runtime libraries events collected: \t307.",
+          "timestamp": 212234779,
+          "timestampType": 2
+        },
+        {
+          "globalPid": 314568286928896,
+          "severity": 1,
+          "source": 3,
+          "text": "Number of OS runtime libraries events collected: \t1273.",
+          "timestamp": 212235267,
+          "timestampType": 2
+        },
+        {
+          "globalPid": 314568253374464,
+          "severity": 1,
+          "source": 3,
+          "text": "Number of OS runtime libraries events collected: \t200.",
+          "timestamp": 212235675,
+          "timestampType": 2
+        },
+        {
+          "globalPid": -144115188075855872,
+          "severity": 1,
+          "source": 3,
+          "text": "Profiling has stopped.",
+          "timestamp": 951846776,
+          "timestampType": 1
+        },
+        {
+          "globalPid": 281474976710656,
+          "severity": 1,
+          "source": 2,
+          "text": "Number of IP samples collected: \t162.",
+          "timestamp": 1135665950,
+          "timestampType": 1
+        }
+      ],
+      "reported_losses": []
+    },
+    "known_coverage": 1.0,
+    "mapped_threads": 74,
+    "offset_ns": 3903293799294430,
+    "valid": true
+  },
+  "manuscript": {
+    "compiled_pdf_sha256": "8c71a1af1f31f9cb4d9873db17eee399c93058fa3f613b4261e3023f216fa1b7",
+    "estimated_two_column_page_occupancy": 0.78,
+    "overfull_boxes": false,
+    "overleaf_commit": "aa026aad3e3d4f571b09d48685d8289b9290a4e2",
+    "overleaf_project": "https://www.overleaf.com/project/69a605d70f28cb924a9e6d05",
+    "pages": 11,
+    "sha256": {
+      "Archives/3.2 Data Preprocessing Variability.tex": "120e8290d075489509d494ab6e3e76ba342509478867cc75ed2df981cc97505c",
+      "figs/preprocessing_case.pdf": "c65120b367d9aafd4ebc4bf7edd73f9709eb479fd97860cb79a9ed5da52308cc",
+      "reference.bib": "ab6402561af01cf0a5614615fcfd1300c14efa7cba51bc1dc83dd46aeea53554"
+    },
+    "subsection_words_including_caption": 398,
+    "tracked_manuscript_inputs": 16,
+    "unresolved_references": false,
+    "untracked_manuscript_dependencies": [],
+    "visual_inspection": "vector figure, 180 dpi PNG, and compiled subsection/figure inspected; readable and unclipped"
+  }
+}

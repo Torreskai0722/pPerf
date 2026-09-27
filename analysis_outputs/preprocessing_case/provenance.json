@@ -1,0 +1,1453 @@
+{
+  "automatic_retries": false,
+  "bag_manifest": "./bags/3de8f3f9f196463d990b/manifest.json",
+  "bag_manifest_sha256": "dc7023da451fdd41f90722c81bf91222a72fd9e39bef393299481cacc58f8755",
+  "candidates_sha256": "7794cbec4f01ad95f75afdfec317eb846668c8ef9de8a2d2200a26e5cbe626c6",
+  "collection_code_commit": "cbf96845268c80b890e54313762ca5ba028af995",
+  "collection_source_sha256": {
+    "closeloop_experiments/closeloop_experiments/__init__.py": "380561d1ebf5bfe6123e360eeec92007d8179ee04f6e10bff6107912d3ab296c",
+    "closeloop_experiments/closeloop_experiments/agent_backend.py": "1e77092e5a18c4072058d26348a2fd35a0cbee7aa02aad26308fb7acb0adb70f",
+    "closeloop_experiments/closeloop_experiments/astra_adapter.py": "1802f602b7f7d35519805fb83aea298fc30cff76666210a2edf8f49ff5f8cdce",
+    "closeloop_experiments/closeloop_experiments/campaigns.py": "ca7a7033d020e05746c3288683f7fe59c93e617b4557a735f3d7dd08ef090302",
+    "closeloop_experiments/closeloop_experiments/capsule_cli.py": "52552cb347d7ec98d9a58c92e72003d4b115750765bc1f9add0bd093d9625f2a",
+    "closeloop_experiments/closeloop_experiments/capsule_coordinator.py": "0ed6ddc0d7a2f9ab543cf2ef433ba7157152a73804f1caadb8242688e32369ab",
+    "closeloop_experiments/closeloop_experiments/capture_session.py": "b3c83be1f2a68689faea5e15d7416234a8b435c3cef4f6ed7055e7c9bef8c7b4",
+    "closeloop_experiments/closeloop_experiments/cli.py": "ba8de8017fa8a205f0a11eca6166a88263d89b69717fdaaf4530918511e72ddb",
+    "closeloop_experiments/closeloop_experiments/communication_variation.py": "25c385c0c9516cd7e91388c8a08d9de47b0118eec930f8841d66f130ab290bef",
+    "closeloop_experiments/closeloop_experiments/config.py": "af206daffa05fd487adad934028e91caa9e6fbac9198e5a84794671c7b046adf",
+    "closeloop_experiments/closeloop_experiments/controlled_bags.py": "84a223d3086542adbbbc017038150c7d2b4ffcd7cfa4ad76d9c1a82f41a7b09b",
+    "closeloop_experiments/closeloop_experiments/corrected_input_variation.py": "9d6ca155a0af96defc53b11582f299d8049622c14e6921b76e71f376c8899f55",
+    "closeloop_experiments/closeloop_experiments/corrupt_rosbag.py": "3f2235232076452ff405878ff2a553476a0044935cf0011abc3668c29c809a59",
+    "closeloop_experiments/closeloop_experiments/fixed_input_bags.py": "43ac2fa0c59eea623c87afab5e4ffba842e55d6002a80d38cc170a4bf56a7345",
+    "closeloop_experiments/closeloop_experiments/full_bag_green.py": "b3a825627b9b9647db1c8d0566a6b320b6c270f89920495715bd989ec47df976",
+    "closeloop_experiments/closeloop_experiments/input_characterization.py": "fce7d31ff6644810a5edca0aab54d7b0df1ccad9ad9b8bde15d4d01b995c3e70",
+    "closeloop_experiments/closeloop_experiments/input_crossed.py": "8099d56d4297face50e5c4ea344870d64654deffdefe7c4ef48b91501d98ca05",
+    "closeloop_experiments/closeloop_experiments/input_variation.py": "ccf926a257313a8276282d0c4a304fd2c37b4347bae3b9aedf4318377658e03a",
+    "closeloop_experiments/closeloop_experiments/k1091_cta_mps_sweep.py": "754842dacf5196461943bb5288b27d12f4895de393a4e3304f103ffe1d4bf7fa",
+    "closeloop_experiments/closeloop_experiments/kernel_replay.py": "3f2c43bb54ffc51947d61f70b311463a365769a79a336bcae2f0640dcb26ff36",
+    "closeloop_experiments/closeloop_experiments/migration.py": "e73c6edc050147c1d4bf5b1c398e319798f6a05d2e4f518485955999eee52330",
+    "closeloop_experiments/closeloop_experiments/mps.py": "0da6719ae8a9f87064880f006f7ad1a4b9f1da7c59eae0ffde7c493b72b24219",
+    "closeloop_experiments/closeloop_experiments/mps_three_model.py": "8cf7e1ba92d14d415570c7e77bcdddd144555e364190c6977da9ce484e271ae3",
+    "closeloop_experiments/closeloop_experiments/mps_two_model_cause.py": "b7a4d886b4ed8edfa9588ba49669bf99f3b05fd987374ee3bd6400bdec4b2bda",
+    "closeloop_experiments/closeloop_experiments/non_mps_memcpy_compute.py": "47a71d1acadf45aefeedb4f036ad79d2c26500a49b0899e37b7b9590fdffb6f2",
+    "closeloop_experiments/closeloop_experiments/non_mps_offset_sweep.py": "512d122ff89e812d587293e5c3e671ea19cc9a21edfe89e5c36fb4ccf50fec92",
+    "closeloop_experiments/closeloop_experiments/offline_capsule.py": "2ee5328590438c8cda8762c054a34339e862e782afb2459118a5a32e24980151",
+    "closeloop_experiments/closeloop_experiments/preprocessing_case.py": "06dfc664e82cd13fd3a18a44f16372c12dab6861d544472a3fa34914505676e0",
+    "closeloop_experiments/closeloop_experiments/rpc_transport.py": "435b4ac1cc71b7497398cf8f1f266915aec7ca4f88b731ed7ff06ebce6e4d890",
+    "closeloop_experiments/closeloop_experiments/runner.py": "a976659b52c95d57ef01fb35ee95f0dfc64d8e01984771c214ecb60441ba4405",
+    "closeloop_experiments/closeloop_experiments/schema/run_config.schema.json": "d6063025b329f274087e2b90f10fbe03b9b9361401ab79b6984a7070dbbbf35b",
+    "closeloop_profiler/closeloop_profiler/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "closeloop_profiler/closeloop_profiler/architecture_profiles.py": "d8e97ce53476d96e437105d00ad15b16e65924b21cdfc8d75e95b9b4a1e4af9d",
+    "closeloop_profiler/closeloop_profiler/bpf/preprocess_scheduler.bt": "c11a52d787c07e60324b1a8090f318a6a3811091896d78eb050e4dfd4ec3207e",
+    "closeloop_profiler/closeloop_profiler/capsule_profiler.py": "2234d23f6586ea1f9215e30958e8f310e9f59d394f305fdddec4f365d138c7fe",
+    "closeloop_profiler/closeloop_profiler/centerpoint_input_geometry.py": "808cda7534bbe5e5af7b73b9cefab99db5b68be38ba3d2285de39cb2d9f09baa",
+    "closeloop_profiler/closeloop_profiler/components.py": "0ddfebdb919134a8c06d3851214183c596f48e94f6bbd07edcf99aad54a9f68f",
+    "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet3d_point_single_stage_v1.yaml": "dfdda9662c0606d5db17b4c405bfefff9e582fa16b143a1619c2ba7fedd69285",
+    "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet3d_voxel_two_stage_v1.yaml": "b2d8366569636ae83e73d9e10eff4cd754e555ae03ed68b8fbe63282bec816cc",
+    "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet_detr_2d_v1.yaml": "6897f94b5411013a7776f36514f586a6b45b8cd9d9b629b967d2f9a8fc0bfa8c",
+    "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet_single_stage_2d_v1.yaml": "37d575389b1145db0691aa74a7dbb6816063daba1a92f30d292b23bfc3206397",
+    "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmdet_two_stage_2d_v1.yaml": "b4ba8991be0aadc9948ecb59ee0184117842730106497a7abf37b325e5d5e2c6",
+    "closeloop_profiler/closeloop_profiler/config/architecture_profiles/mmseg_encoder_decoder_v1.yaml": "982c7855a8ca3b85ba735019489c151ffd23895732f56cdbad1c3f256195dc54",
+    "closeloop_profiler/closeloop_profiler/gpu_forensics_store.py": "7d26377d55d8783ee278cbbb66c47db1ccda9149cbdce80d460eed3cdf5f6e33",
+    "closeloop_profiler/closeloop_profiler/kernel_capsule.py": "209bec43b2e59c50c079d728e55ca7c984da5b9125956b6e82282cb123218ccb",
+    "closeloop_profiler/closeloop_profiler/native_agent.py": "c6f13237480bc89c02a37e68df8ac6d1d95cb5407ca057132ae69a9a80a2ea97",
+    "closeloop_profiler/closeloop_profiler/preprocess_profiler.py": "d6c291f48bfdc6190aa2b1f6d0934f38584b0bef9b4df473e035b3670fdcaf83",
+    "closeloop_profiler/closeloop_profiler/profiler.py": "47b5d96f97b33078a13874c9ded4edc89de654c223e4ca776b2749cd227eb080",
+    "closeloop_profiler/closeloop_profiler/runtime_evidence.py": "4791cbc1f6d8ed33fbb6480866a47f0766c540baab656f47043ad0bfb7251307",
+    "closeloop_profiler/closeloop_profiler/schema/architecture_profile.schema.json": "14a4a857e32d9ef36e2f082e4501e197c188aa2df2f5e7ebc31b0714acc94ded",
+    "closeloop_profiler/closeloop_profiler/source_frames.py": "067b8bc004f6976c682303b25884d2426d78c03b628341badfa51dcd5ac10b22",
+    "closeloop_testbed/closeloop_testbed/__init__.py": "fa8e941807fcc42722d3bed4679dcc4ac8628b69b777562e95f6cee800f6416c",
+    "closeloop_testbed/closeloop_testbed/adapters.py": "8190398f6be2d2bb39b8070f914f677b664d3a4df26fbbcaac07d772dfd6d1e7",
+    "closeloop_testbed/closeloop_testbed/capsule_helpers.py": "c55f8fb65db1a46b1ea408b0a358a0609d1e1604fa24c0ed2371c9f57d15ffba",
+    "closeloop_testbed/closeloop_testbed/capsule_model_client.py": "994d5ca663de0dfc55dbc81449acd0c0540b6c571956f0036204e422c217b68b",
+    "closeloop_testbed/closeloop_testbed/communication.py": "c5437501e48d72ee8e96d4c651d3923865839c2d5fb9b4d5e88cebbeb5d067e4",
+    "closeloop_testbed/closeloop_testbed/config.py": "384708f2ad683f01b849d21a78a05ae870a1b6846ca8b84197337db8dc483d51",
+    "closeloop_testbed/closeloop_testbed/fixed_input.py": "dc9721b0afe6959de9977b30dba583489e94c39cb608d9c7f6769234fa7fc39d",
+    "closeloop_testbed/closeloop_testbed/fixed_manifest.py": "d9eb56b418f1649f3b6f504e9fcb31db97118a79dab6de9c423868dc8072af5e",
+    "closeloop_testbed/closeloop_testbed/fma_workload_node.py": "42b7622aa7173644b0f9c6f64c64b9afb385a326930d66069ddf946578ad1aa7",
+    "closeloop_testbed/closeloop_testbed/green_context.py": "a57aa6cc3bec3c0bce92e3c688bc2e9fda1e421201e67db82799f9303b9cc97e",
+    "closeloop_testbed/closeloop_testbed/input_handling.py": "1d5082ef3d3f47a671017da9cf39da89e22757be5254754b5a561db0b14b8f77",
+    "closeloop_testbed/closeloop_testbed/model_execution.py": "ea69289e43846e63af123764b9d81aad65e52c16c1d4ed49a78c5bdcc5748f37",
+    "closeloop_testbed/closeloop_testbed/model_node.py": "67c5a07662be881410f0731400b75693257913c5da051df9f3b6f31b2e854b16",
+    "closeloop_testbed/closeloop_testbed/mps_microbenchmark.py": "66957b43cea7e07005e99479f370c7446864135e14669594756ddcaca480b64d",
+    "closeloop_testbed/closeloop_testbed/offline_workload.py": "cbcef18b980161dd838d35b476aa73bf650a8b0a5e674a680095e3326c02e5d4",
+    "closeloop_testbed/closeloop_testbed/paired.py": "890f21c2592a2c3d999c972e09b4e4b350a64412cb03417ae539d3f5cb0987f7",
+    "closeloop_testbed/closeloop_testbed/pipelines.py": "80e4e76fad186fc7c0b2f539ae7701df65521c09d8633781cec3ba3994f8be64",
+    "closeloop_testbed/closeloop_testbed/process_env.py": "84396325a6d2ba5794f16145de9b753ce8f765fe85eccdb43a336abcb1d680ab",
+    "closeloop_testbed/closeloop_testbed/relay.py": "e60ffb1876175f4c7128ca3bbe171502345250491746b42ad62655e301f869a8",
+    "closeloop_testbed/closeloop_testbed/replayer.py": "60ed05e5d0d1ab363f4d14ec2cdb2b9ac718d457bb0ae6d8d3a45c70faa48e3c",
+    "closeloop_testbed/closeloop_testbed/resource_control.py": "0b73a5a108a2277caa6ec7b48566b193437247ca7070b62b556efb76918060d4"
+  },
+  "compact_export_note": "Absolute workspace paths normalized; raw artifact hashes reference unchanged full artifacts retained locally. Runtime YAML, bags, profiles and full exports are not committed.",
+  "cpu_topology": {
+    "cpus": [
+      {
+        "core": 0,
+        "cpu": 0,
+        "package": 0
+      },
+      {
+        "core": 0,
+        "cpu": 1,
+        "package": 0
+      },
+      {
+        "core": 4,
+        "cpu": 2,
+        "package": 0
+      },
+      {
+        "core": 4,
+        "cpu": 3,
+        "package": 0
+      },
+      {
+        "core": 8,
+        "cpu": 4,
+        "package": 0
+      },
+      {
+        "core": 8,
+        "cpu": 5,
+        "package": 0
+      },
+      {
+        "core": 12,
+        "cpu": 6,
+        "package": 0
+      },
+      {
+        "core": 12,
+        "cpu": 7,
+        "package": 0
+      },
+      {
+        "core": 16,
+        "cpu": 8,
+        "package": 0
+      },
+      {
+        "core": 16,
+        "cpu": 9,
+        "package": 0
+      },
+      {
+        "core": 20,
+        "cpu": 10,
+        "package": 0
+      },
+      {
+        "core": 20,
+        "cpu": 11,
+        "package": 0
+      },
+      {
+        "core": 28,
+        "cpu": 12,
+        "package": 0
+      },
+      {
+        "core": 29,
+        "cpu": 13,
+        "package": 0
+      },
+      {
+        "core": 30,
+        "cpu": 14,
+        "package": 0
+      },
+      {
+        "core": 31,
+        "cpu": 15,
+        "package": 0
+      }
+    ],
+    "logical_cpu_count": 16,
+    "physical_core_count": 10
+  },
+  "execution_order": [
+    "preprocessing-b1-default",
+    "preprocessing-b1-cpu",
+    "preprocessing-b1-threads",
+    "preprocessing-b1-both",
+    "preprocessing-b2-threads",
+    "preprocessing-b2-both",
+    "preprocessing-b2-default",
+    "preprocessing-b2-cpu",
+    "preprocessing-b3-both",
+    "preprocessing-b3-threads",
+    "preprocessing-b3-cpu",
+    "preprocessing-b3-default"
+  ],
+  "executions": [
+    {
+      "artifact_bytes": 980235138,
+      "artifact_directory": "./runs/preprocessing-b1-default",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "97c6cc78c9877270eff798bfdb3344b83360c371df722595d6bf41f31d698c29",
+        "communication_relay_status.json": "4c7a7a09ade1edbc935fe7b8718948d38a4a5bd193511fad294d3bf10461d3b9",
+        "config.yaml": "7cee6749d37fa364222045ddd3ced20f11a8e6a795059787de81e62a8f42acff",
+        "model_centerpoint.json": "e5863fee0c38406aa1fa68623e802bd4caaf2d38c2e2cbb35452255d435e0ae3",
+        "model_centerpoint_inputs.jsonl": "6f9ba629ade2cd0dc8ce211242ff827e173d19644fe75ce304e9133d117e30cb",
+        "model_vit-upernet.json": "8c3b5988702cea6e9dc756c862cf75aabd2610f50a55945d04c8d39c37b1646f",
+        "model_vit-upernet_inputs.jsonl": "508fb76311c335428f827802b204dd8a093b60524e507b865ee2b196a81f53fe",
+        "profile.nsys-rep": "20bd269366ae54aa132128a6569ffe74e6e23cf43f13404a499051b0eae15ffc",
+        "profile.sqlite": "1c758726de7bf2e1270eb43189f5e234a14e27bf91875969a8da5c9daa419110",
+        "resolved_config.yaml": "7cee6749d37fa364222045ddd3ced20f11a8e6a795059787de81e62a8f42acff",
+        "run_manifest.json": "bd063d3337c0bcdfbc9aae8b8453b420f1e9bd7ae9189c04a8501a2f2f52271b",
+        "runner.log": "6259a8041b384802cdb95900d432b9d76fa83c545807d42238198cd0a3294fce",
+        "scheduler_events.csv": "b9d98cb27bcb0769ea7aed3c8b79228480f5775ae44ae444a6f5393e6746a8ea",
+        "testbed_result.json": "8190ea0ac53b94d8e197e7e13c222c8b77b42f68aec9bc99fb3d2b1add75a71d"
+      },
+      "block": 1,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 210,
+          "memory_clock_mhz": 405,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "210, 405"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "default",
+      "config_path": "./generated_configs/preprocessing-b1-default.yaml",
+      "config_sha256": "7cee6749d37fa364222045ddd3ced20f11a8e6a795059787de81e62a8f42acff",
+      "elapsed_seconds": 89.78069541417062,
+      "finished_at": "2026-09-27T06:10:53.640081+00:00",
+      "run_id": "preprocessing-b1-default",
+      "started_at": "2026-09-27T06:09:23.858976+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 915239641,
+      "artifact_directory": "./runs/preprocessing-b1-cpu",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "c2da45f1f7cb120b2a3767697f705762b5cc0b5a8a3122f1367bca79586ce295",
+        "communication_relay_status.json": "335a58a19644659382ffd0ba382752f626e5a64f5057659974707038e83dca27",
+        "config.yaml": "23047b16db3d49c4896a094ab3d47bfdb00b17dab7b01c3293e5fe35b185ea6a",
+        "model_centerpoint.json": "b84f78040da05c20fb40b199bd9a0c4bfce5017aad50185f5ef4265678af42a9",
+        "model_centerpoint_inputs.jsonl": "caab555616b5a7a067e48bb399211d8d1cfbb63036ab7d50a57a21e1df1d2336",
+        "model_vit-upernet.json": "27aaf4cb064a7d382f1ed0680257356c5570a7a3c0fde2d022ca14ec0402266d",
+        "model_vit-upernet_inputs.jsonl": "fefb3ff69d1b3daf072c4b96b50483c6a64a726ca3341ea0815bd973a8b69517",
+        "profile.nsys-rep": "602849ccb5adcea2caa861b1a93836b52610a3a81b346c93b2e071ac0f19a209",
+        "profile.sqlite": "a7b91076b349a2637f0faf0f54c1f7ae127f819d6c925de05cee007b14473b02",
+        "resolved_config.yaml": "23047b16db3d49c4896a094ab3d47bfdb00b17dab7b01c3293e5fe35b185ea6a",
+        "run_manifest.json": "3acf3a7842df15c976d699a32dea00c8f79dcdf7be3f3f8bf94117d104a74a74",
+        "runner.log": "d9545c46444cb232b265261979fe8366efe0a7ac472124cf7004fad3ef029ace",
+        "scheduler_events.csv": "10d32e1d5f65b2ac1dca1f1d1401990eca25d380218a34ae4ad41533c143e85f",
+        "testbed_result.json": "9dd38406e077883139a0b048a785873cfd650642259b4482bf80cc06492576e8"
+      },
+      "block": 1,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 210,
+          "memory_clock_mhz": 405,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "210, 405"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "cpu",
+      "config_path": "./generated_configs/preprocessing-b1-cpu.yaml",
+      "config_sha256": "23047b16db3d49c4896a094ab3d47bfdb00b17dab7b01c3293e5fe35b185ea6a",
+      "elapsed_seconds": 88.84268263867125,
+      "finished_at": "2026-09-27T06:18:09.768823+00:00",
+      "run_id": "preprocessing-b1-cpu",
+      "started_at": "2026-09-27T06:16:40.925670+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 914738775,
+      "artifact_directory": "./runs/preprocessing-b1-threads",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "67f40d6d702eb53889950b48e7c404f32581b8ae4f583d9edc608af7ac8e3a9e",
+        "communication_relay_status.json": "d758a6eea8a9acdce4f5be6fb56e5d95848ce06a0a93340d161df798f1a1a500",
+        "config.yaml": "734e071d580b64f40d3e7857476cdff837cd9c26b2b9649cef5059863ff994be",
+        "model_centerpoint.json": "c8abd255a51bd31a55c53d98943191c0a8c93e8517c9f3bf1c8983e0ff22b4a5",
+        "model_centerpoint_inputs.jsonl": "d6715db76a48008e6b973cd81f03cc31a20759968e44398cd4c0df1ec0267c01",
+        "model_vit-upernet.json": "ed6753dc48ac727c3c1da4323b988fe4ca65996eb5304b4f797de3f2a13471f0",
+        "model_vit-upernet_inputs.jsonl": "abe28222edfa9fd67601477a88096ccca3005de3ffe0b612a4d16d01e402c9ce",
+        "profile.nsys-rep": "29f1a53ab44f3e2177e99d7bdb0b9b39950dd3f178c7c452b4e092e2ac989065",
+        "profile.sqlite": "940fcd1e9bf2fc1bbeaaa28404b42728ac5026e720e16655f3d903cf36d2e09c",
+        "resolved_config.yaml": "734e071d580b64f40d3e7857476cdff837cd9c26b2b9649cef5059863ff994be",
+        "run_manifest.json": "d3c2120f9f0a32a5a71a768221fac38e4a262f825bad33fc3093cea60dd58b8e",
+        "runner.log": "21ddc2012a52ac63b947b44490cf7b5c0807865cba36a7f55520c984ef8db1f9",
+        "scheduler_events.csv": "12b69560b35f2226718f48a31edb34c765726d66901620a61f370710489d758d",
+        "testbed_result.json": "ce25cb41e1b55b9fa246687524318bc13d165a5aeaab86e3f664138fceb49e92"
+      },
+      "block": 1,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "threads",
+      "config_path": "./generated_configs/preprocessing-b1-threads.yaml",
+      "config_sha256": "734e071d580b64f40d3e7857476cdff837cd9c26b2b9649cef5059863ff994be",
+      "elapsed_seconds": 84.96637799963355,
+      "finished_at": "2026-09-27T06:19:36.310316+00:00",
+      "run_id": "preprocessing-b1-threads",
+      "started_at": "2026-09-27T06:18:11.343198+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 910786212,
+      "artifact_directory": "./runs/preprocessing-b1-both",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "0d5fe14529e3a4db3013a1f55f44e98e4428843f83cbeb4587fcbe1f7bc49084",
+        "communication_relay_status.json": "02d6b28e43cc918da6d9f9c54606304daaef8ec4948d2f7fa5e83dceaa904f59",
+        "config.yaml": "55128e538f7942ff5a2572f71bb41062c0ae23b527c50432b3fd6034a9e3ab85",
+        "model_centerpoint.json": "c2a9db3cd82c84946239abbd49462c05d1cc486651fcd95354bcdb4314212ca2",
+        "model_centerpoint_inputs.jsonl": "46c240377cf37be42f78c6a2f6497ef72ac6b64d83c9e3ded6c941b5572a1794",
+        "model_vit-upernet.json": "d81851899f239e9de2342c907f69093b025e6fedf1f9eece1424376a5c8caedb",
+        "model_vit-upernet_inputs.jsonl": "39372f4798be4b1119450d1be1cc652951a8791d3be008689ca4d34995b0d4ea",
+        "profile.nsys-rep": "a2d5f7c72eb0705ef5d4ebcf62415e22447de832660084f7700692a33e3e3145",
+        "profile.sqlite": "d096a05355657d8c01818bb027ea8707732bc1c72b1f10ac9e50354d39515965",
+        "resolved_config.yaml": "55128e538f7942ff5a2572f71bb41062c0ae23b527c50432b3fd6034a9e3ab85",
+        "run_manifest.json": "2e64284c845544f0e331f36e484f1aa6ac26e7898dc0eef4ef29d61fa7b4fa83",
+        "runner.log": "2782848328b9bdcd6ab7d9586d5f9f4d4e99706821d83735d490daeeae13933d",
+        "scheduler_events.csv": "eed21936d05fad0c0a1f2ee16fdfc5f43a5e6749da758c62f9b7978d7d9270f3",
+        "testbed_result.json": "37283c9c51e463fab93acd760f979b6e91d9ebe47554fddf4e1518d980ac7046"
+      },
+      "block": 1,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "both",
+      "config_path": "./generated_configs/preprocessing-b1-both.yaml",
+      "config_sha256": "55128e538f7942ff5a2572f71bb41062c0ae23b527c50432b3fd6034a9e3ab85",
+      "elapsed_seconds": 84.74465300003067,
+      "finished_at": "2026-09-27T06:21:02.635058+00:00",
+      "run_id": "preprocessing-b1-both",
+      "started_at": "2026-09-27T06:19:37.889834+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 899944411,
+      "artifact_directory": "./runs/preprocessing-b2-threads",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "1b66d7860f097774fdd96bf8e1285cf447309751144145c438cb3e4220812163",
+        "communication_relay_status.json": "75b838ae498a2b422e9e5259859ad0aaf456d974c1ffa8c7a0ec1d2f5a631a4d",
+        "config.yaml": "1ae22c03330051809dd559d9ef6f7a029fdbb539dcea627878b40a6461c5d6e8",
+        "model_centerpoint.json": "44f41b48489df2861d8fb6ebf840c8e4830bef593b54ada997f99bba92501705",
+        "model_centerpoint_inputs.jsonl": "8f76997adc5a6e1b78ea6819e57d11094c621dcf4bb70e77459267e3cbff46df",
+        "model_vit-upernet.json": "ad413d524ee08540145f4fb051eb870bfad30cc6f9b164fd62b80f2a6c9c9d9c",
+        "model_vit-upernet_inputs.jsonl": "95762b6de2e69efea21dacadbe1e560ad025590da23db9d2fb1ea19d2a5e3b8c",
+        "profile.nsys-rep": "16b7eb2735f7525b3ca057ff1471b85e5a161a17122469ccd7457baa6d705691",
+        "profile.sqlite": "45b6cb30992f362b925ae228bede16d721d06cd2f37636f12aec4733c32e7822",
+        "resolved_config.yaml": "1ae22c03330051809dd559d9ef6f7a029fdbb539dcea627878b40a6461c5d6e8",
+        "run_manifest.json": "c1e06c331ecdd745c8b906f19aa1afa7331f78f98bb6b8376166bd969485bc2d",
+        "runner.log": "1e2427c84611dee85807becbe9159a8147986ccc75ccf8b844ee50ade0b0d08a",
+        "scheduler_events.csv": "689f7c9263bb7a058eaafe209b5ca3555d5e29483be7fd5f9a297aa9b140cfa8",
+        "testbed_result.json": "594fd60e861718c259f414c03e157996fdf3bf350ae67c149a8c6c6ca7fc7f65"
+      },
+      "block": 2,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 810,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 810"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "threads",
+      "config_path": "./generated_configs/preprocessing-b2-threads.yaml",
+      "config_sha256": "1ae22c03330051809dd559d9ef6f7a029fdbb539dcea627878b40a6461c5d6e8",
+      "elapsed_seconds": 84.10905420221388,
+      "finished_at": "2026-09-27T06:22:28.310166+00:00",
+      "run_id": "preprocessing-b2-threads",
+      "started_at": "2026-09-27T06:21:04.200378+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 919010832,
+      "artifact_directory": "./runs/preprocessing-b2-both",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "05d015426e57515574ffd8add442ea31abb7f03c35f457298186a4ae728f7a92",
+        "communication_relay_status.json": "b5739d5954751745f041f83acfdfb336f9bb5c7228ff492b4fc8ea09a6e01e45",
+        "config.yaml": "6a2065a60aa996f3a079dc054fe6d297f290429ee73e69ebe9c1575b74f2af4a",
+        "model_centerpoint.json": "a033e37ccc4f35d0f8eb9d1dcde96ab446b7b14c33679d8969a38a435365de67",
+        "model_centerpoint_inputs.jsonl": "17cda026ab46f2b379992e64bfe84c05fc1a2c1591960ca9d892d489380ad37c",
+        "model_vit-upernet.json": "0fc0fff8d3f8420549cf8827234756cfbba29a8ba162521f1c09734934c327a4",
+        "model_vit-upernet_inputs.jsonl": "2526e7b03155e9c46b493010a5a150136ff671b297bc9db4048f6645cd588fdd",
+        "profile.nsys-rep": "1289c4a3285e55f602abc0a09212641f863e9d8025d88d74f10d879515a7693b",
+        "profile.sqlite": "d8cdbe93d00a0ffc0fe4be123c1fd2be531d1fbd519f3481830e00c8b64d2feb",
+        "resolved_config.yaml": "6a2065a60aa996f3a079dc054fe6d297f290429ee73e69ebe9c1575b74f2af4a",
+        "run_manifest.json": "a9a08673adf8d063aad521d4ebc93837e0a17218ce48e8267b9504510d28a022",
+        "runner.log": "97462e42fa43bb7fba7051eecdb17fcd277464f3cd99003ffe4eeccfffb51e86",
+        "scheduler_events.csv": "d2950e31fa09583341071ca83db1e50bc44c5548bfcf7e422f4528ef0bc8f743",
+        "testbed_result.json": "211daf5e0582fd1bce6cb5e3e16bd83c487111bc3ae09d9e776d3938d1882923"
+      },
+      "block": 2,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 810,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 810"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "both",
+      "config_path": "./generated_configs/preprocessing-b2-both.yaml",
+      "config_sha256": "6a2065a60aa996f3a079dc054fe6d297f290429ee73e69ebe9c1575b74f2af4a",
+      "elapsed_seconds": 86.0054065999575,
+      "finished_at": "2026-09-27T06:23:55.854993+00:00",
+      "run_id": "preprocessing-b2-both",
+      "started_at": "2026-09-27T06:22:29.848865+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 955561066,
+      "artifact_directory": "./runs/preprocessing-b2-default",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "3b6b14997df6b5f438cceefac451ab639fd08bdaece26b52198db2fc452fe94a",
+        "communication_relay_status.json": "472f17b19b2a572ac0d465aaaf1ca0b6690a32978ab022754d1652558db1d23d",
+        "config.yaml": "a0bcd72530e8c6b36d575700aba614782330579d013726376b11fad24b301863",
+        "model_centerpoint.json": "63555c916b0b87b2fce8f4e67560ba0c9e42a0a7457e2c76520c415a721933e8",
+        "model_centerpoint_inputs.jsonl": "51f7c8469cfe8dfd3988390533ad924b98a09c1cd39c6e65e475e93b002ed0ca",
+        "model_vit-upernet.json": "efd52248246be56c6c00c9ce27a6298c03cf216912c7d7fb45da5e69ea71bb2c",
+        "model_vit-upernet_inputs.jsonl": "e9c845b3305f81d566a576b1be41d1e0df0fcbe23325a08d79aa6c7b57a1e428",
+        "profile.nsys-rep": "abbf326a70d6840f09ba8594ac1d25ef6a94bf442ee9da15be1e49e044f24609",
+        "profile.sqlite": "1da223120b5fb3fb20f4876480ff6fa57e425837cc0f01f777d9e557b1cba07e",
+        "resolved_config.yaml": "a0bcd72530e8c6b36d575700aba614782330579d013726376b11fad24b301863",
+        "run_manifest.json": "3b757bdcab6f3c1ad05c96eec7c238728a9e9d273da3c9cc0bd0a9fd0d115cbe",
+        "runner.log": "64ec55121288a8bb1807b03ecfd8355359dcc93f8be08abed3c7aca016344bd8",
+        "scheduler_events.csv": "fa7c753b1057f90ceab8e1ab6731e3c3334b24524c32650220eb1867db6c3d0d",
+        "testbed_result.json": "bfd6ffa4e2dd60d8ad6c1bf107b655b0d1f40d4d73705edff8f9b9e6a6149914"
+      },
+      "block": 2,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "default",
+      "config_path": "./generated_configs/preprocessing-b2-default.yaml",
+      "config_sha256": "a0bcd72530e8c6b36d575700aba614782330579d013726376b11fad24b301863",
+      "elapsed_seconds": 87.8628999250941,
+      "finished_at": "2026-09-27T06:25:25.284528+00:00",
+      "run_id": "preprocessing-b2-default",
+      "started_at": "2026-09-27T06:23:57.420857+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 897065037,
+      "artifact_directory": "./runs/preprocessing-b2-cpu",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "cd210b0870b685e4e11bb1ac1ddc9e822df3c3f3b2940d6d920c9d877670a919",
+        "communication_relay_status.json": "7d22ea7b540c91b0d9bcd761da96872564b574f3305b01122976661948396fc6",
+        "config.yaml": "28e60e297689d91436ff39593c7b218a6ff7d3815055a515c4ba5ef678ce7a05",
+        "model_centerpoint.json": "9ced3649ed670798a848ed49ba03c085dc84843de3e7601b977e5be552d16fcb",
+        "model_centerpoint_inputs.jsonl": "0068d18e03a8987de048c5ad93c7100e42b0dd12e24b16ef7131f113174a0f96",
+        "model_vit-upernet.json": "8064d50da2ab24b736790e9acf91dc589ab5da5f2156a08cd836ee6a82d4b6fb",
+        "model_vit-upernet_inputs.jsonl": "7ab0909b89ab5a811a2aba75b98da9389608c54b781487772c4f84c51b623f63",
+        "profile.nsys-rep": "8bcb6fc183be88c52ed7d2ee7b24b501f6cc84b5e72803f316f957649e0f7b01",
+        "profile.sqlite": "8ae3d3b6ff66aae20e9c61a98123229f9a4750136bc911341570ca63dc1495a2",
+        "resolved_config.yaml": "28e60e297689d91436ff39593c7b218a6ff7d3815055a515c4ba5ef678ce7a05",
+        "run_manifest.json": "d0c016135339e1922faa4c36fd2b0feed20a0fcc4e23c2719f7617f342c8aec7",
+        "runner.log": "5c5587ea02496c3621729f17f59e5efb4598df0fd4326917ba11f572be830538",
+        "scheduler_events.csv": "0dd3295239da012ebdee6fbe0d80498fa5302064863a1010b6d4c2e85d43c90c",
+        "testbed_result.json": "49b2ab17f199d19a290894d83b8cdb152aa47b2f2db48a03fd21bd4db2782e5f"
+      },
+      "block": 2,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "cpu",
+      "config_path": "./generated_configs/preprocessing-b2-cpu.yaml",
+      "config_sha256": "28e60e297689d91436ff39593c7b218a6ff7d3815055a515c4ba5ef678ce7a05",
+      "elapsed_seconds": 86.869413908571,
+      "finished_at": "2026-09-27T06:26:53.731997+00:00",
+      "run_id": "preprocessing-b2-cpu",
+      "started_at": "2026-09-27T06:25:26.861751+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 905775129,
+      "artifact_directory": "./runs/preprocessing-b3-both",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "51e9d73556a00045b36a6b2de352494cfb8d4f9c0c7b1f1a25b1cbdd4a4a1b3d",
+        "communication_relay_status.json": "864567154428885bb83459288fbb990b8211b630a668446131b63cee6fb7cc04",
+        "config.yaml": "fab5212d799e387ef0c10c832736050e3c452bac928a46426ab420d800970a75",
+        "model_centerpoint.json": "f48275afda4af4e38d81af2de48308afc4b6ccd4a36570de4cfa66a6e6c51807",
+        "model_centerpoint_inputs.jsonl": "ebb4d8331eeb46c8c0f9313831a0d3f036a95c9b1374e920ac96a48248a99678",
+        "model_vit-upernet.json": "098ba176ca50cd1f7f67e68033ed636cd44311a9db2dd60472891d175e6c65ad",
+        "model_vit-upernet_inputs.jsonl": "d313f8e46b062fee41e7380f49421c8a42b186cb661704f1c9001fd2915fad2c",
+        "profile.nsys-rep": "97b05d34ce2a86634e9934c8f736cf48d685f081fcc02a7fa6e8a46eb9f497aa",
+        "profile.sqlite": "a630effa4ea5cd0a9ce82f00650555dcc82db448bcc605e9965940a707212063",
+        "resolved_config.yaml": "fab5212d799e387ef0c10c832736050e3c452bac928a46426ab420d800970a75",
+        "run_manifest.json": "94a2fce753826fb3d82455130e1825a285326ab11110f3a32569ad0f0ec5c371",
+        "runner.log": "724c317662b81538a36910e8480dabf93ab210c29287ad618c6f58792d5f091d",
+        "scheduler_events.csv": "ddff2dfa630d1719a1183c03503f2891160a7618b88e1e7d5ff38f9e5c449a1b",
+        "testbed_result.json": "dd15265391140bd52420d29e41153bb027df8ccd066a0a8cd6cd47b7c5636350"
+      },
+      "block": 3,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "both",
+      "config_path": "./generated_configs/preprocessing-b3-both.yaml",
+      "config_sha256": "fab5212d799e387ef0c10c832736050e3c452bac928a46426ab420d800970a75",
+      "elapsed_seconds": 84.48469048598781,
+      "finished_at": "2026-09-27T06:28:19.745291+00:00",
+      "run_id": "preprocessing-b3-both",
+      "started_at": "2026-09-27T06:26:55.259705+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 897748127,
+      "artifact_directory": "./runs/preprocessing-b3-threads",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "4ff3055c14fee1834a5190b4c030f0628e305e1e0719d887de58bcd0c2566c2a",
+        "communication_relay_status.json": "3484d7d163b8be566672b3cc3038c7e201e7c5b3692ba5dce9203a0b264095a1",
+        "config.yaml": "bff779fb83d8579187bae9b09682adb9358b9ec77f18c5d386a96e5ca4c51b8e",
+        "model_centerpoint.json": "ea5dcc1149cc89bbc3d06bf95b580e4e60f578b21a9e10c776797dfece32c21f",
+        "model_centerpoint_inputs.jsonl": "757a88f606dee28c589e16b33e8f9d598b71ef3b8b78359fc7e82b286b042911",
+        "model_vit-upernet.json": "332b6a6179889ca5bd33f188c6e7ac7822d6fe9da494d8b1bab4a77355395d7d",
+        "model_vit-upernet_inputs.jsonl": "2bc761c50214444ceb55693d026144d40af9e132fb7ff592791409aeb960bca2",
+        "profile.nsys-rep": "62eae7335e7c52dcdb732ce41fd765a1ec7ad6e023876569981875c09361a5ab",
+        "profile.sqlite": "201d3b6977e062ea1fdec9fc43c1539fe59f6fb4fd7dda00b0f81098388a5719",
+        "resolved_config.yaml": "bff779fb83d8579187bae9b09682adb9358b9ec77f18c5d386a96e5ca4c51b8e",
+        "run_manifest.json": "8255cc90217c2858bd222385de6cd07c7c21bef196da631cfce04c356dc5d421",
+        "runner.log": "624914812dcc45cadb30525d0fc17633f132476e84cf229d0632959c91d25957",
+        "scheduler_events.csv": "10ea67c2209f12c77cc94d4f77e60eca6e8553720adeafa32678dc7d88e73928",
+        "testbed_result.json": "9f52b65ec650e9f16322f0184a26d0763e6bcff229e126782566a990c0ecf88b"
+      },
+      "block": 3,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "threads",
+      "config_path": "./generated_configs/preprocessing-b3-threads.yaml",
+      "config_sha256": "bff779fb83d8579187bae9b09682adb9358b9ec77f18c5d386a96e5ca4c51b8e",
+      "elapsed_seconds": 83.79722404014319,
+      "finished_at": "2026-09-27T06:29:45.078450+00:00",
+      "run_id": "preprocessing-b3-threads",
+      "started_at": "2026-09-27T06:28:21.280276+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 889805630,
+      "artifact_directory": "./runs/preprocessing-b3-cpu",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "1e080ca63cd0e0f1bb0f58114f584159cab1c4cd771bdf8bf9ee85c6f16dbacb",
+        "communication_relay_status.json": "9f1443eb7aa4a19ff10afb09c2c625ffc8724f97a21902b97de00b7f45de3d9a",
+        "config.yaml": "2e4c2ee176aa8ff8ad790e74ecc3c4ff9f1fea2fff73718bc9dd46e7fe793fb5",
+        "model_centerpoint.json": "f2bfb02af3ee05ea38abf4fab44a1c301c6e93714ab691ba06312d3562ba94d8",
+        "model_centerpoint_inputs.jsonl": "b8a11c6deafa306a2f669ca3051e6dca2653d37db75e9c8bf8e44d7aaf27a0ca",
+        "model_vit-upernet.json": "2dd9615caa547bc776295b4c508ea259815be97a1833071d38ee1eda355a8e48",
+        "model_vit-upernet_inputs.jsonl": "0c9e76ae7a1204098c15948628ae20b5f73e0e52c74b978926104e510930ca54",
+        "profile.nsys-rep": "67405f7e22ca26b0fd21ec7774e8d82cc0d31c0ca405022374aaaf86008e2624",
+        "profile.sqlite": "0c1764e4d149ff0e39a3118da64171289088d88440edaa6e0704c9d787d98d25",
+        "resolved_config.yaml": "2e4c2ee176aa8ff8ad790e74ecc3c4ff9f1fea2fff73718bc9dd46e7fe793fb5",
+        "run_manifest.json": "6bf38b8c72745261709600ca0c3976281768d495a35ed97bdfeeaf935e04575f",
+        "runner.log": "b763a3afb3ade82be051401735ee866d1cb71c37185249af2b546eec86ff3192",
+        "scheduler_events.csv": "be6890b6aeaf565c967f6e552218f9bf20499cccac530a73e03c19088dac040d",
+        "testbed_result.json": "4c20bb33d3f0a01554b0683bf3593a62fcc72e32cfd67884503510aad46f297f"
+      },
+      "block": 3,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "cpu",
+      "config_path": "./generated_configs/preprocessing-b3-cpu.yaml",
+      "config_sha256": "2e4c2ee176aa8ff8ad790e74ecc3c4ff9f1fea2fff73718bc9dd46e7fe793fb5",
+      "elapsed_seconds": 85.95262383995578,
+      "finished_at": "2026-09-27T06:31:12.557589+00:00",
+      "run_id": "preprocessing-b3-cpu",
+      "started_at": "2026-09-27T06:29:46.603954+00:00",
+      "status": "success"
+    },
+    {
+      "artifact_bytes": 962571796,
+      "artifact_directory": "./runs/preprocessing-b3-default",
+      "artifact_hashes": {
+        "communication_relay.jsonl": "e80c2434ce69e6e8cf75e2d32f86e4f4f1842cfe642d9db6b3c5c41f7c2abca5",
+        "communication_relay_status.json": "f6ecd14c88be19ecadcdf4b19d0865269fbc4cd6b7706e7213f879bae894319c",
+        "config.yaml": "4888531476ab202cf11cb64ab93f46bf7fe02b2afb57f436a8203d996588a199",
+        "model_centerpoint.json": "a8eae4d6bce7d9251fb21ff395986780abb0e7282fbbdb85990539fdebd77263",
+        "model_centerpoint_inputs.jsonl": "872cbe8e998c9cd8e67c031c6508a1679194a158e484d51f51ac2a225db6c418",
+        "model_vit-upernet.json": "6b705e67d30dd96afbb4a320c3ba134b330850c6be1cbeee073a318cf54057fa",
+        "model_vit-upernet_inputs.jsonl": "335f70c9b2c8080c34b3080df2d31b0862456dc18399e9ed534517032a239cb8",
+        "profile.nsys-rep": "229751af2f8b7db0d87e755b6d8dba4199bd6513464d6bdef7be85c231cf93bb",
+        "profile.sqlite": "e8c2ec3c107ed2adc626a1f43c89b56b1bf289e8986e2fa38e633bbb1fd1444e",
+        "resolved_config.yaml": "4888531476ab202cf11cb64ab93f46bf7fe02b2afb57f436a8203d996588a199",
+        "run_manifest.json": "f419097bf54089f808acee5a864a01cc548135caf06257b48b54d1baa875a290",
+        "runner.log": "c54ab8eb27ce0148195a287cead7880bfc19a448bb62a1bbf5da5bbe516b3765",
+        "scheduler_events.csv": "3cd936d7baf3d2f6227a15bea02914ab75d7181180c118478c3f16e26f65a6d8",
+        "testbed_result.json": "8268e01d56022fc9e4fd7dc1dbef3da2d0bd986d2296a5a21089811d8680de9c"
+      },
+      "block": 3,
+      "clock_evidence": {
+        "lock_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-gpu-clocks=3105,3105"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "GPU clocks set to \"(gpuClkMin 3105, gpuClkMax 3105)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--lock-memory-clocks=10501,10501"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "Memory clocks set to \"(memClkMin 10501, memClkMax 10501)\" for GPU 00000000:01:00.0\n\nWarning: persistence mode is disabled on device 00000000:01:00.0. See the Known Issues section of the nvidia-smi(1) man page for more information. Run with [--help | -h] switch to get more information on how to enable persistence mode.\nAll done."
+          }
+        ],
+        "observed_after_lock": {
+          "graphics_clock_mhz": 2805,
+          "memory_clock_mhz": 10501,
+          "query": {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--query-gpu=clocks.current.graphics,clocks.current.memory",
+              "--format=csv,noheader,nounits"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "2805, 10501"
+          }
+        },
+        "requested": {
+          "graphics_clock_mhz": 3105,
+          "memory_clock_mhz": 10501
+        },
+        "reset_commands": [
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-gpu-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          },
+          {
+            "command": [
+              "nvidia-smi",
+              "-i",
+              "0",
+              "--reset-memory-clocks"
+            ],
+            "returncode": 0,
+            "stderr": "",
+            "stdout": "All done."
+          }
+        ]
+      },
+      "condition": "default",
+      "config_path": "./generated_configs/preprocessing-b3-default.yaml",
+      "config_sha256": "4888531476ab202cf11cb64ab93f46bf7fe02b2afb57f436a8203d996588a199",
+      "elapsed_seconds": 88.26640193117782,
+      "finished_at": "2026-09-27T06:32:42.350723+00:00",
+      "run_id": "preprocessing-b3-default",
+      "started_at": "2026-09-27T06:31:14.083241+00:00",
+      "status": "success"
+    }
+  ],
+  "figure_code_commit": "e8f0edfadc4806064f71ec48fc65393f0fb0ac71",
+  "gpu": {
+    "compute_cap": "8.9",
+    "driver_version": "565.57.01",
+    "memory.total": "12282",
+    "name": "NVIDIA GeForce RTX 4070 SUPER",
+    "pci.bus_id": "00000000:01:00.0",
+    "uuid": "GPU-7c9c16ea-dbdc-b9db-01b7-4b1d5fcc7e73"
+  },
+  "inventory_sha256": "517b7c5d326691d23cf400c0f5ca5446c4bb99c902b8e1e59bf2af9b37def02e",
+  "pinned_models": {
+    "centerpoint": {
+      "checkpoint": "centerpoint_0075voxel_second_secfpn_dcn_circlenms_4x8_cyclic_20e_nus_20220810_025930-657f67e0.pth",
+      "checkpoint_sha256": "657f67e049c40d6b3c293133bed0e29693aad4095938904fb4d83dc57dc9aca0",
+      "model_config": "/opt/mmdetection3d/configs/centerpoint/centerpoint_voxel0075_second_secfpn_head-dcn-circlenms_8xb4-cyclic-20e_nus-3d.py",
+      "model_config_sha256": "6475e4e9ea1891cb46823ce5ef62b6f3d3cf54ca79b45743476e986910f43ad5"
+    },
+    "vit-upernet": {
+      "checkpoint": "upernet_vit-b16_mln_512x512_160k_ade20k_20210624_130547-852fa768.pth",
+      "checkpoint_sha256": "852fa7681f761df8fa159b62ce9ce37b151c90ae5982370838246f2b4b0bb6aa",
+      "model_config": "/usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/vit/vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512.py",
+      "model_config_sha256": "9d0ba4eca79d1492f3dc62134b3274ac8cb7e565636bba92e2699bce40d20cad"
+    }
+  },
+  "schema": "preprocessing_case_v1",
+  "selection_policy": "fixed middle cached pair; no latency inspection",
+  "software": {
+    "bpftrace": "0.14.0",
+    "driver": "565.57.01",
+    "nsight": "2025.2.1.130"
+  },
+  "source_candidate": {
+    "candidate_id": "d73363ec29b3876770d2a8308795721dfb2535d341a89e218f0d1680927b813a",
+    "image": {
+      "cdr_path": "<workspace>/analysis_outputs/input3/generated_configs/input3-crossed/source_cdr/dbfd52634e0069f1a0637090de76ad064c11d58d30a9237a5522b6706cf6f776.cdr",
+      "frame_id": "CAM_FRONT",
+      "non_timestamp_sha256": "0cf0b026ca97d170059c56d41873fd8124632da7e9b75505b148ed97e0d9f6b2",
+      "original_bag_timestamp_ns": 1535657541049779000,
+      "original_header_timestamp_ns": 1535657541012404000,
+      "original_serialized_sha256": "dbfd52634e0069f1a0637090de76ad064c11d58d30a9237a5522b6706cf6f776",
+      "payload_sha256": "d9c63abfa61f84bd313b2d2a17ca73b93496ae0eb0b2e4e3434dff755f726cb9",
+      "preprocessing_seed": 3653647039,
+      "scene_token": "aedcd3cf7c4a49d7a4a43ab7443a9eb1",
+      "source_bag": "<workspace>/data/bag/NuScenes-v1.0-trainval-scene-0770/NuScenes-v1.0-trainval-scene-0770_0.mcap",
+      "source_bag_sha256": "0c190caf858582d6bb54cbe24a47ddd849b4161314b26acc7f52ee00f3c87836",
+      "source_frame_id": "scene-0770:image:120",
+      "source_scene": "scene-0770",
+      "topic": "/CAM_FRONT/image_rect_compressed",
+      "topic_metadata": {
+        "name": "/CAM_FRONT/image_rect_compressed",
+        "offered_qos_profiles": "",
+        "serialization_format": "cdr",
+        "type": "sensor_msgs/msg/CompressedImage"
+      },
+      "topic_ordinal": 120
+    },
+    "lidar": {
+      "cdr_path": "<workspace>/analysis_outputs/input3/generated_configs/input3-crossed/source_cdr/ddf8c9afec66c785ad9227f40c9fcf09f6be9e129a04833a0ce872e9668b7641.cdr",
+      "frame_id": "LIDAR_TOP",
+      "non_timestamp_sha256": "c2182dfa3bc0a2455bb8c260854454b45e450863297d896f8f659dbdc25ca591",
+      "original_bag_timestamp_ns": 1535657540999469000,
+      "original_header_timestamp_ns": 1535657540999469000,
+      "original_serialized_sha256": "ddf8c9afec66c785ad9227f40c9fcf09f6be9e129a04833a0ce872e9668b7641",
+      "payload_sha256": "ee6f8d7cc9d748dd541f5e62e3a4cb716748db6f71e2fe4a6cc011dcbe935666",
+      "preprocessing_seed": 4000288124,
+      "scene_token": "aedcd3cf7c4a49d7a4a43ab7443a9eb1",
+      "source_bag": "<workspace>/data/bag/NuScenes-v1.0-trainval-scene-0770/NuScenes-v1.0-trainval-scene-0770_0.mcap",
+      "source_bag_sha256": "0c190caf858582d6bb54cbe24a47ddd849b4161314b26acc7f52ee00f3c87836",
+      "source_frame_id": "scene-0770:lidar:198",
+      "source_scene": "scene-0770",
+      "topic": "/LIDAR_TOP",
+      "topic_metadata": {
+        "name": "/LIDAR_TOP",
+        "offered_qos_profiles": "",
+        "serialization_format": "cdr",
+        "type": "sensor_msgs/msg/PointCloud2"
+      },
+      "topic_ordinal": 198
+    },
+    "sync_delta_ns": 12935000
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "both": {
+    "calling_blocked_ms": 0.0,
+    "calling_runnable_wait_ms": 0.0,
+    "calling_running_ms": 0.590882,
+    "calling_unknown_ms": 0.0,
+    "frame_ms": 75.031527,
+    "frame_without_preprocessing_ms": 74.440645,
+    "identified_workers": 9,
+    "input_id": "203",
+    "latency_ms": 70.44282,
+    "model": "vit-upernet",
+    "occurrence_id": "image:203",
+    "pid": 1690627,
+    "pool_blocked_ms": 4.361027,
+    "pool_runnable_wait_ms": 0.007283,
+    "pool_running_ms": 0.949628,
+    "pool_unknown_ms": 0.0,
+    "pre_end_ns": 32051451981,
+    "pre_start_ns": 32050861099,
+    "preprocessing_ms": 0.590882,
+    "scene": "scene-0770",
+    "source_frame_id": "scene-0770:image:120",
+    "tid": 1690627
+  },
+  "default": {
+    "calling_blocked_ms": 0.0,
+    "calling_runnable_wait_ms": 0.0,
+    "calling_running_ms": 13.836923,
+    "calling_unknown_ms": 0.0,
+    "frame_ms": 51.683123,
+    "frame_without_preprocessing_ms": 37.8462,
+    "identified_workers": 27,
+    "input_id": "203",
+    "latency_ms": 33.739782,
+    "model": "vit-upernet",
+    "occurrence_id": "image:203",
+    "pid": 1679072,
+    "pool_blocked_ms": 256.131808,
+    "pool_runnable_wait_ms": 46.786552,
+    "pool_running_ms": 70.678561,
+    "pool_unknown_ms": 0.0,
+    "pre_end_ns": 33259560333,
+    "pre_start_ns": 33245723410,
+    "preprocessing_ms": 13.836923,
+    "scene": "scene-0770",
+    "source_frame_id": "scene-0770:image:120",
+    "tid": 1679072
+  },
+  "figure_source_sha256": "fb71ae6f4ed291a8c12bdbba7e3f09e66e52b5144ead87ff8e690b361c578f46",
+  "policy": "ViT block 1 baseline nearest retained P95 among mutually retained occurrences",
+  "retained_baseline_p95_ms": 13.566881149999972,
+  "timeline": [
+    {
+      "condition": "Default",
+      "end_relative_ms": 13.836923,
+      "role": "caller",
+      "start_relative_ms": 0.0,
+      "state": "running",
+      "tid": 1679072
+    },
+    {
+      "condition": "Default",
+      "end_relative_ms": 0.501834,
+      "role": "pool worker",
+      "start_relative_ms": 0.0,
+      "state": "blocked",
+      "tid": 1679305
+    },
+    {
+      "condition": "Default",
+      "end_relative_ms": 13.64761,
+      "role": "pool worker",
+      "start_relative_ms": 0.501834,
+      "state": "runnable_wait",
+      "tid": 1679305
+    },
+    {
+      "condition": "Default",
+      "end_relative_ms": 13.836923,
+      "role": "pool worker",
+      "start_relative_ms": 13.64761,
+      "state": "running",
+      "tid": 1679305
+    },
+    {
+      "condition": "Both",
+      "end_relative_ms": 0.590882,
+      "role": "caller",
+      "start_relative_ms": 0.0,
+      "state": "running",
+      "tid": 1690627
+    },
+    {
+      "condition": "Both",
+      "end_relative_ms": 0.408907,
+      "role": "pool worker",
+      "start_relative_ms": 0.0,
+      "state": "blocked",
+      "tid": 1690789
+    },
+    {
+      "condition": "Both",
+      "end_relative_ms": 0.413127,
+      "role": "pool worker",
+      "start_relative_ms": 0.408907,
+      "state": "runnable_wait",
+      "tid": 1690789
+    },
+    {
+      "condition": "Both",
+      "end_relative_ms": 0.590882,
+      "role": "pool worker",
+      "start_relative_ms": 0.413127,
+      "state": "running",
+      "tid": 1690789
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "1679072": [
+    {
+      "execution_backend": "opencv",
+      "framework_owner": "opencv",
+      "observed_worker_threads": 15,
+      "pool_id": "1679072:opencv:parallel_for:opencv",
+      "pool_kind": "parallel_for",
+      "team_size_estimate": 16
+    },
+    {
+      "execution_backend": "libgomp",
+      "framework_owner": "pytorch",
+      "observed_worker_threads": 9,
+      "pool_id": "1679072:pytorch:intra_op:libgomp",
+      "pool_kind": "intra_op",
+      "team_size_estimate": 10
+    },
+    {
+      "execution_backend": "libtorch",
+      "framework_owner": "pytorch",
+      "observed_worker_threads": 3,
+      "pool_id": "1679072:pytorch:native:libtorch",
+      "pool_kind": "native",
+      "team_size_estimate": 4
+    }
+  ],
+  "1679153": [
+    {
+      "execution_backend": "libgomp",
+      "framework_owner": "pytorch",
+      "observed_worker_threads": 9,
+      "pool_id": "1679153:pytorch:intra_op:libgomp",
+      "pool_kind": "intra_op",
+      "team_size_estimate": 10
+    },
+    {
+      "execution_backend": "libtorch",
+      "framework_owner": "pytorch",
+      "observed_worker_threads": 3,
+      "pool_id": "1679153:pytorch:native:libtorch",
+      "pool_kind": "native",
+      "team_size_estimate": 4
+    }
+  ]
+}

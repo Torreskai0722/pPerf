@@ -1,0 +1,72 @@
+{
+  "analyzed_runs": [
+    "preprocessing-b1-default",
+    "preprocessing-b1-cpu",
+    "preprocessing-b1-threads",
+    "preprocessing-b1-both",
+    "preprocessing-b2-threads",
+    "preprocessing-b2-both",
+    "preprocessing-b2-default",
+    "preprocessing-b2-cpu",
+    "preprocessing-b3-both",
+    "preprocessing-b3-threads",
+    "preprocessing-b3-cpu",
+    "preprocessing-b3-default"
+  ],
+  "failures": [],
+  "rejections": {
+    "preprocessing-b1-both": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b1-cpu": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "fewer than 100 retained observations; tail statistics withheld: centerpoint",
+      "centerpoint GPU clock readback differs: 2805, 10501"
+    ],
+    "preprocessing-b1-default": [
+      "Nsight/BPF reported trace loss; causal attribution rejected",
+      "scheduler clock alignment failed; attribution is exploratory only",
+      "vit-upernet GPU clock readback differs: 2805, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b1-threads": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b2-both": [
+      "vit-upernet GPU clock readback differs: 2805, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b2-cpu": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2805, 10501"
+    ],
+    "preprocessing-b2-default": [
+      "Nsight/BPF reported trace loss; causal attribution rejected",
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b2-threads": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b3-both": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b3-cpu": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b3-default": [
+      "vit-upernet GPU clock readback differs: 2805, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ],
+    "preprocessing-b3-threads": [
+      "vit-upernet GPU clock readback differs: 2790, 10501",
+      "centerpoint GPU clock readback differs: 2790, 10501"
+    ]
+  },
+  "valid_runs": []
+}
