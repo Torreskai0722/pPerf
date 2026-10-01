@@ -47,7 +47,10 @@
     "source_frame_id": "scene-0770:image:120",
     "tid": 1679072
   },
-  "figure_source_sha256": "fb71ae6f4ed291a8c12bdbba7e3f09e66e52b5144ead87ff8e690b361c578f46",
+  "displayed_roles": [
+    "pool worker"
+  ],
+  "figure_source_sha256": "5d8ac16e17c9e6ce21a6391d7715430415aa6261037ee0f2bc83c0caa28960aa",
   "policy": "ViT block 1 baseline nearest retained P95 among mutually retained occurrences",
   "retained_baseline_p95_ms": 13.566881149999972,
   "timeline": [

@@ -431,21 +431,35 @@
     "valid": true
   },
   "manuscript": {
-    "compiled_pdf_sha256": "8c71a1af1f31f9cb4d9873db17eee399c93058fa3f613b4261e3023f216fa1b7",
-    "estimated_two_column_page_occupancy": 0.78,
+    "compiled_pdf_sha256": "702b9004b1377b6e5a7d37ce722c5745ba0e0a7b08a4a77b9ed338b368779bd3",
+    "estimated_two_column_page_occupancy": 0.72,
+    "figure_layout": "single column",
     "overfull_boxes": false,
-    "overleaf_commit": "aa026aad3e3d4f571b09d48685d8289b9290a4e2",
+    "overleaf_commit": "78657b0cc63026082b49d21fe418e32c0f558527",
     "overleaf_project": "https://www.overleaf.com/project/69a605d70f28cb924a9e6d05",
     "pages": 11,
     "sha256": {
-      "Archives/3.2 Data Preprocessing Variability.tex": "120e8290d075489509d494ab6e3e76ba342509478867cc75ed2df981cc97505c",
-      "figs/preprocessing_case.pdf": "c65120b367d9aafd4ebc4bf7edd73f9709eb479fd97860cb79a9ed5da52308cc",
+      "Archives/3.2 Data Preprocessing Variability.tex": "572d9b8184fe0cb214cbf8222910d369f0e2c419f62b6ab314df6435fad1a370",
+      "Archives/3.3 model variability.tex": "5125941a72dec5d777ab970004e7cca5046e102e51a39d510a022af20974aa95",
+      "Archives/3.4 system variability.tex": "ae105c061d33f0046f6fcff418a3ee6bab22d1826764a264452529d280a4f3d0",
+      "figs/preprocessing_case.pdf": "5995f71e8e86fc7911a16ae18f823ff0561e1053efa7c4846c218109544b59bf",
       "reference.bib": "ab6402561af01cf0a5614615fcfd1300c14efa7cba51bc1dc83dd46aeea53554"
     },
-    "subsection_words_including_caption": 398,
+    "subsection_words_including_caption": 420,
     "tracked_manuscript_inputs": 16,
     "unresolved_references": false,
     "untracked_manuscript_dependencies": [],
-    "visual_inspection": "vector figure, 180 dpi PNG, and compiled subsection/figure inspected; readable and unclipped"
+    "visual_inspection": "PDF/180 dpi PNG and compiled subsection inspected; readable labels and legend, no clipping; Insight numbers 1\u20134 unique"
+  },
+  "presentation_revision": {
+    "baseline_p95_unchanged": true,
+    "code_commit": "339ac2afc2872e34508bf1468a10df94dc6dd380",
+    "date": "2026-09-30",
+    "displayed_roles": [
+      "pool worker"
+    ],
+    "full_timeline_unchanged": true,
+    "selected_frames_unchanged": true,
+    "selected_occurrence": "image:203"
   }
 }

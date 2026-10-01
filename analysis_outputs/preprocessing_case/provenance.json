@@ -1369,7 +1369,7 @@
       "status": "success"
     }
   ],
-  "figure_code_commit": "e8f0edfadc4806064f71ec48fc65393f0fb0ac71",
+  "figure_code_commit": "339ac2afc2872e34508bf1468a10df94dc6dd380",
   "gpu": {
     "compute_cap": "8.9",
     "driver_version": "565.57.01",
@@ -1392,6 +1392,17 @@
       "model_config": "/usr/local/lib/python3.10/dist-packages/mmseg/.mim/configs/vit/vit_vit-b16_mln_upernet_8xb2-160k_ade20k-512x512.py",
       "model_config_sha256": "9d0ba4eca79d1492f3dc62134b3274ac8cb7e565636bba92e2699bce40d20cad"
     }
+  },
+  "presentation_revision": {
+    "baseline_p95_unchanged": true,
+    "date": "2026-09-30",
+    "displayed_roles": [
+      "pool worker"
+    ],
+    "full_timeline_unchanged": true,
+    "layout": "single column; vertically stacked distributions and two worker lanes",
+    "selected_frames_unchanged": true,
+    "selected_occurrence": "image:203"
   },
   "schema": "preprocessing_case_v1",
   "selection_policy": "fixed middle cached pair; no latency inspection",

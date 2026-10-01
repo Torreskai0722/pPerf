@@ -1,7 +1,7 @@
 # Validation
 
 Collection and analysis code: `cbf96845268c80b890e54313762ca5ba028af995`.
-Figure layout only: `e8f0edf` (same samples and timeline selection).
+Figure layout only: `339ac2a` (single column; same samples and timeline selection).
 
 ## Committed workspace
 
@@ -17,7 +17,7 @@ colcon test --packages-select closeloop_experiments --pytest-args test/test_prep
 colcon test-result --verbose
 ```
 
-Result: **216 tests, 0 errors, 0 failures, 1 skipped**. Tests cover effective-default readback without changing settings, namespace joins/reuse rejection, scheduler reconstruction, clock rejection, loss diagnostics, four policies/order, CUDA-completed frame joins, single-pass scene filtering, and withholding tails below 100 retained observations. The final figure-only changes were exercised by regenerating PDF/PNG from the same retained exports and visually inspecting them.
+Result: **216 tests, 0 errors, 0 failures, 1 skipped**. Tests cover effective-default readback without changing settings, namespace joins/reuse rejection, scheduler reconstruction, clock rejection, loss diagnostics, four policies/order, CUDA-completed frame joins, single-pass scene filtering, and withholding tails below 100 retained observations. The final figure-only changes were exercised by regenerating PDF/PNG from the same retained exports and visually inspecting them. An equality check confirms identical selected frames, P95 and full calling-thread/worker timeline intervals.
 
 The initial unrestricted workspace test invocation reported three unrelated failures because two referenced fixtures are absent from the tracked repository: `studies/mps_two_model_contention_cause/diagnostic_configs/mps2cause-cta-passive-r24.yaml` and `studies/section4_1/study.yaml`. Those failures remain in the local validation logs; this report does not claim that the unrestricted suite passed. An analyzer-only invocation without sourcing the installed workspace failed collection; the correctly sourced run passed. Failed CPU sanity attempts and the successful pre-campaign sanity trace are preserved.
 
@@ -29,6 +29,6 @@ All twelve recorded runs have successful CUDA-completed frame joins and verified
 
 ## Manuscript
 
-The complete eleven-page manuscript was built with `latexmk -pdf -interaction=nonstopmode -halt-on-error`, including BibTeX resolution. The modified subsection has 398 words including its caption (`texcount -sum`). Its text and figure occupy approximately 0.78 of a two-column page in aggregate; the figure floats onto the following page. The vector figure and rendered pages were inspected: labels/legend are readable, there is no clipping, and there are no unresolved references/citations or overfull boxes. Existing unrelated warnings remain: missing author metadata and unrelated float-specifier warnings.
+The complete eleven-page manuscript was built with `latexmk -pdf -interaction=nonstopmode -halt-on-error`, including BibTeX resolution. The modified subsection has 420 words including its caption (`texcount -sum`). Its text and figure occupy approximately 0.72 of a two-column page in aggregate; the figure floats onto the following page. The vector figure and rendered pages were inspected: labels/legend are readable, there is no clipping, and there are no unresolved references/citations or overfull boxes. Existing unrelated warnings remain: missing author metadata and unrelated float-specifier warnings.
 
-The subsection cites existing Elmougy et al. and the official PyTorch LibTorch thread-pool investigation, distinguishes their settings, and states the inconclusive outcome. The original Overleaf checkout's unrelated input-data edit is preserved. Only the preprocessing subsection, figure and bibliography are included in its publication commit.
+The revised subsection leads with observed policy comparisons and ends with Insight 2. Its protocol and recording diagnostics remain in the experiment report. Existing Elmougy et al. and PyTorch citations are retained. The original Overleaf checkout's unrelated input-data edit is preserved. The publication revision contains the preprocessing subsection, single-column figure, and sequential renumbering of the following two insights.
