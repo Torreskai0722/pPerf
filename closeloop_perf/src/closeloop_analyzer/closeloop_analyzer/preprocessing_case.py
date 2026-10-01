@@ -336,10 +336,10 @@ def make_figure(results, samples, traces, output):
     candidates = [r for r in base_rows if r['occurrence_id'] in peer]
     selected = min(candidates, key=lambda r: (abs(r['preprocessing_ms'] - p95), r['occurrence_id']))
     paired = peer[selected['occurrence_id']]
-    fig = plt.figure(figsize=(7.0, 3.2), facecolor='white')
-    grid = fig.add_gridspec(2, 2, height_ratios=(1.35, 1), hspace=.8, wspace=.3)
+    fig = plt.figure(figsize=(3.45, 4.65), facecolor='white')
+    grid = fig.add_gridspec(3, 1, height_ratios=(1, 1, .55), hspace=.65)
     for index, model in enumerate(MODELS):
-        ax = fig.add_subplot(grid[0, index])
+        ax = fig.add_subplot(grid[index, 0])
         data = [[r['preprocessing_ms'] for result in results if result['condition'] == condition
                  for r in samples[result['run_id']] if r['model'] == model] for condition in CONDITIONS]
         violins = ax.violinplot(data, showextrema=False, widths=.8)
@@ -349,15 +349,15 @@ def make_figure(results, samples, traces, output):
             p25, p50, p75 = np.percentile(values, [25, 50, 75])
             ax.vlines(x, p25, p75, color='#333333', lw=1.6)
             ax.scatter(x, p50, s=15, color='#333333', zorder=3)
-        ax.set_xticks(range(1, 5), LABELS, fontsize=8)
-        ax.set_ylabel('Preprocessing (ms)', fontsize=9)
-        ax.set_title('ViT–UPerNet' if index == 0 else 'CenterPoint', fontsize=10)
+        ax.set_xticks(range(1, 5), LABELS if index else [''] * 4, fontsize=7.5)
+        ax.set_ylabel('Time (ms)', fontsize=8)
+        ax.set_title('(a) ViT–UPerNet' if index == 0 else '(b) CenterPoint', fontsize=9)
         if model == 'centerpoint':
             ax.set_yscale('log')
             ax.set_yticks([1, 10, 100, 1000], ['1', '10', '100', '1000'])
         ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
-        ax.tick_params(labelsize=8)
-    ax = fig.add_subplot(grid[1, :])
+        ax.tick_params(labelsize=7.5)
+    ax = fig.add_subplot(grid[2, 0])
     colors = {'running': '#4c78a8', 'runnable_wait': '#d95f02', 'blocked': '#c7c7c7', 'unknown': '#cc0000'}
     timeline = []
     ylabels, ys = [], []
@@ -366,9 +366,9 @@ def make_figure(results, samples, traces, output):
         workers = [tid for tid in trace['pool_by_tid'] if any(m['host_tid'] == tid and m['host_pid'] == frame['pid'] for m in trace['mapping'])]
         # Representative pool worker with the largest runnable wait, tied by TID.
         worker = max(workers, key=lambda tid: (PreprocessAnalyzer._overlap(trace['intervals'][tid], frame['pre_start_ns'], frame['pre_end_ns'])['runnable_wait'], -tid)) if workers else None
-        for j, (tid, role) in enumerate(((frame['tid'], 'caller'), (worker, 'pool worker'))):
-            y = 3 - row_index * 2 - j
-            ys.append(y); ylabels.append(label + ' ' + role)
+        y = 1 - row_index
+        ys.append(y); ylabels.append(label)
+        for tid, role in ((frame['tid'], 'caller'), (worker, 'pool worker')):
             if tid is None:
                 continue
             for segment in trace['intervals'][tid]:
@@ -376,26 +376,25 @@ def make_figure(results, samples, traces, output):
                 if end <= start:
                     continue
                 state = segment.state
-                ax.broken_barh([((start - frame['pre_start_ns']) / 1e6, (end - start) / 1e6)], (y - .32, .64), facecolors=colors.get(state, 'white'))
+                if role == 'pool worker':
+                    ax.broken_barh([((start - frame['pre_start_ns']) / 1e6, (end - start) / 1e6)], (y - .3, .6), facecolors=colors.get(state, 'white'))
                 timeline.append({'condition': label, 'role': role, 'tid': tid, 'state': state,
                                  'start_relative_ms': (start - frame['pre_start_ns']) / 1e6,
                                  'end_relative_ms': (end - frame['pre_start_ns']) / 1e6})
-    ax.set_yticks(ys, ylabels, fontsize=8)
-    ax.set_xlabel('Time since preprocessing entry (ms)', fontsize=9)
-    ax.set_title('Matched ViT occurrence ' + selected['occurrence_id'], fontsize=10)
-    if not all(r['quality']['valid'] for r in results):
-        ax.text(.99, .06, 'Exploratory: validity checks failed', transform=ax.transAxes,
-                ha='right', va='bottom', fontsize=7, color='#8c2d04')
-    ax.tick_params(labelsize=8); ax.grid(axis='x', alpha=.2); ax.set_axisbelow(True)
-    ax.legend(handles=[Patch(color=colors[state], label=label) for state, label in
+    ax.set_yticks(ys, ylabels, fontsize=7.5)
+    ax.set_xlabel('Time since preprocessing entry (ms)', fontsize=8)
+    ax.set_title('(c) ViT worker scheduling', fontsize=9)
+    ax.tick_params(labelsize=7.5); ax.grid(axis='x', alpha=.2); ax.set_axisbelow(True)
+    fig.legend(handles=[Patch(color=colors[state], label=label) for state, label in
                        (('running', 'Running'), ('runnable_wait', 'Runnable waiting'), ('blocked', 'Blocked'))],
-              ncol=3, loc='upper center', bbox_to_anchor=(.5, -.65), frameon=False, fontsize=8)
-    fig.subplots_adjust(left=.16, right=.985, top=.95, bottom=.18)
+              ncol=3, loc='lower center', bbox_to_anchor=(.52, .015), frameon=False, fontsize=7,
+              columnspacing=.8, handlelength=1.3, handletextpad=.4)
+    fig.subplots_adjust(left=.2, right=.97, top=.95, bottom=.17)
     fig.savefig(output / 'preprocessing_case.pdf', bbox_inches='tight')
     fig.savefig(output / 'preprocessing_case.png', dpi=180, bbox_inches='tight')
     plt.close(fig)
     write_json(output / 'timeline_selection.json', {'policy': 'ViT block 1 baseline nearest retained P95 among mutually retained occurrences',
-               'figure_source_sha256': sha256(Path(__file__)),
+               'figure_source_sha256': sha256(Path(__file__)), 'displayed_roles': ['pool worker'],
                'retained_baseline_p95_ms': p95, 'default': selected, 'both': paired, 'timeline': timeline})
     for run_id, frame in ((baseline, selected), (both, paired)):
         model_pids = {r['pid']: r['model'] for r in samples[run_id]}
